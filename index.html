@@ -3,26 +3,49 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>서진 수업 도구</title>
+<title>서진 수업 자료실</title>
+<link rel="stylesheet" href="common.css">
 <style>
-:root{color-scheme:dark}
-body{margin:0;min-height:100vh;display:grid;place-items:center;padding:24px;background:#12151c;color:#f4f1ea;font-family:-apple-system,"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;word-break:keep-all}
-main{width:min(640px,100%)}
-h1{margin:0 0 6px;font-size:30px}
-p.what{margin:0 0 26px;color:#9aa1ad;line-height:1.55}
-a.card{display:block;padding:20px 22px;border:2px solid #2c3242;border-radius:18px;background:#1e2330;color:inherit;text-decoration:none}
-a.card:hover{border-color:#ffd166}
-a.card b{display:block;font-size:22px;margin-bottom:6px}
-a.card span{color:#9aa1ad;font-size:15px;line-height:1.5}
-footer{margin-top:22px;font-size:13px;color:#6c7382;line-height:1.6}
+.hero{position:relative;margin-bottom:26px;padding:30px 28px 0;border:2px solid var(--line);border-radius:24px;background:linear-gradient(180deg,#fffdf8,#f2efe7);overflow:hidden}
+.hero h1{font-size:36px}
+.hero .lead{max-width:34em}
+.hero svg{display:block;width:100%;height:150px;margin-top:14px}
+@media (max-width:560px){.hero{padding:22px 20px 0}.hero h1{font-size:27px}.hero svg{height:110px}}
 </style>
 </head>
 <body>
-<main>
-  <h1>서진 수업 도구</h1>
-  <p class="what">특수학교 수업에서 바로 쓰는 웹 도구입니다. 설치가 필요 없고, 누르면 바로 시작합니다.</p>
-  <a class="card" href="sonkkeut/"><b>손끝 연습</b><span>터치스크린 · 마우스 · 키보드 기본 조작을 학교급별 5단계씩 연습합니다. 전자칠판에 띄워 쓰세요.</span></a>
-  <footer>학생 이름이나 학습 기록은 저장하지 않습니다. 고른 설정만 그 컴퓨터의 브라우저에 남습니다.</footer>
-</main>
+<div class="wrap">
+  <header class="hero">
+    <h1>서진 수업 자료실</h1>
+    <p class="lead">서울서진학교 수업에서 쓰는 안내와 프로그램을 모아 둡니다. 설치 없이 링크로 바로 열립니다.</p>
+    <!-- 학교 건물을 본떠 직접 그린 그림입니다(외부 사진·로고 사용 없음) -->
+    <svg viewBox="0 0 600 150" role="img" aria-label="학교 건물과 나무 그림" fill="none">
+      <path d="M0 132h600" stroke="#cfc8ba" stroke-width="2"/>
+      <path d="M60 132V74l58-26 58 26v58z" fill="#fff" stroke="#1f6f68" stroke-width="2.5" stroke-linejoin="round"/>
+      <path d="M176 132V88h120v44z" fill="#fff" stroke="#1f6f68" stroke-width="2.5" stroke-linejoin="round"/>
+      <path d="M296 132V66h96v66z" fill="#fff" stroke="#1f6f68" stroke-width="2.5" stroke-linejoin="round"/>
+      <g fill="#e9b949"><rect x="84" y="86" width="20" height="18" rx="3"/><rect x="132" y="86" width="20" height="18" rx="3"/><rect x="200" y="100" width="20" height="18" rx="3"/><rect x="248" y="100" width="20" height="18" rx="3"/><rect x="318" y="80" width="20" height="18" rx="3"/><rect x="352" y="80" width="20" height="18" rx="3"/></g>
+      <rect x="108" y="108" width="24" height="24" rx="3" fill="#4d96ff"/>
+      <rect x="330" y="104" width="28" height="28" rx="3" fill="#4d96ff"/>
+      <g stroke="#1f6f68" stroke-width="2.5" stroke-linecap="round"><path d="M440 132v-26"/><path d="M500 132v-34"/><path d="M548 132v-20"/></g>
+      <circle cx="440" cy="92" r="22" fill="#cfe4d8"/><circle cx="500" cy="82" r="28" fill="#bcdbcb"/><circle cx="548" cy="100" r="18" fill="#cfe4d8"/>
+    </svg>
+  </header>
+
+  <div class="cards">
+    <a class="card" href="gear/">
+      <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg></span>
+      <b>기자재 · 교구 안내</b>
+      <span>전자칠판, 태블릿, 로봇 같은 기자재와 교구를 어떻게 준비하고 쓰는지 안내합니다.</span>
+    </a>
+    <a class="card" href="ai/">
+      <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11V5.5a1.5 1.5 0 0 1 3 0V11m0-1.5a1.5 1.5 0 0 1 3 0V11m0-.5a1.5 1.5 0 0 1 3 0V15a6 6 0 0 1-6 6h-.6a6 6 0 0 1-4.7-2.3L4 15.6a1.6 1.6 0 0 1 2.4-2.1L9 16"/></svg></span>
+      <b>AI · 디지털 기초 소양 교육</b>
+      <span>기기를 다루는 첫걸음부터 연습하는 수업용 프로그램입니다. 지금은 「손끝 연습」이 있습니다.</span>
+    </a>
+  </div>
+
+  <footer>학생 이름이나 학습 기록은 저장하지 않습니다. 교사가 고른 설정만 그 컴퓨터의 브라우저에 남습니다.</footer>
+</div>
 </body>
 </html>

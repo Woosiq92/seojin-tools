@@ -1,0 +1,21 @@
+:root{--bg:#f7f4ee;--card:#fff;--ink:#22262e;--muted:#5f6672;--line:#e2dcd1;--teal:#1f6f68;--sand:#e9b949;--sky:#4d96ff}
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;background:var(--bg);color:var(--ink);font-family:-apple-system,"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;word-break:keep-all;line-height:1.55}
+.wrap{width:min(900px,100%);margin:0 auto;padding:28px 20px 56px}
+a{color:inherit}
+.crumb{display:inline-flex;align-items:center;gap:6px;margin-bottom:18px;padding:8px 14px;border:1.5px solid var(--line);border-radius:999px;background:var(--card);font-size:15px;text-decoration:none}
+.crumb:hover{border-color:var(--teal)}
+h1{margin:0;font-size:32px;letter-spacing:-.4px}
+.lead{margin:8px 0 0;color:var(--muted);font-size:16px}
+.cards{display:grid;gap:14px;margin-top:26px}
+.card{display:grid;grid-template-columns:56px 1fr;align-items:center;gap:4px 18px;padding:22px 24px;border:2px solid var(--line);border-radius:20px;background:var(--card);text-decoration:none}
+.card:hover{border-color:var(--teal)}
+.card .ic{grid-row:span 2;display:grid;place-items:center;width:56px;height:56px;border-radius:16px;background:#eef3f1;color:var(--teal)}
+.card .ic svg{width:32px;height:32px}
+.card b{font-size:22px}
+.card span{grid-column:2;color:var(--muted);font-size:15px}
+.soon{border-style:dashed}
+.soon .ic{background:#f1efe9;color:#9aa1ad}
+.tag{margin-left:8px;padding:2px 9px;border-radius:999px;background:#f1efe9;color:var(--muted);font-size:13px;font-weight:700;vertical-align:3px}
+footer{margin-top:34px;padding-top:16px;border-top:1px solid var(--line);color:var(--muted);font-size:13px}
+@media (max-width:560px){h1{font-size:26px}.card{grid-template-columns:44px 1fr;padding:18px}.card .ic{width:44px;height:44px}.card b{font-size:19px}}
