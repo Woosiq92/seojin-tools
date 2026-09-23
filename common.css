@@ -17,8 +17,9 @@ body{margin:0;min-height:100vh;background:var(--bg);color:var(--ink);
 a{color:inherit;text-decoration:none}
 :focus-visible{outline:2px solid var(--clay);outline-offset:3px}
 .wrap{width:min(940px,100%);margin:0 auto;padding:72px 24px 90px}
-.emblem{display:block;width:auto;height:104px;margin:0 0 22px}
-@media (max-width:640px){.emblem{height:76px;margin-bottom:16px}}
+.brand{display:flex;align-items:center;gap:18px}
+.emblem{flex:none;width:auto;height:76px}
+@media (max-width:640px){.brand{gap:12px}.emblem{height:52px}}
 .kicker{display:inline-flex;align-items:center;gap:8px;margin:0 0 18px;padding:7px 15px;
   border-radius:999px;background:var(--sheet);border:1px solid var(--line);
   font-size:13.5px;font-weight:600;letter-spacing:.01em;color:var(--ink2)}
