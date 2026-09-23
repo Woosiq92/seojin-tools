@@ -10,7 +10,7 @@ h1{margin:0;font-size:32px;letter-spacing:-.4px}
 .cards{display:grid;gap:14px;margin-top:26px}
 .card{display:grid;grid-template-columns:56px 1fr;align-items:center;gap:4px 18px;padding:22px 24px;border:2px solid var(--line);border-radius:20px;background:var(--card);text-decoration:none}
 .card:hover{border-color:var(--teal)}
-.card .ic{grid-row:span 2;display:grid;place-items:center;width:56px;height:56px;border-radius:16px;background:#eef3f1;color:var(--teal)}
+.card .ic{grid-column:1;grid-row:span 2;display:grid;place-items:center;width:56px;height:56px;border-radius:16px;background:#eef3f1;color:var(--teal)}
 .card .ic svg{width:32px;height:32px}
 .card b{font-size:22px}
 .card span{grid-column:2;color:var(--muted);font-size:15px}
