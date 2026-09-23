@@ -1,21 +1,57 @@
-:root{--bg:#f7f4ee;--card:#fff;--ink:#22262e;--muted:#5f6672;--line:#e2dcd1;--teal:#1f6f68;--sand:#e9b949;--sky:#4d96ff}
+/* 서진 수업 자료실 — 밝은 아이보리 바탕 · 세리프 제목 · 클레이 포인트 */
+:root{
+  --bg:#F5F4EE; --sheet:#FFFFFF; --sunk:#EFEDE4;
+  --ink:#191917; --ink2:#4A4A44; --muted:#7C7C72; --line:#E4E1D6;
+  --clay:#C96442; --clay-soft:#F6E7E0;
+  --sky:#3D7A94; --sky-soft:#E2EDF1;
+  --leaf:#4E7A52; --leaf-soft:#E6EFE5;
+  --f-title:"Source Serif 4","Gowun Batang",'Apple SD Gothic Neo',Georgia,serif;
+  --f-body:"Pretendard",-apple-system,'Apple SD Gothic Neo','Malgun Gothic','Noto Sans KR',sans-serif;
+  --r:16px;
+}
 *{box-sizing:border-box}
-body{margin:0;min-height:100vh;background:var(--bg);color:var(--ink);font-family:-apple-system,"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;word-break:keep-all;line-height:1.55}
-.wrap{width:min(900px,100%);margin:0 auto;padding:28px 20px 56px}
-a{color:inherit}
-.crumb{display:inline-flex;align-items:center;gap:6px;margin-bottom:18px;padding:8px 14px;border:1.5px solid var(--line);border-radius:999px;background:var(--card);font-size:15px;text-decoration:none}
-.crumb:hover{border-color:var(--teal)}
-h1{margin:0;font-size:32px;letter-spacing:-.4px}
-.lead{margin:8px 0 0;color:var(--muted);font-size:16px}
-.cards{display:grid;gap:14px;margin-top:26px}
-.card{display:grid;grid-template-columns:56px 1fr;align-items:center;gap:4px 18px;padding:22px 24px;border:2px solid var(--line);border-radius:20px;background:var(--card);text-decoration:none}
-.card:hover{border-color:var(--teal)}
-.card .ic{grid-column:1;grid-row:span 2;display:grid;place-items:center;width:56px;height:56px;border-radius:16px;background:#eef3f1;color:var(--teal)}
-.card .ic svg{width:32px;height:32px}
-.card b{font-size:22px}
-.card span{grid-column:2;color:var(--muted);font-size:15px}
-.soon{border-style:dashed}
-.soon .ic{background:#f1efe9;color:#9aa1ad}
-.tag{margin-left:8px;padding:2px 9px;border-radius:999px;background:#f1efe9;color:var(--muted);font-size:13px;font-weight:700;vertical-align:3px}
-footer{margin-top:34px;padding-top:16px;border-top:1px solid var(--line);color:var(--muted);font-size:13px}
-@media (max-width:560px){h1{font-size:26px}.card{grid-template-columns:44px 1fr;padding:18px}.card .ic{width:44px;height:44px}.card b{font-size:19px}}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;min-height:100vh;background:var(--bg);color:var(--ink);
+  font-family:var(--f-body);font-size:16px;line-height:1.65;
+  word-break:keep-all;overflow-wrap:break-word;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+:focus-visible{outline:2px solid var(--clay);outline-offset:3px}
+.wrap{width:min(940px,100%);margin:0 auto;padding:72px 24px 90px}
+.kicker{display:inline-flex;align-items:center;gap:8px;margin:0 0 18px;padding:7px 15px;
+  border-radius:999px;background:var(--sheet);border:1px solid var(--line);
+  font-size:13.5px;font-weight:600;letter-spacing:.01em;color:var(--ink2)}
+.kicker i{width:8px;height:8px;border-radius:50%;background:var(--clay)}
+h1{margin:0;font-family:var(--f-title);font-size:52px;font-weight:600;line-height:1.14;letter-spacing:-.022em;text-wrap:balance}
+.lead{margin:16px 0 0;max-width:36em;color:var(--ink2);font-size:18px;line-height:1.6}
+.cards{display:grid;gap:16px;margin-top:44px}
+.card{position:relative;display:grid;grid-template-columns:auto 1fr auto;align-items:start;gap:4px 20px;
+  padding:26px 28px;border:1px solid var(--line);border-radius:var(--r);background:var(--sheet);
+  transition:border-color .18s ease,transform .18s ease,box-shadow .18s ease}
+a.card:hover{border-color:var(--tone,var(--clay));transform:translateY(-2px);
+  box-shadow:0 12px 30px -18px rgba(25,25,23,.35)}
+.card .ic{grid-row:span 3;display:grid;place-items:center;width:54px;height:54px;border-radius:14px;
+  background:var(--tone-soft,var(--clay-soft));color:var(--tone,var(--clay))}
+.card .ic svg{width:28px;height:28px}
+.card b{grid-column:2;font-family:var(--f-title);font-size:25px;font-weight:600;letter-spacing:-.015em}
+.card p{grid-column:2;margin:7px 0 0;color:var(--ink2);font-size:15.5px}
+.card .meta{grid-column:2;margin:12px 0 0;font-size:13px;color:var(--muted)}
+.card .go{grid-row:span 3;align-self:center;width:24px;height:24px;color:var(--muted);transition:color .18s,transform .18s}
+a.card:hover .go{color:var(--tone,var(--clay));transform:translateX(3px)}
+.tag{margin-left:10px;padding:4px 10px;border-radius:999px;background:var(--tone-soft,var(--clay-soft));
+  color:var(--tone,var(--clay));font-family:var(--f-body);font-size:12.5px;font-weight:700;vertical-align:5px}
+.clay{--tone:var(--clay);--tone-soft:var(--clay-soft)}
+.sky{--tone:var(--sky);--tone-soft:var(--sky-soft)}
+.leaf{--tone:var(--leaf);--tone-soft:var(--leaf-soft)}
+.soon{background:var(--sunk);border-style:dashed}
+.crumb{display:inline-flex;align-items:center;gap:7px;margin-bottom:26px;padding:8px 15px;border-radius:999px;
+  border:1px solid var(--line);background:var(--sheet);font-size:14px;color:var(--ink2)}
+.crumb:hover{border-color:var(--clay);color:var(--ink)}
+footer{margin-top:54px;padding-top:18px;border-top:1px solid var(--line);color:var(--muted);font-size:13.5px}
+@media (max-width:640px){
+  .wrap{padding:44px 18px 64px}
+  h1{font-size:36px}.lead{font-size:16.5px}
+  .card{grid-template-columns:auto 1fr;padding:20px}
+  .card .ic{width:46px;height:46px;border-radius:12px}
+  .card b{font-size:21px}.card .go{display:none}
+}
+@media print{body{background:#fff}.card{break-inside:avoid;box-shadow:none}}

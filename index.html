@@ -4,44 +4,30 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>서진 수업 자료실</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin><link href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,500;8..60,600&family=Gowun+Batang:wght@400;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="common.css">
-<style>
-.hero{position:relative;margin-bottom:26px;padding:30px 28px 0;border:2px solid var(--line);border-radius:24px;background:linear-gradient(180deg,#fffdf8,#f2efe7);overflow:hidden}
-.hero h1{font-size:36px}
-.hero .lead{max-width:34em}
-.hero svg{display:block;width:100%;height:150px;margin-top:14px}
-@media (max-width:560px){.hero{padding:22px 20px 0}.hero h1{font-size:27px}.hero svg{height:110px}}
-</style>
 </head>
 <body>
 <div class="wrap">
-  <header class="hero">
-    <h1>서진 수업 자료실</h1>
-    <p class="lead">서울서진학교 수업에서 쓰는 안내와 프로그램을 모아 둡니다. 설치 없이 링크로 바로 열립니다.</p>
-    <!-- 학교 건물을 본떠 직접 그린 그림입니다(외부 사진·로고 사용 없음) -->
-    <svg viewBox="0 0 600 150" role="img" aria-label="학교 건물과 나무 그림" fill="none">
-      <path d="M0 132h600" stroke="#cfc8ba" stroke-width="2"/>
-      <path d="M60 132V74l58-26 58 26v58z" fill="#fff" stroke="#1f6f68" stroke-width="2.5" stroke-linejoin="round"/>
-      <path d="M176 132V88h120v44z" fill="#fff" stroke="#1f6f68" stroke-width="2.5" stroke-linejoin="round"/>
-      <path d="M296 132V66h96v66z" fill="#fff" stroke="#1f6f68" stroke-width="2.5" stroke-linejoin="round"/>
-      <g fill="#e9b949"><rect x="84" y="86" width="20" height="18" rx="3"/><rect x="132" y="86" width="20" height="18" rx="3"/><rect x="200" y="100" width="20" height="18" rx="3"/><rect x="248" y="100" width="20" height="18" rx="3"/><rect x="318" y="80" width="20" height="18" rx="3"/><rect x="352" y="80" width="20" height="18" rx="3"/></g>
-      <rect x="108" y="108" width="24" height="24" rx="3" fill="#4d96ff"/>
-      <rect x="330" y="104" width="28" height="28" rx="3" fill="#4d96ff"/>
-      <g stroke="#1f6f68" stroke-width="2.5" stroke-linecap="round"><path d="M440 132v-26"/><path d="M500 132v-34"/><path d="M548 132v-20"/></g>
-      <circle cx="440" cy="92" r="22" fill="#cfe4d8"/><circle cx="500" cy="82" r="28" fill="#bcdbcb"/><circle cx="548" cy="100" r="18" fill="#cfe4d8"/>
-    </svg>
+  <header>
+    <p class="kicker"><i></i>서울서진학교</p>
+    <h1>수업 자료실</h1>
   </header>
 
   <div class="cards">
-    <a class="card" href="gear/">
-      <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg></span>
-      <b>기자재 · 교구 안내</b>
-      <span>전자칠판, 태블릿, 로봇 같은 기자재와 교구를 어떻게 준비하고 쓰는지 안내합니다.</span>
+    <a class="card clay" href="gear/">
+      <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="2.5" y="4" width="19" height="12.5" rx="2.2"/><path d="M8 20.5h8M12 16.5v4"/></svg></span>
+      <b>기자재 · 교구 안내<span class="tag">준비 중</span></b>
+      <p>전자칠판, 태블릿, 로봇 교구를 어떻게 꺼내 쓰고 다시 정리하는지 적어 둡니다.</p>
+      <p class="meta">교사용</p>
+      <svg class="go" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
     </a>
-    <a class="card" href="ai/">
-      <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11V5.5a1.5 1.5 0 0 1 3 0V11m0-1.5a1.5 1.5 0 0 1 3 0V11m0-.5a1.5 1.5 0 0 1 3 0V15a6 6 0 0 1-6 6h-.6a6 6 0 0 1-4.7-2.3L4 15.6a1.6 1.6 0 0 1 2.4-2.1L9 16"/></svg></span>
-      <b>AI · 디지털 기초 소양 교육</b>
-      <span>기기를 다루는 첫걸음부터 연습하는 수업용 프로그램입니다. 지금은 「손끝 연습」이 있습니다.</span>
+    <a class="card sky" href="digital/">
+      <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11V5.5a1.5 1.5 0 0 1 3 0V11m0-1.5a1.5 1.5 0 0 1 3 0V11m0-.5a1.5 1.5 0 0 1 3 0V15a6 6 0 0 1-6 6h-.6a6 6 0 0 1-4.7-2.3L4 15.6a1.6 1.6 0 0 1 2.4-2.1L9 16"/></svg></span>
+      <b>디지털 소양 교육</b>
+      <p>터치스크린으로 누르고 고르고 끌기, 마우스로 포인터 옮기고 클릭하기, 키보드로 키 찾고 글자와 낱말 치기. 학생이 직접 해 보며 익힙니다.</p>
+      <p class="meta">초 · 중 · 고 · 학교급마다 5단계씩 · 학생용</p>
+      <svg class="go" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
     </a>
   </div>
 
