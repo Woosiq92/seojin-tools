@@ -1,0 +1,915 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>손끝 연습</title>
+<style>
+:root{--bg:#12151c;--side:#171b24;--card:#1e2330;--line:#2c3242;--text:#f4f1ea;--muted:#9aa1ad;--dim:#6c7382;--accent:#ffd166;--ink:#1b1b1b;--blue:#7fb2ff}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden;overscroll-behavior:none}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,"Apple SD Gothic Neo","Malgun Gothic","Noto Sans KR",sans-serif;-webkit-tap-highlight-color:transparent;word-break:keep-all}
+button{font:inherit;color:inherit}
+[hidden]{display:none!important}
+
+/* ---------- 활동 무대 ---------- */
+#stage{position:fixed;inset:0;overflow:hidden;touch-action:none;user-select:none;-webkit-user-select:none}
+.target{position:absolute;transform:translate(-50%,-50%);cursor:pointer;touch-action:none}
+.target svg{width:100%;height:100%;display:block;pointer-events:none;filter:drop-shadow(0 .6vmin 1.2vmin rgba(0,0,0,.35))}
+.target.appear{animation:appear .35s ease-out}
+.target.pop{animation:pop .45s ease-in forwards}
+@keyframes appear{from{transform:translate(-50%,-50%) scale(.3);opacity:0}to{transform:translate(-50%,-50%) scale(1);opacity:1}}
+@keyframes pop{0%{transform:translate(-50%,-50%) scale(1)}40%{transform:translate(-50%,-50%) scale(1.25)}100%{transform:translate(-50%,-50%) scale(0);opacity:0}}
+.target.dragging{z-index:5}
+.target.back{transition:left .4s ease,top .4s ease}
+.target .num{position:absolute;inset:0;display:grid;place-items:center;font-size:calc(var(--s) * .5);font-weight:800;color:#12151c;pointer-events:none}
+.target .hold{position:absolute;inset:-9%;width:118%;height:118%;filter:none}
+.target .hold circle{fill:none;stroke:#fff;stroke-width:5;stroke-dasharray:100;stroke-dashoffset:100;transition:stroke-dashoffset .2s}
+.target.holding .hold circle{stroke-dashoffset:0;transition:stroke-dashoffset 1s linear}
+.goal{position:absolute;transform:translate(-50%,-50%);border:1vmin dashed rgba(244,241,234,.5);border-radius:4vmin;pointer-events:none}
+.goal.glow{border-style:solid;border-color:var(--accent)}
+.goal.round{border-radius:50%}
+
+.spark{position:absolute;width:3vmin;height:3vmin;margin:-1.5vmin 0 0 -1.5vmin;border-radius:50%;pointer-events:none;animation:fly .8s ease-out forwards}
+@keyframes fly{to{transform:translate(var(--dx),var(--dy)) scale(.2);opacity:0}}
+.ring{position:absolute;width:10vmin;height:10vmin;margin:-5vmin 0 0 -5vmin;border:.8vmin solid var(--accent);border-radius:50%;pointer-events:none;animation:ring .9s ease-out forwards}
+@keyframes ring{to{transform:scale(3.2);opacity:0}}
+.calm .ring{animation-duration:1.4s;border-color:rgba(255,209,102,.6)}
+.trail{position:absolute;width:2.4vmin;height:2.4vmin;margin:-1.2vmin 0 0 -1.2vmin;border-radius:50%;pointer-events:none;animation:trail .7s ease-out forwards}
+@keyframes trail{to{transform:scale(.2);opacity:0}}
+
+#sample{position:absolute;left:50%;top:12vmin;transform:translateX(-50%);width:16vmin;height:16vmin;padding:2vmin;border-radius:3vmin;background:rgba(255,255,255,.08);pointer-events:none}
+#sample svg{width:100%;height:100%;display:block}
+#bigchar{position:absolute;left:50%;top:13vh;transform:translateX(-50%);font-size:28vmin;font-weight:800;line-height:1;white-space:pre;pointer-events:none}
+#bigchar.word{font-size:15vmin;color:rgba(244,241,234,.9)}
+#typebox{position:absolute;left:50%;top:37vh;transform:translateX(-50%);min-width:40vmin;height:13vmin;padding:0 3vmin;border-radius:2vmin;background:#1e2330;border:.4vmin solid #394050;display:flex;align-items:center;justify-content:center;font-size:9vmin;font-weight:700;white-space:pre;pointer-events:none}
+#typebox .stray{color:#ff8f8f}
+#typebox .caret{width:.5vmin;height:9vmin;margin-left:.6vmin;background:var(--accent);animation:blink 1s steps(1) infinite}
+@keyframes blink{50%{opacity:0}}
+#kb{position:absolute;left:50%;bottom:5vh;transform:translateX(-50%);display:flex;flex-direction:column;align-items:flex-start;gap:1vmin;pointer-events:none}
+#kb.single{bottom:auto;top:50%;transform:translate(-50%,-50%)}
+#kb.lower{top:auto;bottom:14vh;transform:translateX(-50%)}
+.kr{display:flex;gap:1vmin}
+.key{width:7.5vmin;height:7.5vmin;border-radius:1.2vmin;background:#232834;border:.3vmin solid #394050;display:grid;place-items:center;font-size:3.6vmin;color:#c9cfda;transition:transform .15s}
+.key.hint{background:var(--accent);border-color:var(--accent);color:var(--ink)}
+.key.w2{width:13vmin;font-size:2.6vmin}
+.key.space{width:48vmin;font-size:2.6vmin}
+.key.big{width:26vmin;height:16vmin;font-size:5vmin;font-weight:700;border-radius:2.5vmin}
+.key.big.space{width:60vmin}
+.key.hit{transform:scale(.9)}
+#arrow{position:absolute;left:50%;top:50%;width:34vmin;height:34vmin;transform:translate(-50%,-50%) rotate(var(--rot));pointer-events:none;color:var(--accent)}
+#arrow svg{width:100%;height:100%;animation:nudge 1.2s ease-in-out infinite}
+@keyframes nudge{50%{transform:translateX(6vmin)}}
+
+#guide{position:fixed;top:4.4vmin;left:50%;transform:translateX(-50%);max-width:calc(100vw - 360px);padding:1vmin 3vmin;border-radius:999px;background:rgba(255,255,255,.08);font-size:3.4vmin;font-weight:700;line-height:1.3;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;pointer-events:none;z-index:2}
+#dots{position:fixed;top:1.2vmin;left:50%;transform:translateX(-50%);display:flex;gap:.8vmin;pointer-events:none;z-index:2}
+#dots i{width:2vmin;height:2vmin;border-radius:50%;background:rgba(255,255,255,.14);transition:background .3s}
+#dots i.on{background:var(--accent)}
+#done{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:4vmin;pointer-events:none;animation:fade .6s ease-out}
+#done b{font-size:30vmin;font-weight:800;line-height:1;color:var(--accent)}
+#done span{font-size:3vmin;color:rgba(244,241,234,.55);white-space:nowrap}
+@keyframes fade{from{opacity:0}}
+
+#gear{position:fixed;top:calc(env(safe-area-inset-top,0px) + 14px);left:14px;width:52px;height:52px;padding:0;border:0;border-radius:50%;background:rgba(255,255,255,.07);color:rgba(255,255,255,.35);display:grid;place-items:center;z-index:10;overflow:hidden;cursor:pointer;touch-action:none;user-select:none;-webkit-user-select:none}
+#gear .fill{position:absolute;inset:0;border-radius:50%;background:rgba(255,209,102,.55);transform:scale(0)}
+#gear.holding .fill{transform:scale(1);transition:transform 1s linear}
+#gear svg{position:relative;width:26px;height:26px}
+#where{position:fixed;top:calc(env(safe-area-inset-top,0px) + 30px);left:78px;font-size:15px;color:rgba(255,255,255,.35);pointer-events:none;z-index:10}
+
+/* ---------- 홈 ---------- */
+#panel{position:fixed;inset:0;z-index:20;background:var(--bg);overflow:auto}
+.home{display:grid;grid-template-columns:minmax(300px,380px) 1fr;min-height:100%}
+.side{display:flex;flex-direction:column;gap:26px;padding:36px 30px;background:var(--side);border-right:1px solid var(--line)}
+.side h1{margin:0;font-size:36px;letter-spacing:-.5px}
+.side .what{margin:6px 0 0;font-size:16px;line-height:1.5;color:var(--muted)}
+.flab{display:block;margin-bottom:10px;font-size:14px;font-weight:600;color:var(--dim)}
+.seg{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:6px;border-radius:16px;background:var(--bg)}
+.seg button{min-height:52px;border:0;border-radius:11px;background:none;font-size:19px;font-weight:700;color:var(--muted);cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--ink)}
+.devs{display:grid;gap:10px}
+.devs button{display:grid;grid-template-columns:44px 1fr;align-items:center;gap:2px 14px;padding:14px 16px;border:2px solid var(--line);border-radius:16px;background:var(--card);text-align:left;cursor:pointer}
+.devs svg{grid-row:span 2;width:44px;height:44px;color:var(--muted)}
+.devs b{font-size:20px}
+.devs span{font-size:14px;color:var(--muted)}
+.devs button[aria-pressed="true"]{border-color:var(--accent)}
+.devs button[aria-pressed="true"] svg{color:var(--accent)}
+.side .foot{margin-top:auto;display:flex;flex-direction:column;gap:12px}
+.ghost{align-self:flex-start;display:flex;align-items:center;gap:8px;padding:12px 18px;border:1.5px solid var(--line);border-radius:12px;background:none;font-size:16px;color:var(--text);cursor:pointer}
+.ghost svg{width:20px;height:20px}
+.note{margin:0;font-size:13px;line-height:1.55;color:var(--dim)}
+
+.main{padding:36px 40px;display:flex;flex-direction:column;gap:18px;min-width:0}
+.main h2{margin:0;font-size:28px}
+.main h2 small{margin-left:10px;font-size:16px;font-weight:600;color:var(--muted)}
+#devtip{margin:6px 0 0;font-size:15px;color:var(--muted)}
+.lvlist{display:grid;gap:10px}
+.lvlist button{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:0 18px;padding:14px 20px;border:2px solid var(--line);border-radius:18px;background:var(--card);text-align:left;cursor:pointer}
+.lvlist button:hover{border-color:#46506a}
+.lvlist em{grid-row:span 2;display:grid;place-items:center;width:48px;height:48px;border-radius:50%;background:var(--bg);font-style:normal;font-size:22px;font-weight:800;color:var(--muted)}
+.lvlist b{font-size:21px}
+.lvlist span{grid-column:2;font-size:15px;line-height:1.45;color:var(--muted)}
+.lvlist .play{grid-column:3;grid-row:1/span 2;width:40px;height:40px;color:var(--dim)}
+.lvlist .tag{margin-left:10px;padding:3px 10px;border-radius:999px;font-size:13px;font-style:normal;font-weight:700;vertical-align:3px}
+.lvlist .tag.now{background:rgba(255,209,102,.16);color:var(--accent)}
+.lvlist .tag.next{background:rgba(127,178,255,.16);color:var(--blue)}
+.lvlist button.now{border-color:var(--accent)}
+.lvlist button.now em{background:var(--accent);color:var(--ink)}
+.lvlist button.now .play{color:var(--accent)}
+
+/* ---------- 설정 ---------- */
+#detail{position:fixed;inset:0;z-index:30;display:flex;justify-content:flex-end;background:rgba(6,8,12,.6)}
+#detail .sheet{width:min(560px,100%);height:100%;display:flex;flex-direction:column;background:var(--side);border-left:1px solid var(--line)}
+#detail header{display:flex;align-items:center;gap:12px;padding:22px 26px 14px}
+#detail header h2{margin:0;font-size:24px}
+#less{margin-left:auto;padding:10px 16px;border:1.5px solid var(--line);border-radius:12px;background:none;font-size:15px;cursor:pointer}
+#detail .body{flex:1;overflow:auto;padding:0 26px 20px}
+#curlv{margin:0 0 6px;padding:14px 16px;border-radius:14px;background:var(--card);font-size:15px;line-height:1.5;color:var(--muted)}
+#curlv b{display:block;font-size:17px;color:var(--text)}
+#detail h3{margin:22px 0 10px;font-size:14px;font-weight:600;color:var(--dim)}
+.grp{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin-bottom:12px}
+.lab{flex:none;width:110px;font-size:15px;color:var(--muted)}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chips button{min-height:44px;padding:9px 15px;border:1.5px solid var(--line);border-radius:999px;background:var(--card);font-size:15px;cursor:pointer}
+.chips button[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--ink);font-weight:700}
+.sub{flex-basis:100%;margin:-2px 0 0 122px;font-size:13px;color:var(--dim)}
+#detail footer{display:flex;flex-wrap:wrap;align-items:center;gap:12px;padding:16px 26px;border-top:1px solid var(--line)}
+#reset{padding:7px 12px;border:1px solid var(--line);border-radius:9px;background:none;font-size:14px;cursor:pointer}
+#start{margin-left:auto;padding:14px 34px;border:0;border-radius:14px;background:var(--accent);color:var(--ink);font-size:19px;font-weight:800;cursor:pointer}
+
+@media (max-width:860px){
+  .home{grid-template-columns:1fr}
+  .side{border-right:0;border-bottom:1px solid var(--line);padding:24px 16px}
+  .side .foot{margin-top:0}
+  .main{padding:24px 16px}
+  .lab{width:100%}.sub{margin-left:0}
+}
+@media (max-height:800px) and (min-width:861px){
+  .side{gap:18px;padding:26px 26px}
+  .side h1{font-size:30px}
+  .devs button{padding:10px 14px}
+  .main{padding:26px 32px;gap:14px}
+  .lvlist{gap:8px}
+  .lvlist button{padding:10px 18px}
+  .lvlist em{width:42px;height:42px;font-size:20px}
+  .lvlist b{font-size:19px}
+}
+</style>
+</head>
+<body>
+<div id="stage"></div>
+<div id="dots" hidden></div>
+<div id="where" hidden></div>
+<div id="guide" hidden></div>
+
+<button id="gear" aria-label="단계 고르기로 돌아가기 (1초 누르기)" hidden>
+  <span class="fill"></span>
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12H5M11 5l-7 7 7 7"/></svg>
+</button>
+
+<div id="panel" role="dialog" aria-label="단계 고르기">
+  <div class="home">
+    <aside class="side">
+      <div>
+        <h1>손끝 연습</h1>
+        <p class="what">터치스크린 · 마우스 · 키보드<br>기본 조작을 단계별로 연습합니다.</p>
+      </div>
+      <div>
+        <span class="flab">학교급</span>
+        <div class="seg" id="grades"><button data-grade="elem">초등</button><button data-grade="mid">중등</button><button data-grade="high">고등</button></div>
+      </div>
+      <div>
+        <span class="flab">연습할 기기</span>
+        <div class="devs" id="devs">
+          <button data-dev="touch"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11V5.5a1.5 1.5 0 0 1 3 0V11m0-1.5a1.5 1.5 0 0 1 3 0V11m0-.5a1.5 1.5 0 0 1 3 0V15a6 6 0 0 1-6 6h-.6a6 6 0 0 1-4.7-2.3L4 15.6a1.6 1.6 0 0 1 2.4-2.1L9 16"/></svg><b>터치스크린</b><span>손가락으로 누르고 끌기</span></button>
+          <button data-dev="mouse"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><rect x="6" y="3" width="12" height="18" rx="6"/><path d="M12 3v6M6.5 9h11"/></svg><b>마우스</b><span>포인터 옮기기 · 클릭 · 휠</span></button>
+          <button data-dev="key"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><rect x="2.5" y="6" width="19" height="12" rx="2"/><path d="M6 10h.01M9 10h.01M12 10h.01M15 10h.01M18 10h.01M8 14h8"/></svg><b>키보드</b><span>키 누르기 · 글자와 낱말 치기</span></button>
+        </div>
+      </div>
+      <div class="foot">
+        <button id="more" class="ghost"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>설정 · 소리 · 횟수</button>
+        <p class="note">학생 이름이나 기록은 저장하지 않습니다. 고른 설정만 이 컴퓨터의 브라우저에 남습니다.</p>
+      </div>
+    </aside>
+    <main class="main">
+      <header>
+        <h2 id="lvtitle"></h2>
+        <p id="devtip"></p>
+      </header>
+      <div id="lvls" class="lvlist"></div>
+      <p class="note">단계를 누르면 바로 전체 화면으로 시작합니다. 활동 중 왼쪽 위 ←를 1초 누르면 이 화면으로 돌아옵니다. 다음 단계로 갈지, 같은 단계를 다시 할지는 학생을 보고 정하세요.</p>
+    </main>
+  </div>
+
+  <div id="detail" hidden>
+    <div class="sheet">
+      <header><h2>설정</h2><button id="less">닫기</button></header>
+      <div class="body">
+        <p id="curlv"></p>
+        <h3>이번 활동</h3>
+        <div class="grp" data-for="tap1 pick drag hover hold dbl rclick seq scroll pinch"><span class="lab">모양 크기</span>
+          <div class="chips" data-opt="size"><button data-val="S">작게</button><button data-val="M">보통</button><button data-val="L">크게</button><button data-val="XL">아주 크게</button></div>
+        </div>
+        <div class="grp" data-for="pick"><span class="lab">고를 개수</span>
+          <div class="chips" data-opt="count"><button data-val="2">2개</button><button data-val="3">3개</button><button data-val="4">4개</button></div>
+        </div>
+        <div class="grp" data-for="tap1 pick drag hover hold dbl rclick seq"><span class="lab">나오는 높이</span>
+          <div class="chips" data-opt="zone"><button data-val="all">화면 전체</button><button data-val="lower2">아래 3분의 2</button><button data-val="lower">아래 절반</button></div>
+          <span class="sub">키가 작거나 휠체어를 탄 학생은 아래쪽으로 두면 손이 닿습니다.</span>
+        </div>
+        <div class="grp" data-for="key2 syl word"><span class="lab">자판 그림 표시</span>
+          <div class="chips" data-opt="hint"><button data-val="on">누를 키 표시</button><button data-val="off">표시 없음</button></div>
+        </div>
+        <p class="note" data-for="tap0 move swipe key0 key1">이 활동은 따로 조절할 것이 없습니다.</p>
+        <h3>진행</h3>
+        <div class="grp"><span class="lab">몇 번 하고 끝낼까</span>
+          <div class="chips" data-opt="goal"><button data-val="5">5번</button><button data-val="10">10번</button><button data-val="20">20번</button><button data-val="off">끝없이</button></div>
+          <span class="sub">화면 맨 위 점이 성공할 때마다 채워지고, 다 채우면 「끝」이 나옵니다.</span>
+        </div>
+        <div class="grp"><span class="lab">다음 문제까지</span>
+          <div class="chips" data-opt="delay"><button data-val="short">짧게</button><button data-val="mid">보통</button><button data-val="long">길게</button></div>
+        </div>
+        <div class="grp"><span class="lab">연달아 누름</span>
+          <div class="chips" data-opt="gap"><button data-val="off">모두 받기</button><button data-val="short">0.25초 무시</button><button data-val="mid">0.5초 무시</button><button data-val="long">1초 무시</button></div>
+        </div>
+        <h3>소리와 효과</h3>
+        <div class="grp"><span class="lab">소리</span>
+          <div class="chips" data-opt="sound"><button data-val="on">켬</button><button data-val="off">끔</button></div>
+          <div class="chips" data-opt="vol"><button data-val="low">작게</button><button data-val="mid">보통</button><button data-val="high">크게</button></div>
+        </div>
+        <div class="grp"><span class="lab">효과</span>
+          <div class="chips" data-opt="calm"><button data-val="off">보통</button><button data-val="on">차분하게</button></div>
+          <span class="sub">차분하게: 흩어지는 불꽃 없이 둥근 테두리만 천천히 퍼집니다.</span>
+        </div>
+      </div>
+      <footer>
+        <span>이번 시간 성공 <span id="count">0</span>번</span>
+        <button id="reset">0으로</button>
+        <button id="start">이어서 하기</button>
+      </footer>
+    </div>
+  </div>
+</div>
+
+<script>
+const $ = s => document.querySelector(s);
+const stage = $('#stage'), panel = $('#panel'), gear = $('#gear');
+
+const SIZE = {S:12, M:18, L:26, XL:36};                 // vmin
+const ZONE_TOP = {all:.14, lower2:.34, lower:.5};        // 화면 높이 비율
+const GAP = {off:0, short:250, mid:500, long:1000};
+const DELAY = {short:500, mid:900, long:1600};
+const VOL = {low:.25, mid:.55, high:.9};
+
+// ---------- 단계: 학교급 × 기기 × 5 ----------
+// 단계는 활동과 활동 조건만 정한다. 소리·효과·속도·높이·횟수는 교사가 고른 대로 둔다
+const GRADE = {elem:'초등', mid:'중등', high:'고등'};
+const DEV = {touch:'터치스크린', mouse:'마우스', key:'키보드'};
+const TIP = {
+  touch:'손가락으로 화면을 직접 만집니다.',
+  mouse:'마우스 단계는 손가락 터치에 반응하지 않습니다. 마우스로만 할 수 있습니다.',
+  key:'실제 키보드로 합니다. 한/영 상태와 상관없이 자판 위치로 판단합니다.'
+};
+const L = (name, desc, set) => ({name, desc, set});
+const LEVELS = {
+  elem:{
+    touch:[
+      L('아무 데나 누르기', '화면 어디를 눌러도 소리와 빛이 납니다. 누르면 반응이 온다는 것을 압니다.', {act:'tap0'}),
+      L('크게 하나 누르기', '아주 큰 모양 하나를 겨냥해 누릅니다.', {act:'tap1', size:'XL'}),
+      L('보통 크기 누르기', '조금 작아진 모양을 정확히 누릅니다.', {act:'tap1', size:'L'}),
+      L('같은 것 고르기 · 2개', '위 칸과 같은 모양을 2개 중에서 찾아 누릅니다.', {act:'pick', count:'2', size:'L'}),
+      L('끌어다 넣기', '모양을 누른 채 점선 상자까지 옮깁니다.', {act:'drag', size:'L'})
+    ],
+    mouse:[
+      L('마우스 움직이기', '마우스를 움직이면 포인터를 따라 빛이 납니다. 마우스와 화면이 이어져 있다는 것을 압니다.', {act:'move'}),
+      L('가리키기', '포인터를 큰 모양 위에 올립니다. 누르지 않아도 됩니다.', {act:'hover', size:'XL'}),
+      L('아무 데나 클릭', '어디든 왼쪽 단추를 누르면 소리와 빛이 납니다.', {act:'tap0'}),
+      L('크게 하나 클릭', '큰 모양 위에 포인터를 두고 클릭합니다.', {act:'tap1', size:'XL'}),
+      L('보통 크기 클릭', '조금 작아진 모양에 포인터를 맞춰 클릭합니다.', {act:'tap1', size:'L'})
+    ],
+    key:[
+      L('아무 키나 누르기', '어떤 키를 눌러도 소리와 빛이 납니다.', {act:'key0'}),
+      L('스페이스 누르기', '가장 큰 키인 스페이스 하나만 찾아 누릅니다.', {act:'key1', key1:'Space'}),
+      L('엔터 누르기', '오른쪽의 엔터 키 하나만 찾아 누릅니다.', {act:'key1', key1:'Enter'}),
+      L('숫자 찾기', '크게 보이는 숫자를 맨 윗줄에서 찾아 누릅니다. 누를 키가 노랗게 표시됩니다.', {act:'key2', pool:'num', hint:'on'}),
+      L('자음 찾기', '크게 보이는 자음을 자판에서 찾아 누릅니다. 누를 키가 노랗게 표시됩니다.', {act:'key2', pool:'con', hint:'on'})
+    ]
+  },
+  mid:{
+    touch:[
+      L('작게 하나 누르기', '보통 크기 모양 하나를 정확히 누릅니다.', {act:'tap1', size:'M'}),
+      L('같은 것 고르기 · 3개', '위 칸과 같은 모양을 3개 중에서 찾아 누릅니다.', {act:'pick', count:'3', size:'M'}),
+      L('끌어다 넣기', '모양을 누른 채 점선 상자까지 옮깁니다.', {act:'drag', size:'M'}),
+      L('길게 누르기', '모양을 누른 채 기다립니다. 테두리가 한 바퀴 다 차면 성공입니다(1초).', {act:'hold', size:'L'}),
+      L('밀어 넘기기 · 좌우', '화살표 방향으로 손가락을 밀어 넘깁니다. 사진 넘기기와 같은 동작입니다.', {act:'swipe', dirs:'2'})
+    ],
+    mouse:[
+      L('작게 하나 클릭', '작은 모양에 포인터를 정확히 맞춰 클릭합니다.', {act:'tap1', size:'S'}),
+      L('같은 것 골라 클릭 · 3개', '위 칸과 같은 모양을 3개 중에서 찾아 클릭합니다.', {act:'pick', count:'3', size:'M'}),
+      L('끌어다 넣기', '단추를 누른 채 마우스를 움직여 모양을 상자까지 옮깁니다.', {act:'drag', size:'M'}),
+      L('더블클릭', '모양 위에서 왼쪽 단추를 빠르게 두 번 누릅니다. 프로그램을 열 때 쓰는 동작입니다.', {act:'dbl', size:'L'}),
+      L('오른쪽 클릭', '모양 위에서 오른쪽 단추를 누릅니다. 메뉴를 열 때 쓰는 동작입니다.', {act:'rclick', size:'L'})
+    ],
+    key:[
+      L('자음 찾기 · 혼자서', '노란 표시 없이 자음을 자판에서 찾아 누릅니다.', {act:'key2', pool:'con', hint:'off'}),
+      L('모음 찾기', '크게 보이는 모음을 자판 오른쪽에서 찾아 누릅니다. 누를 키가 노랗게 표시됩니다.', {act:'key2', pool:'vow', hint:'on'}),
+      L('모음 찾기 · 혼자서', '노란 표시 없이 모음을 자판에서 찾아 누릅니다.', {act:'key2', pool:'vow', hint:'off'}),
+      L('글자 만들기', '자음과 모음을 차례로 눌러 글자 하나를 만듭니다(ㄱ + ㅏ = 가). 누를 키가 표시됩니다.', {act:'syl', hint:'on'}),
+      L('지우기', '끝에 잘못 들어간 글자를 ⌫(백스페이스)로 지웁니다.', {act:'key1', key1:'Backspace'})
+    ]
+  },
+  high:{
+    touch:[
+      L('같은 것 고르기 · 4개', '위 칸과 같은 모양을 4개 중에서 찾아 누릅니다.', {act:'pick', count:'4', size:'M'}),
+      L('길게 누르기', '작은 모양을 1초 동안 누르고 있습니다. 아이콘 옮기기·메뉴 열기에 쓰는 동작입니다.', {act:'hold', size:'M'}),
+      L('밀어 넘기기 · 네 방향', '위·아래·왼쪽·오른쪽 중 화살표 방향으로 밀어 넘깁니다.', {act:'swipe', dirs:'4'}),
+      L('두 손가락으로 키우기', '두 손가락을 모양 위에 대고 벌려 원 크기까지 키웁니다. 사진·지도 확대 동작입니다.', {act:'pinch', size:'M'}),
+      L('순서대로 누르기', '1, 2, 3 순서대로 누릅니다. 다른 숫자를 눌러도 아무 일도 없습니다.', {act:'seq', size:'M'})
+    ],
+    mouse:[
+      L('더블클릭', '작은 모양 위에서 빠르게 두 번 클릭합니다.', {act:'dbl', size:'M'}),
+      L('오른쪽 클릭', '작은 모양 위에서 오른쪽 단추를 누릅니다.', {act:'rclick', size:'M'}),
+      L('휠 굴리기', '마우스 가운데 휠을 굴려 아래에 숨은 모양을 화면 가운데로 올립니다. 긴 화면을 내려 볼 때 쓰는 동작입니다.', {act:'scroll', size:'L'}),
+      L('작게 끌어다 넣기', '작은 모양을 상자까지 정확히 옮깁니다.', {act:'drag', size:'S'}),
+      L('순서대로 클릭', '1, 2, 3 순서대로 클릭합니다.', {act:'seq', size:'M'})
+    ],
+    key:[
+      L('글자 만들기 · 혼자서', '표시 없이 자음과 모음을 눌러 글자 하나를 만듭니다.', {act:'syl', hint:'off'}),
+      L('낱말 치기', '나무, 우유처럼 두 글자 낱말을 칩니다. 누를 키가 차례로 표시됩니다.', {act:'word', hint:'on'}),
+      L('낱말 치기 · 혼자서', '표시 없이 두 글자 낱말을 칩니다.', {act:'word', hint:'off'}),
+      L('띄어 치기', '「우유 주세요」처럼 두 낱말 사이를 스페이스로 띄어 칩니다.', {act:'word', words:'two', hint:'off'}),
+      L('치고 엔터로 보내기', '낱말을 치고 엔터를 눌러 보냅니다. 검색하거나 메시지를 보낼 때 쓰는 동작입니다.', {act:'word', words:'two', enter:'on', hint:'off'})
+    ]
+  }
+};
+const BASE = {size:'L', count:'3', key1:'Space', pool:'con', hint:'on', dirs:'2', words:'one', enter:'off'};
+const DEF = {grade:'elem', dev:'touch', lv:1, act:'tap0', ...BASE, zone:'all', sound:'on', vol:'mid', calm:'off', gap:'short', delay:'mid', goal:'10'};
+let S = {...DEF};
+try { Object.assign(S, JSON.parse(localStorage.getItem('sonkkeut-settings') || '{}')); } catch (e) {}
+const save = () => { try { localStorage.setItem('sonkkeut-settings', JSON.stringify(S)); } catch (e) {} };
+const level = () => LEVELS[S.grade][S.dev][S.lv - 1];
+function applyLevel(grade, dev, lv) {
+  Object.assign(S, BASE, LEVELS[grade][dev][lv - 1].set, {grade, dev, lv});
+}
+if (!GRADE[S.grade] || !DEV[S.dev] || !(S.lv >= 1 && S.lv <= 5)) Object.assign(S, {grade:'elem', dev:'touch', lv:1});
+if (level().set.act !== S.act) applyLevel(S.grade, S.dev, S.lv);   // 예전 판에서 저장된 설정
+
+// 활동 화면 맨 위 안내: 학생에게 하는 말로 짧게
+function guideText() {
+  const m = S.dev === 'mouse', press = m ? '클릭해요' : '눌러요';
+  switch (S.act) {
+    case 'tap0': return m ? '아무 데나 클릭해 보세요' : '화면 아무 데나 눌러 보세요';
+    case 'move': return '마우스를 움직여 보세요';
+    case 'hover': return '포인터를 모양 위에 올려요';
+    case 'tap1': return '모양을 ' + press;
+    case 'pick': return '위 칸과 같은 모양을 찾아 ' + press;
+    case 'drag': return '모양을 점선 상자로 옮겨요';
+    case 'hold': return '모양을 꾹 누르고 기다려요';
+    case 'swipe': return '화살표 쪽으로 밀어요';
+    case 'pinch': return '두 손가락을 벌려 원만큼 키워요';
+    case 'seq': return '1 → 2 → 3 순서대로 ' + press;
+    case 'dbl': return '모양을 빠르게 두 번 클릭해요';
+    case 'rclick': return '모양을 오른쪽 단추로 클릭해요';
+    case 'scroll': return '휠을 굴려 모양을 상자까지 올려요';
+    case 'key0': return '아무 키나 눌러요';
+    case 'key1': return {Space:'스페이스를 눌러요', Enter:'엔터를 눌러요', Backspace:'⌫ 지우기로 끝 글자를 지워요'}[S.key1];
+    case 'key2': return (S.pool === 'num' ? '큰 숫자를' : '큰 글자를') + ' 자판에서 찾아 눌러요';
+    case 'syl': return '자음과 모음을 눌러 글자를 만들어요';
+    case 'word': return S.enter === 'on' ? '낱말을 치고 엔터로 보내요' : S.words === 'two' ? '띄어 쓰며 따라 쳐요' : '낱말을 따라 쳐요';
+  }
+  return '';
+}
+
+// ---------- 모양·자판 ----------
+const SHAPES = {
+  circle:'<circle cx="50" cy="50" r="46"/>',
+  square:'<rect x="6" y="6" width="88" height="88" rx="14"/>',
+  tri:'<path d="M50 6 94 90H6z" stroke-linejoin="round"/>',
+  star:'<path d="M50 4l13.5 29.5 32 3.5-24 21.6 6.8 31.6L50 74.2 21.7 90.2l6.8-31.6-24-21.6 32-3.5z"/>',
+  heart:'<path d="M50 90S6 62 6 32C6 17 18 7 31 7c9 0 15 5 19 12 4-7 10-12 19-12 13 0 25 10 25 25 0 30-44 58-44 58z"/>'
+};
+const COLORS = ['#ff6b6b', '#4d96ff', '#ffd166', '#3ecf8e', '#b983ff'];
+const svg = (shape, color) => `<svg viewBox="0 0 100 100"><g fill="${color}">${SHAPES[shape]}</g></svg>`;
+
+// 두벌식 자판: 물리 키 위치(e.code)로 판단하므로 한/영 상태와 무관하다
+const JAMO = {KeyQ:'ㅂ',KeyW:'ㅈ',KeyE:'ㄷ',KeyR:'ㄱ',KeyT:'ㅅ',KeyY:'ㅛ',KeyU:'ㅕ',KeyI:'ㅑ',KeyO:'ㅐ',KeyP:'ㅔ',
+  KeyA:'ㅁ',KeyS:'ㄴ',KeyD:'ㅇ',KeyF:'ㄹ',KeyG:'ㅎ',KeyH:'ㅗ',KeyJ:'ㅓ',KeyK:'ㅏ',KeyL:'ㅣ',
+  KeyZ:'ㅋ',KeyX:'ㅌ',KeyC:'ㅊ',KeyV:'ㅍ',KeyB:'ㅠ',KeyN:'ㅜ',KeyM:'ㅡ'};
+for (let i = 0; i < 10; i++) JAMO['Digit' + i] = String(i);
+const KEYNAME = {...JAMO, Space:'스페이스', Enter:'엔터'};
+const CODE_OF = Object.fromEntries(Object.entries(JAMO).map(([c, j]) => [j, c]));
+const ROWS = {
+  letters:[['KeyQ','KeyW','KeyE','KeyR','KeyT','KeyY','KeyU','KeyI','KeyO','KeyP'],
+           ['KeyA','KeyS','KeyD','KeyF','KeyG','KeyH','KeyJ','KeyK','KeyL'],
+           ['KeyZ','KeyX','KeyC','KeyV','KeyB','KeyN','KeyM']],
+  num:[['Digit1','Digit2','Digit3','Digit4','Digit5','Digit6','Digit7','Digit8','Digit9','Digit0']]
+};
+const CONS = 'ㄱㄴㄷㄹㅁㅂㅅㅇㅈㅊㅋㅌㅍㅎ', VOWS = 'ㅏㅑㅓㅕㅗㅛㅜㅠㅡㅣ';
+const POOL = {
+  con:Object.keys(JAMO).filter(c => CONS.includes(JAMO[c])),
+  vow:Object.keys(JAMO).filter(c => VOWS.includes(JAMO[c])),
+  num:ROWS.num[0]
+};
+// 한글 조합: 받침 없는 글자만 쓴다(키 두 번 = 글자 하나)
+const CHO = 'ㄱㄲㄴㄷㄸㄹㅁㅂㅃㅅㅆㅇㅈㅉㅊㅋㅌㅍㅎ', JUNG = 'ㅏㅐㅑㅒㅓㅔㅕㅖㅗㅘㅙㅚㅛㅜㅝㅞㅟㅠㅡㅢㅣ';
+const compose = (c, v) => String.fromCharCode(0xAC00 + (CHO.indexOf(c) * 21 + JUNG.indexOf(v)) * 28);
+const WORDS = {
+  one:['나무','우유','바다','나비','모자','기차','사자','오리','포도','두부','하마','가지','치마','배추','여우','아기'],
+  two:['우유 주세요','기차 타요','바다 가요','포도 주세요','두부 사요','나비 보기']
+};
+const SYL_V = 'ㅏㅓㅗㅜㅡㅣ';
+function units(text) {            // 글자마다 눌러야 할 키
+  return [...text].map(ch => {
+    if (ch === ' ') return {ch, codes:['Space']};
+    const n = ch.charCodeAt(0) - 0xAC00, c = CHO[Math.floor(n / 588)], v = JUNG[Math.floor(n % 588 / 28)];
+    return {ch, jamo:c, codes:[CODE_OF[c], CODE_OF[v]]};
+  });
+}
+
+const rand = (a, b) => a + Math.random() * (b - a);
+const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = Math.random() * (i + 1) | 0; [a[i], a[j]] = [a[j], a[i]]; } return a; };
+const pickOne = a => a[Math.random() * a.length | 0];
+const unit = () => Math.min(innerWidth, innerHeight) / 100;
+
+// ---------- 소리 ----------
+let ac;
+function audio() {
+  if (!ac) { try { ac = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { return null; } }
+  if (ac.state === 'suspended') ac.resume();
+  return ac;
+}
+const PENTA = [523.25, 587.33, 659.25, 783.99, 880, 1046.5];
+function tone(f, when, dur, peak) {
+  const c = audio();
+  if (!c || S.sound === 'off') return;
+  const o = c.createOscillator(), g = c.createGain(), t = c.currentTime + when;
+  o.type = 'sine'; o.frequency.value = f;
+  g.gain.setValueAtTime(0.0001, t);
+  g.gain.linearRampToValueAtTime(peak * VOL[S.vol], t + .02);
+  g.gain.exponentialRampToValueAtTime(.0001, t + dur);
+  o.connect(g).connect(c.destination);
+  o.start(t); o.stop(t + dur + .05);
+}
+const blip = () => tone(PENTA[Math.random() * PENTA.length | 0], 0, .5, .45);
+const tick = () => tone(PENTA[3], 0, .18, .25);
+function cheer() {
+  const calm = S.calm === 'on';
+  [0, 2, 5].forEach((n, i) => tone(PENTA[n], i * (calm ? .16 : .11), calm ? .7 : .5, calm ? .3 : .45));
+}
+
+// ---------- 효과 ----------
+function burst(x, y) {
+  const r = document.createElement('div');
+  r.className = 'ring'; r.style.left = x + 'px'; r.style.top = y + 'px';
+  stage.appendChild(r); setTimeout(() => r.remove(), 1500);
+  if (S.calm === 'on') return;
+  const u = unit();
+  for (let i = 0; i < 14; i++) {
+    const p = document.createElement('div'), a = Math.PI * 2 * i / 14 + Math.random() * .3, d = rand(14, 28) * u;
+    p.className = 'spark'; p.style.left = x + 'px'; p.style.top = y + 'px'; p.style.background = COLORS[i % COLORS.length];
+    p.style.setProperty('--dx', Math.cos(a) * d + 'px'); p.style.setProperty('--dy', Math.sin(a) * d + 'px');
+    stage.appendChild(p); setTimeout(() => p.remove(), 900);
+  }
+}
+
+// ---------- 진행 ----------
+let count = 0, last = 0, busy = false, timer = 0, done = false;
+let cur = {};                                            // 지금 문제의 정답 정보
+const goal = () => +S.goal || 0;                         // 0 = 끝없이
+function dots() {
+  const n = goal(), el = $('#dots');
+  el.hidden = !n;
+  el.innerHTML = Array.from({length:n}, (_, i) => i < count ? '<i class="on"></i>' : '<i></i>').join('');
+}
+function gate() {
+  const now = performance.now();
+  if (now - last < GAP[S.gap]) return false;
+  last = now; return true;
+}
+function success(x, y, sound = cheer) {
+  count++; $('#count').textContent = count; dots();
+  burst(x, y); sound();
+  if (goal() && count >= goal()) { done = busy = true; clearTimeout(timer); timer = setTimeout(finish, DELAY[S.delay]); }
+}
+function finish() {
+  clearStage(); $('#guide').hidden = true;
+  const d = document.createElement('div'); d.id = 'done'; d.innerHTML = '<b>끝</b><span>왼쪽 위 ←를 1초 누르면 다음 단계를 고를 수 있습니다</span>';
+  stage.appendChild(d);
+  burst(innerWidth / 2, innerHeight / 2);
+  [0, 2, 4, 5].forEach((n, i) => tone(PENTA[n], i * .15, .8, .45));
+}
+function next() { if (done) return; busy = true; clearTimeout(timer); timer = setTimeout(spawn, DELAY[S.delay]); }
+const center = el => { const r = el.getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; };
+function popAndWin(t) {
+  const [x, y] = center(t);
+  t.classList.remove('appear', 'holding'); t.classList.add('pop');
+  success(x, y); next();
+}
+
+// 목표를 칸(열)마다 하나씩 두어 겹치지 않게 한다
+function slots(n, top) {
+  const W = innerWidth, H = innerHeight, colW = W * .92 / n;
+  const s = Math.min(SIZE[S.size] * unit(), colW * .9, H * (1 - top) * .9);
+  const y0 = H * top + s / 2, y1 = H * .97 - s / 2;
+  return Array.from({length:n}, (_, i) => {
+    const x0 = W * .04 + colW * i + s / 2, x1 = W * .04 + colW * (i + 1) - s / 2;
+    return {x:rand(x0, Math.max(x0, x1)), y:rand(y0, Math.max(y0, y1)), s};
+  });
+}
+function place(el, p) { el.style.left = p.x + 'px'; el.style.top = p.y + 'px'; el.style.width = el.style.height = p.s + 'px'; }
+function makeTarget(shape, color, p, ok) {
+  const el = document.createElement('div');
+  el.className = 'target appear';
+  if (ok) el.dataset.ok = '1';
+  el.innerHTML = svg(shape, color);
+  place(el, p); stage.appendChild(el);
+  return el;
+}
+const oneTarget = top => makeTarget(pickOne(Object.keys(SHAPES)), pickOne(COLORS), slots(1, top)[0], true);
+function keyboardPic(rows, hl, extra = []) {
+  const kb = document.createElement('div'); kb.id = 'kb';
+  rows.forEach((row, ri) => {
+    const r = document.createElement('div'); r.className = 'kr'; r.style.marginLeft = ri * 3 + 'vmin';
+    [...row, ...(ri === 1 && extra.includes('Enter') ? ['Enter'] : [])].forEach(code => {
+      const k = document.createElement('div');
+      k.className = 'key' + (code === 'Enter' ? ' w2' : '') + (code === hl ? ' hint' : '');
+      k.dataset.code = code; k.textContent = KEYNAME[code];
+      r.appendChild(k);
+    });
+    kb.appendChild(r);
+  });
+  if (extra.includes('Space')) {
+    const r = document.createElement('div'); r.className = 'kr'; r.style.marginLeft = '16vmin';
+    r.innerHTML = `<div class="key space${hl === 'Space' ? ' hint' : ''}" data-code="Space">스페이스</div>`;
+    kb.appendChild(r);
+  }
+  return kb;
+}
+function bigKey(code) {
+  const kb = document.createElement('div'); kb.id = 'kb'; kb.className = 'single';
+  const k = document.createElement('div');
+  k.className = 'key big hint' + (code === 'Space' ? ' space' : '');
+  k.textContent = {Space:'스페이스', Enter:'엔터 ↵', Backspace:'⌫ 지우기'}[code];
+  kb.appendChild(k); stage.appendChild(kb);
+  return kb;
+}
+function typebox() {
+  let tb = $('#typebox');
+  if (!tb) { tb = document.createElement('div'); tb.id = 'typebox'; stage.appendChild(tb); }
+  return tb;
+}
+
+function clearStage() {
+  stage.querySelectorAll('.target,.goal,#sample,#bigchar,#kb,#done,#typebox,#arrow').forEach(e => e.remove());
+  cur = {};
+}
+
+// ---------- 문제 내기 ----------
+function spawn() {
+  clearStage(); busy = false;
+  const a = S.act, top = ZONE_TOP[S.zone];
+  if (a === 'tap1' || a === 'hover' || a === 'dbl' || a === 'rclick') {
+    oneTarget(top);
+  } else if (a === 'hold') {
+    const t = oneTarget(top);
+    t.insertAdjacentHTML('beforeend', '<svg class="hold" viewBox="0 0 100 100"><circle cx="50" cy="50" r="47" pathLength="100" transform="rotate(-90 50 50)"/></svg>');
+  } else if (a === 'pick') {
+    const n = +S.count, shapes = shuffle(Object.keys(SHAPES)), colors = shuffle([...COLORS]), okAt = Math.random() * n | 0;
+    const sample = document.createElement('div'); sample.id = 'sample'; sample.innerHTML = svg(shapes[0], colors[0]);
+    stage.appendChild(sample);
+    slots(n, Math.max(top, .32)).forEach((p, i) => {
+      const k = i === okAt ? 0 : (i < okAt ? i + 1 : i);   // 0번 모양·색이 정답
+      makeTarget(shapes[k], colors[k], p, i === okAt);
+    });
+  } else if (a === 'seq') {
+    const colors = shuffle([...COLORS]);
+    cur.n = 1;
+    slots(3, top).sort(() => Math.random() - .5).forEach((p, i) => {
+      const t = makeTarget('circle', colors[i], p, false);
+      t.dataset.n = i + 1; t.style.setProperty('--s', p.s + 'px');
+      t.insertAdjacentHTML('beforeend', `<span class="num">${i + 1}</span>`);
+    });
+  } else if (a === 'drag') {
+    const ps = slots(2, top), side = Math.random() < .5 ? 0 : 1, gp = ps[1 - side];
+    const W = innerWidth, H = innerHeight, gs = Math.min(gp.s * 1.6, W * .46 * .95, H * (1 - top) * .95);
+    const goal = document.createElement('div'); goal.className = 'goal';
+    place(goal, {x:Math.min(Math.max(gp.x, gs / 2), W - gs / 2), y:Math.min(Math.max(gp.y, H * top + gs / 2), H - gs / 2), s:gs});
+    stage.appendChild(goal);
+    makeTarget(pickOne(Object.keys(SHAPES)), pickOne(COLORS), ps[side], true);
+  } else if (a === 'pinch') {
+    const s = Math.min(SIZE[S.size] * unit(), innerHeight * .3), p = {x:innerWidth / 2, y:innerHeight / 2, s};
+    const g = document.createElement('div'); g.className = 'goal round';
+    place(g, {...p, s:s * 2.2}); stage.appendChild(g);
+    const t = makeTarget('circle', pickOne(COLORS), p, true);
+    cur.base = s; cur.scale = 1; cur.t = t;
+  } else if (a === 'swipe') {
+    const dirs = S.dirs === '4' ? ['right', 'left', 'up', 'down'] : ['right', 'left'];
+    cur.dir = shuffle(dirs.filter(d => d !== spawn.prevDir))[0]; spawn.prevDir = cur.dir;
+    const ar = document.createElement('div'); ar.id = 'arrow';
+    ar.style.setProperty('--rot', {right:'0deg', down:'90deg', left:'180deg', up:'270deg'}[cur.dir]);
+    ar.innerHTML = '<svg viewBox="0 0 100 100" fill="currentColor"><path d="M8 40h50V18l36 32-36 32V60H8z"/></svg>';
+    stage.appendChild(ar);
+  } else if (a === 'scroll') {
+    const p = slots(1, .2)[0], H = innerHeight;
+    p.y = H * 1.6;
+    const t = makeTarget(pickOne(Object.keys(SHAPES)), pickOne(COLORS), p, true);
+    t.classList.remove('appear');
+    cur.t = t; cur.base = p.y; cur.off = 0;
+    const g = document.createElement('div'); g.className = 'goal';
+    place(g, {x:p.x, y:H / 2, s:p.s * 1.35}); stage.appendChild(g);
+  } else if (a === 'key1') {
+    const kb = bigKey(S.key1);
+    if (S.key1 === 'Backspace') {
+      kb.classList.add('lower');
+      cur.word = pickOne(WORDS.one); cur.stray = pickOne([...CONS]);
+      typebox().innerHTML = `${cur.word}<span class="stray">${cur.stray}</span><span class="caret"></span>`;
+    }
+  } else if (a === 'key2') {
+    const pool = POOL[S.pool];
+    cur.code = shuffle(pool.filter(c => c !== spawn.prevCode))[0]; spawn.prevCode = cur.code;
+    const big = document.createElement('div'); big.id = 'bigchar'; big.textContent = JAMO[cur.code];
+    stage.appendChild(big);
+    stage.appendChild(keyboardPic(S.pool === 'num' ? ROWS.num : ROWS.letters, S.hint === 'on' ? cur.code : ''));
+  } else if (a === 'syl' || a === 'word') {
+    let text;
+    if (a === 'syl') { do text = compose(pickOne([...CONS]), pickOne([...SYL_V])); while (text === spawn.prevText); }
+    else text = shuffle(WORDS[S.words].filter(w => w !== spawn.prevText))[0];
+    spawn.prevText = text;
+    cur.units = units(text);
+    cur.seq = cur.units.flatMap(u => u.codes).concat(S.enter === 'on' && a === 'word' ? ['Enter'] : []);
+    cur.pos = 0;
+    const big = document.createElement('div'); big.id = 'bigchar'; big.textContent = text;
+    if (a === 'word') big.classList.add('word');
+    stage.appendChild(big);
+    drawTyping();
+  }
+}
+function drawTyping() {
+  let n = cur.pos, out = '';
+  for (const u of cur.units) {
+    const k = Math.min(n, u.codes.length); n -= k;
+    if (k === u.codes.length) out += u.ch;
+    else if (k === 1) out += u.jamo;
+  }
+  typebox().innerHTML = out + '<span class="caret"></span>';
+  stage.querySelector('#kb')?.remove();
+  const need = [...(cur.seq.includes('Space') ? ['Space'] : []), ...(cur.seq.includes('Enter') ? ['Enter'] : [])];
+  const want = cur.seq[cur.pos];                          // 엔터(보내기)는 표시 없음 단계에서도 알려 준다
+  stage.appendChild(keyboardPic(ROWS.letters, S.hint === 'on' || want === 'Enter' ? want : '', need));
+}
+
+// ---------- 터치·마우스 ----------
+const mouseOnly = () => S.dev === 'mouse';
+const pointers = new Map();
+stage.addEventListener('pointerdown', e => {
+  if (!panel.hidden || done) return;
+  if (mouseOnly() && e.pointerType === 'touch') return;   // 마우스 연습은 손가락 터치를 받지 않는다
+  audio();
+  const a = S.act;
+  pointers.set(e.pointerId, {x:e.clientX, y:e.clientY, x0:e.clientX, y0:e.clientY});
+  if (a === 'tap0') { if (e.button === 0 && gate()) success(e.clientX, e.clientY, blip); return; }
+  if (busy) return;
+  if (a === 'pinch' && pointers.size === 2) { cur.d0 = spread(); cur.s0 = cur.scale; return; }
+  const t = e.target.closest('.target');
+  if (!t) return;                                    // 빗나가면 아무 일도 없다
+  if (a === 'rclick') { if (e.button === 2 && gate()) popAndWin(t); return; }
+  if (e.button !== 0) return;
+  if (a === 'tap1' || a === 'pick') {
+    if (t.dataset.ok && gate()) popAndWin(t);
+  } else if (a === 'dbl') {
+    const now = performance.now();
+    if (now - (cur.lastDown || 0) < 450) { cur.lastDown = 0; popAndWin(t); }
+    else cur.lastDown = now;
+  } else if (a === 'seq') {
+    if (+t.dataset.n !== cur.n) return;
+    if (cur.n === 3) { popAndWin(t); return; }
+    cur.n++; tick();
+    t.classList.remove('appear'); t.classList.add('pop'); setTimeout(() => t.remove(), 450);
+  } else if (a === 'hold') {
+    startHold(t, e);
+  } else if (a === 'drag' && !t.classList.contains('dragging')) {
+    startDrag(t, e);
+  }
+});
+const spread = () => { const [p, q] = [...pointers.values()]; return Math.hypot(p.x - q.x, p.y - q.y) || 1; };
+let trailAt = 0, moved = 0, lastXY = null;
+stage.addEventListener('pointermove', e => {
+  const p = pointers.get(e.pointerId);
+  if (p) { p.x = e.clientX; p.y = e.clientY; }
+  if (!panel.hidden || done) return;
+  const a = S.act;
+  if (a === 'pinch' && pointers.size === 2 && !busy && cur.d0) {
+    cur.scale = Math.min(Math.max(cur.s0 * spread() / cur.d0, 1), 2.6);
+    cur.t.style.width = cur.t.style.height = cur.base * cur.scale + 'px';
+    if (cur.scale >= 2.1) { busy = true; popAndWin(cur.t); }
+    return;
+  }
+  if (e.pointerType === 'touch') return;
+  if (a === 'move') {
+    const now = performance.now();
+    if (now - trailAt > 35) {
+      trailAt = now;
+      const d = document.createElement('div'); d.className = 'trail';
+      d.style.left = e.clientX + 'px'; d.style.top = e.clientY + 'px'; d.style.background = pickOne(COLORS);
+      stage.appendChild(d); setTimeout(() => d.remove(), 750);
+    }
+    if (lastXY) moved += Math.hypot(e.clientX - lastXY[0], e.clientY - lastXY[1]);
+    lastXY = [e.clientX, e.clientY];
+    if (moved > 90 * unit()) { moved = 0; success(e.clientX, e.clientY, blip); }
+  } else if (a === 'hover' && !busy) {
+    const t = e.target.closest('.target');
+    if (t && gate()) popAndWin(t);
+  }
+});
+function endPointer(e) {
+  const p = pointers.get(e.pointerId);
+  pointers.delete(e.pointerId);
+  if (pointers.size < 2) cur.d0 = 0;
+  if (!p || e.type !== 'pointerup' || S.act !== 'swipe' || busy || done || !panel.hidden) return;
+  const dx = e.clientX - p.x0, dy = e.clientY - p.y0, need = 15 * unit();
+  const dir = Math.abs(dx) > Math.abs(dy) * 1.5 ? (dx > 0 ? 'right' : 'left') : Math.abs(dy) > Math.abs(dx) * 1.5 ? (dy > 0 ? 'down' : 'up') : '';
+  if (Math.hypot(dx, dy) >= need && dir === cur.dir && gate()) {
+    success(innerWidth / 2, innerHeight / 2); next();
+  }
+}
+addEventListener('pointerup', endPointer);
+addEventListener('pointercancel', endPointer);
+
+addEventListener('wheel', e => {
+  if (!panel.hidden) return;
+  e.preventDefault();
+  if (S.act !== 'scroll' || busy || done || !cur.t) return;
+  const dy = e.deltaY * (e.deltaMode === 1 ? 40 : 1), H = innerHeight;
+  cur.off = Math.min(Math.max(cur.off + dy, 0), cur.base - H * .15);
+  cur.t.style.top = cur.base - cur.off + 'px';
+  if (Math.abs(cur.base - cur.off - H / 2) < H * .12) popAndWin(cur.t);
+}, {passive:false});
+
+function startHold(t, e) {
+  try { t.setPointerCapture(e.pointerId); } catch (_) {}
+  t.classList.remove('appear'); t.classList.add('holding');
+  const tm = setTimeout(() => { stop(); if (!busy && !done && panel.hidden) popAndWin(t); }, 1000);
+  const stop = () => {
+    clearTimeout(tm); t.classList.remove('holding');
+    t.removeEventListener('pointerup', stop); t.removeEventListener('pointercancel', stop);
+  };
+  t.addEventListener('pointerup', stop); t.addEventListener('pointercancel', stop);
+}
+
+function startDrag(t, e) {
+  const goal = stage.querySelector('.goal');
+  const home = {x:t.style.left, y:t.style.top};
+  const ox = e.clientX - parseFloat(t.style.left), oy = e.clientY - parseFloat(t.style.top);
+  try { t.setPointerCapture(e.pointerId); } catch (_) {}
+  t.classList.remove('appear', 'back'); t.classList.add('dragging');
+  const inside = () => {
+    const r = goal.getBoundingClientRect(), x = parseFloat(t.style.left), y = parseFloat(t.style.top);
+    return x > r.left && x < r.right && y > r.top && y < r.bottom;
+  };
+  const move = ev => {
+    if (ev.pointerId !== e.pointerId) return;
+    t.style.left = ev.clientX - ox + 'px'; t.style.top = ev.clientY - oy + 'px';
+    goal.classList.toggle('glow', inside());
+  };
+  const end = ev => {
+    if (ev.pointerId !== e.pointerId) return;
+    t.removeEventListener('pointermove', move); t.removeEventListener('pointerup', end); t.removeEventListener('pointercancel', end);
+    t.classList.remove('dragging');
+    if (ev.type === 'pointerup' && !busy && panel.hidden && inside() && gate()) {
+      t.style.left = goal.style.left; t.style.top = goal.style.top;
+      t.classList.add('pop');
+      success(...center(goal)); next();
+    } else {
+      goal.classList.remove('glow');
+      t.classList.add('back'); t.style.left = home.x; t.style.top = home.y;
+    }
+  };
+  t.addEventListener('pointermove', move); t.addEventListener('pointerup', end); t.addEventListener('pointercancel', end);
+}
+
+// ---------- 키보드 ----------
+addEventListener('keydown', e => {
+  if (!panel.hidden || !S.act.startsWith('key') && S.act !== 'syl' && S.act !== 'word') return;
+  if (e.metaKey || e.ctrlKey || e.altKey || e.key === 'Escape' || /^F\d+$/.test(e.key)) return;   // 교사용 단축키는 그대로 둔다
+  e.preventDefault();
+  if (e.repeat || done) return;
+  audio();
+  const a = S.act;
+  if (a === 'key0') {
+    if (gate()) success(rand(.15, .85) * innerWidth, rand(.2, .85) * innerHeight, blip);
+    return;
+  }
+  if (busy) return;
+  if (a === 'syl' || a === 'word') {
+    const want = cur.seq[cur.pos];
+    if (e.code !== want && !(want === 'Enter' && e.code === 'NumpadEnter')) return;
+    cur.pos++;
+    drawTyping();
+    if (cur.pos < cur.seq.length) { tick(); return; }
+    success(...center($('#typebox'))); next();
+    return;
+  }
+  const ok = a === 'key1' ? (e.code === S.key1 || (S.key1 === 'Enter' && e.code === 'NumpadEnter')) : e.code === cur.code;
+  if (!ok || !gate()) return;
+  const k = a === 'key1' ? stage.querySelector('.key.big') : stage.querySelector(`.key[data-code="${cur.code}"]`);
+  k.classList.add('hint', 'hit');
+  if (S.key1 === 'Backspace' && a === 'key1') typebox().innerHTML = cur.word + '<span class="caret"></span>';
+  success(...center(a === 'key1' ? (S.key1 === 'Backspace' ? $('#typebox') : k) : $('#bigchar'))); next();
+});
+
+// ---------- 홈 ----------
+function renderHome() {
+  $('#grades').querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.grade === S.grade)));
+  $('#devs').querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.dev === S.dev)));
+  $('#lvtitle').innerHTML = `${DEV[S.dev]}<small>${GRADE[S.grade]} 1~5단계</small>`;
+  $('#devtip').textContent = TIP[S.dev];
+  // 「지금 단계」는 실제로 해 본 단계에만 붙인다(학교급·기기만 바꿨을 때는 없음)
+  const here = S.played === `${S.grade}/${S.dev}/`, playedLv = here ? S.playedLv : 0;
+  const nextLv = done && here && playedLv < 5 ? playedLv + 1 : 0;
+  $('#lvls').innerHTML = LEVELS[S.grade][S.dev].map((l, i) => {
+    const n = i + 1, now = n === playedLv;
+    return `<button data-lv="${n}"${now ? ' class="now"' : ''}><em>${n}</em><b>${l.name}${now ? '<i class="tag now">지금 단계</i>' : ''}${n === nextLv ? '<i class="tag next">다음 단계</i>' : ''}</b><span>${l.desc}</span>` +
+      '<svg class="play" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13l10.5-6.5z"/></svg></button>';
+  }).join('');
+}
+// 학교급이나 기기를 바꾸면 그 1단계로 옮겨 둔다(시작은 단계를 눌러야)
+$('#grades').addEventListener('click', e => {
+  const b = e.target.closest('[data-grade]'); if (!b) return;
+  applyLevel(b.dataset.grade, S.dev, 1); done = false; save(); renderHome();
+});
+$('#devs').addEventListener('click', e => {
+  const b = e.target.closest('[data-dev]'); if (!b) return;
+  applyLevel(S.grade, b.dataset.dev, 1); done = false; save(); renderHome();
+});
+$('#lvls').addEventListener('click', e => {
+  const b = e.target.closest('[data-lv]'); if (!b) return;
+  applyLevel(S.grade, S.dev, +b.dataset.lv);
+  save();
+  count = 0; done = false; $('#count').textContent = 0;
+  begin();
+});
+
+// ---------- 설정 ----------
+function refresh() {
+  $('#detail').querySelectorAll('.chips').forEach(ch => {
+    ch.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(S[ch.dataset.opt]) === b.dataset.val));
+  });
+  $('#detail').querySelectorAll('[data-for]').forEach(g => { g.hidden = !g.dataset.for.split(' ').includes(S.act); });
+  const l = level();
+  $('#curlv').innerHTML = `<b>${GRADE[S.grade]} ${DEV[S.dev]} ${S.lv}단계 · ${l.name}</b>${l.desc}`;
+  document.body.classList.toggle('calm', S.calm === 'on');
+}
+$('#detail').addEventListener('click', e => {
+  if (e.target === $('#detail')) { $('#detail').hidden = true; return; }
+  const b = e.target.closest('.chips button');
+  if (!b) return;
+  S[b.closest('.chips').dataset.opt] = b.dataset.val;
+  save(); refresh();
+});
+$('#reset').addEventListener('click', () => { count = 0; done = false; $('#count').textContent = 0; renderHome(); });
+$('#more').addEventListener('click', () => { refresh(); $('#detail').hidden = false; });
+$('#less').addEventListener('click', () => { $('#detail').hidden = true; renderHome(); });
+$('#start').addEventListener('click', begin);
+
+function begin() {
+  panel.hidden = true; $('#detail').hidden = true; gear.hidden = false;
+  document.activeElement?.blur?.();
+  if (done || (goal() && count >= goal())) { count = 0; done = false; $('#count').textContent = 0; }
+  dots();
+  $('#where').hidden = false;
+  $('#where').textContent = `${GRADE[S.grade]} ${DEV[S.dev]} ${S.lv}단계`;
+  $('#guide').textContent = guideText(); $('#guide').hidden = false;
+  S.played = `${S.grade}/${S.dev}/`; S.playedLv = S.lv; save();
+  audio();
+  const fs = document.documentElement.requestFullscreen?.();
+  if (fs) fs.catch(() => {});
+  spawn();
+}
+function openPanel() {
+  clearTimeout(timer); clearStage(); pointers.clear();
+  gear.classList.remove('holding'); gear.hidden = true; panel.hidden = false;
+  $('#dots').hidden = true; $('#where').hidden = true; $('#guide').hidden = true; $('#detail').hidden = true;
+  renderHome(); refresh();
+}
+
+// ← 는 1초 눌러야 열린다 = 학생이 스쳐도 안 열린다
+let holdTimer = 0;
+gear.addEventListener('pointerdown', e => {
+  e.preventDefault();
+  gear.classList.add('holding');
+  holdTimer = setTimeout(openPanel, 1000);
+});
+['pointerup', 'pointerleave', 'pointercancel'].forEach(t => gear.addEventListener(t, () => {
+  clearTimeout(holdTimer); gear.classList.remove('holding');
+}));
+
+let resizeTimer = 0;
+addEventListener('resize', () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => { if (panel.hidden && !busy && !done && !stage.querySelector('.dragging')) spawn(); }, 200);
+});
+addEventListener('contextmenu', e => e.preventDefault());
+
+renderHome(); refresh();
+</script>
+</body>
+</html>
