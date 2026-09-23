@@ -46,6 +46,13 @@ button{font:inherit;color:inherit}
 #typebox .stray{color:#ff8f8f}
 #typebox .caret{width:.5vmin;height:9vmin;margin-left:.6vmin;background:var(--accent);animation:blink 1s steps(1) infinite}
 @keyframes blink{50%{opacity:0}}
+#chat{position:absolute;left:50%;top:7vh;transform:translateX(-50%);width:min(86vmin,900px);display:flex;flex-direction:column;gap:2vmin;pointer-events:none}
+#chat .who{align-self:flex-start;padding:.6vmin 2vmin;border-radius:999px;background:rgba(255,255,255,.08);font-size:2.4vmin;color:var(--muted)}
+#chat .bub{max-width:80%;padding:2.2vmin 3vmin;border-radius:3vmin;font-size:4.6vmin;font-weight:700;line-height:1.35}
+#chat .them{align-self:flex-start;border-bottom-left-radius:.8vmin;background:#232834;color:#e7eaef}
+#chat .me{align-self:flex-end;border-bottom-right-radius:.8vmin;background:var(--accent);color:var(--ink)}
+#chat .ask{align-self:flex-end;padding:1.4vmin 2.6vmin;border-radius:2vmin;border:.35vmin dashed rgba(255,209,102,.55);font-size:3.6vmin;font-weight:700;color:var(--accent)}
+#chat .ask small{display:block;font-size:2.2vmin;font-weight:600;color:rgba(255,209,102,.65)}
 #kb{position:absolute;left:50%;bottom:5vh;transform:translateX(-50%);display:flex;flex-direction:column;align-items:flex-start;gap:1vmin;pointer-events:none}
 #kb.single{bottom:auto;top:50%;transform:translate(-50%,-50%)}
 #kb.lower{top:auto;bottom:14vh;transform:translateX(-50%)}
@@ -178,8 +185,8 @@ button{font:inherit;color:inherit}
         <p class="what">터치스크린 · 마우스 · 키보드<br>기본 조작을 단계별로 연습합니다.</p>
       </div>
       <div>
-        <span class="flab">학교급</span>
-        <div class="seg" id="grades"><button data-grade="elem">초등</button><button data-grade="mid">중등</button><button data-grade="high">고등</button></div>
+        <span class="flab">수준</span>
+        <div class="seg" id="grades"><button data-grade="elem">초급</button><button data-grade="mid">중급</button><button data-grade="high">고급</button></div>
       </div>
       <div>
         <span class="flab">연습할 기기</span>
@@ -220,7 +227,7 @@ button{font:inherit;color:inherit}
           <div class="chips" data-opt="zone"><button data-val="all">화면 전체</button><button data-val="lower2">아래 3분의 2</button><button data-val="lower">아래 절반</button></div>
           <span class="sub">키가 작거나 휠체어를 탄 학생은 아래쪽으로 두면 손이 닿습니다.</span>
         </div>
-        <div class="grp" data-for="key2 syl word"><span class="lab">자판 그림 표시</span>
+        <div class="grp" data-for="key2 syl word chat"><span class="lab">자판 그림 표시</span>
           <div class="chips" data-opt="hint"><button data-val="on">누를 키 표시</button><button data-val="off">표시 없음</button></div>
         </div>
         <p class="note" data-for="tap0 move swipe key0 key1">이 활동은 따로 조절할 것이 없습니다.</p>
@@ -266,7 +273,7 @@ const VOL = {low:.25, mid:.55, high:.9};
 
 // ---------- 단계: 학교급 × 기기 × 5 ----------
 // 단계는 활동과 활동 조건만 정한다. 소리·효과·속도·높이·횟수는 교사가 고른 대로 둔다
-const GRADE = {elem:'초등', mid:'중등', high:'고등'};
+const GRADE = {elem:'초급', mid:'중급', high:'고급'};
 const DEV = {touch:'터치스크린', mouse:'마우스', key:'키보드'};
 const TIP = {
   touch:'손가락으로 화면을 직접 만집니다.',
@@ -341,7 +348,8 @@ const LEVELS = {
       L('낱말 치기', '나무, 우유처럼 두 글자 낱말을 칩니다. 누를 키가 차례로 표시됩니다.', {act:'word', hint:'on'}),
       L('낱말 치기 · 혼자서', '표시 없이 두 글자 낱말을 칩니다.', {act:'word', hint:'off'}),
       L('띄어 치기', '「우유 주세요」처럼 두 낱말 사이를 스페이스로 띄어 칩니다.', {act:'word', words:'two', hint:'off'}),
-      L('치고 엔터로 보내기', '낱말을 치고 엔터를 눌러 보냅니다. 검색하거나 메시지를 보낼 때 쓰는 동작입니다.', {act:'word', words:'two', enter:'on', hint:'off'})
+      L('치고 엔터로 보내기', '낱말을 치고 엔터를 눌러 보냅니다. 검색하거나 메시지를 보낼 때 쓰는 동작입니다.', {act:'word', words:'two', enter:'on', hint:'off'}),
+      L('상황별 채팅', '인사 · 부탁 · 사과처럼 상황에 맞는 말을 골라 치고 엔터로 보냅니다. 받침 있는 글자까지 칩니다.', {act:'chat', hint:'on'})
     ]
   }
 };
@@ -354,7 +362,7 @@ const level = () => LEVELS[S.grade][S.dev][S.lv - 1];
 function applyLevel(grade, dev, lv) {
   Object.assign(S, BASE, LEVELS[grade][dev][lv - 1].set, {grade, dev, lv});
 }
-if (!GRADE[S.grade] || !DEV[S.dev] || !(S.lv >= 1 && S.lv <= 5)) Object.assign(S, {grade:'elem', dev:'touch', lv:1});
+if (!GRADE[S.grade] || !DEV[S.dev] || !(S.lv >= 1 && S.lv <= (LEVELS[S.grade]?.[S.dev]?.length || 0))) Object.assign(S, {grade:'elem', dev:'touch', lv:1});
 if (level().set.act !== S.act) applyLevel(S.grade, S.dev, S.lv);   // 예전 판에서 저장된 설정
 
 // 활동 화면 맨 위 안내: 학생에게 하는 말로 짧게
@@ -379,6 +387,7 @@ function guideText() {
     case 'key2': return (S.pool === 'num' ? '큰 숫자를' : '큰 글자를') + ' 자판에서 찾아 눌러요';
     case 'syl': return '자음과 모음을 눌러 글자를 만들어요';
     case 'word': return S.enter === 'on' ? '낱말을 치고 엔터로 보내요' : S.words === 'two' ? '띄어 쓰며 따라 쳐요' : '낱말을 따라 쳐요';
+    case 'chat': return '답을 따라 치고 엔터로 보내요';
   }
   return '';
 }
@@ -421,11 +430,27 @@ const WORDS = {
   two:['우유 주세요','기차 타요','바다 가요','포도 주세요','두부 사요','나비 보기']
 };
 const SYL_V = 'ㅏㅓㅗㅜㅡㅣ';
-function units(text) {            // 글자마다 눌러야 할 키
+// 상황별 채팅. 답은 받침까지 쓰되 쌍자음·겹모음이 없는 말만 쓴다(자판에서 시프트 없이 칠 수 있다)
+const CHATS = [
+  {tag:'인사',       them:'안녕?',              me:'안녕하세요'},
+  {tag:'고마울 때',   them:'이거 같이 들어 줄까요?', me:'고맙습니다'},
+  {tag:'급식실',     them:'무엇을 드릴까요?',     me:'우유 주세요'},
+  {tag:'목마를 때',   them:'뭐가 필요해요?',       me:'물 주세요'},
+  {tag:'늦었을 때',   them:'왜 늦었어요?',        me:'미안해요'},
+  {tag:'기분 묻기',   them:'오늘 기분이 어때요?',   me:'좋아요'},
+  {tag:'쉬는 시간',   them:'같이 놀까요?',        me:'같이 놀아요'},
+  {tag:'집에 갈 때',  them:'잘 가요',            me:'안녕히 가세요'}
+];
+const JONG = ' ㄱㄲㄳㄴㄵㄶㄷㄹㄺㄻㄼㄽㄾㄿㅀㅁㅂㅄㅅㅆㅇㅈㅊㅋㅌㅍㅎ';
+// 글자 하나를 눌러야 할 키 순서로 쪼갠다. 받침 있는 글자는 키 세 번이다
+function units(text) {
   return [...text].map(ch => {
     if (ch === ' ') return {ch, codes:['Space']};
-    const n = ch.charCodeAt(0) - 0xAC00, c = CHO[Math.floor(n / 588)], v = JUNG[Math.floor(n % 588 / 28)];
-    return {ch, jamo:c, codes:[CODE_OF[c], CODE_OF[v]]};
+    const n = ch.charCodeAt(0) - 0xAC00;
+    const c = CHO[Math.floor(n / 588)], v = JUNG[Math.floor(n % 588 / 28)], j = JONG[n % 28];
+    const codes = [CODE_OF[c], CODE_OF[v]];
+    if (j !== ' ') codes.push(CODE_OF[j]);
+    return {ch, jamo:c, half:compose(c, v), codes};
   });
 }
 
@@ -563,7 +588,7 @@ function typebox() {
 }
 
 function clearStage() {
-  stage.querySelectorAll('.target,.goal,#sample,#bigchar,#kb,#done,#typebox,#arrow').forEach(e => e.remove());
+  stage.querySelectorAll('.target,.goal,#sample,#bigchar,#kb,#done,#typebox,#arrow,#chat').forEach(e => e.remove());
   cur = {};
 }
 
@@ -633,6 +658,17 @@ function spawn() {
     const big = document.createElement('div'); big.id = 'bigchar'; big.textContent = JAMO[cur.code];
     stage.appendChild(big);
     stage.appendChild(keyboardPic(S.pool === 'num' ? ROWS.num : ROWS.letters, S.hint === 'on' ? cur.code : ''));
+  } else if (a === 'chat') {
+    const c = shuffle(CHATS.filter(x => x !== spawn.prevChat))[0];
+    spawn.prevChat = c;
+    cur.units = units(c.me);
+    cur.seq = cur.units.flatMap(u => u.codes).concat(['Enter']);
+    cur.pos = 0; cur.chat = c;
+    const box = document.createElement('div'); box.id = 'chat';
+    box.innerHTML = `<span class="who">${c.tag}</span><div class="bub them">${c.them}</div>` +
+      `<div class="ask">${c.me}<small>이렇게 답해요</small></div>`;
+    stage.appendChild(box);
+    drawTyping();
   } else if (a === 'syl' || a === 'word') {
     let text;
     if (a === 'syl') { do text = compose(pickOne([...CONS]), pickOne([...SYL_V])); while (text === spawn.prevText); }
@@ -652,6 +688,7 @@ function drawTyping() {
   for (const u of cur.units) {
     const k = Math.min(n, u.codes.length); n -= k;
     if (k === u.codes.length) out += u.ch;
+    else if (k === 2) out += u.half;       // 받침 치기 전
     else if (k === 1) out += u.jamo;
   }
   typebox().innerHTML = out + '<span class="caret"></span>';
@@ -792,7 +829,7 @@ function startDrag(t, e) {
 
 // ---------- 키보드 ----------
 addEventListener('keydown', e => {
-  if (!panel.hidden || !S.act.startsWith('key') && S.act !== 'syl' && S.act !== 'word') return;
+  if (!panel.hidden || !S.act.startsWith('key') && !['syl', 'word', 'chat'].includes(S.act)) return;
   if (e.metaKey || e.ctrlKey || e.altKey || e.key === 'Escape' || /^F\d+$/.test(e.key)) return;   // 교사용 단축키는 그대로 둔다
   e.preventDefault();
   if (e.repeat || done) return;
@@ -803,12 +840,18 @@ addEventListener('keydown', e => {
     return;
   }
   if (busy) return;
-  if (a === 'syl' || a === 'word') {
+  if (a === 'syl' || a === 'word' || a === 'chat') {
     const want = cur.seq[cur.pos];
     if (e.code !== want && !(want === 'Enter' && e.code === 'NumpadEnter')) return;
     cur.pos++;
     drawTyping();
     if (cur.pos < cur.seq.length) { tick(); return; }
+    if (a === 'chat') {                       // 보낸 말이 내 말풍선으로 올라간다
+      const box = $('#chat');
+      box.querySelector('.ask')?.remove();
+      box.insertAdjacentHTML('beforeend', `<div class="bub me">${cur.chat.me}</div>`);
+      $('#typebox').innerHTML = '';
+    }
     success(...center($('#typebox'))); next();
     return;
   }
@@ -824,11 +867,11 @@ addEventListener('keydown', e => {
 function renderHome() {
   $('#grades').querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.grade === S.grade)));
   $('#devs').querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.dev === S.dev)));
-  $('#lvtitle').innerHTML = `${DEV[S.dev]}<small>${GRADE[S.grade]} 1~5단계</small>`;
+  $('#lvtitle').innerHTML = `${DEV[S.dev]}<small>${GRADE[S.grade]} · ${LEVELS[S.grade][S.dev].length}단계</small>`;
   $('#devtip').textContent = TIP[S.dev];
   // 「지금 단계」는 실제로 해 본 단계에만 붙인다(학교급·기기만 바꿨을 때는 없음)
   const here = S.played === `${S.grade}/${S.dev}/`, playedLv = here ? S.playedLv : 0;
-  const nextLv = done && here && playedLv < 5 ? playedLv + 1 : 0;
+  const nextLv = done && here && playedLv < LEVELS[S.grade][S.dev].length ? playedLv + 1 : 0;
   $('#lvls').innerHTML = LEVELS[S.grade][S.dev].map((l, i) => {
     const n = i + 1, now = n === playedLv;
     return `<button data-lv="${n}"${now ? ' class="now"' : ''}><em>${n}</em><b>${l.name}${now ? '<i class="tag now">지금 단계</i>' : ''}${n === nextLv ? '<i class="tag next">다음 단계</i>' : ''}</b><span>${l.desc}</span>` +
