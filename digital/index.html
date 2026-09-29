@@ -226,7 +226,7 @@ body.chatting #typebox{top:auto;bottom:40vh}
         <p id="devtip"></p>
       </header>
       <div id="lvls" class="lvlist"></div>
-      <p class="note">단계를 누르면 바로 전체 화면으로 시작합니다. 활동 중 왼쪽 위 ←를 1초 누르면 이 화면으로 돌아옵니다. 다음 단계로 갈지, 같은 단계를 다시 할지는 학생을 보고 정하세요.</p>
+      <p class="note">단계를 누르면 바로 전체 화면으로 시작합니다. 전체 화면을 끄려면 Esc를 누릅니다. 활동 중 왼쪽 위 ←를 1초 누르면 이 화면으로 돌아옵니다. 다음 단계로 갈지, 같은 단계를 다시 할지는 학생을 보고 정하세요.</p>
     </main>
   </div>
 
@@ -927,10 +927,11 @@ function renderHome() {
   const nextLv = done && here && playedLv < LEVELS[S.grade][S.dev].length ? playedLv + 1 : 0;
   $('#lvls').innerHTML = LEVELS[S.grade][S.dev].map((l, i) => {
     const n = i + 1, now = n === playedLv;
-    return `<div class="row"><button class="go${now ? ' now' : ''}" data-lv="${n}"><em>${n}</em><b>${l.name}${now ? '<i class="tag now">지금 단계</i>' : ''}${n === nextLv ? '<i class="tag next">다음 단계</i>' : ''}</b><span>${l.desc}</span>` +
-      '<svg class="play" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13l10.5-6.5z"/></svg></button>' +
-      `<button class="vid" data-vid="${videoOf(l.set)}" data-vidname="${l.name}" aria-label="${l.name} 가이드 영상 보기">` +
-      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><rect x="2.5" y="5" width="19" height="14" rx="3"/><path d="M10 9.5v5l4.5-2.5z" fill="currentColor"/></svg>가이드 영상</button></div>';
+    const vid = `<button class="vid" data-vid="${videoOf(l.set)}" data-vidname="${l.name}" aria-label="${l.name} 가이드 영상 보기">` +
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><rect x="2.5" y="5" width="19" height="14" rx="3"/><path d="M10 9.5v5l4.5-2.5z" fill="currentColor"/></svg>가이드 영상</button>';
+    const go = `<button class="go${now ? ' now' : ''}" data-lv="${n}"><em>${n}</em><b>${l.name}${now ? '<i class="tag now">지금 단계</i>' : ''}${n === nextLv ? '<i class="tag next">다음 단계</i>' : ''}</b><span>${l.desc}</span>` +
+      '<svg class="play" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13l10.5-6.5z"/></svg></button>';
+    return `<div class="row">${vid}${go}</div>`;
   }).join('');
 }
 // 학교급이나 기기를 바꾸면 그 1단계로 옮겨 둔다(시작은 단계를 눌러야)
@@ -980,7 +981,7 @@ function begin() {
   if (done || (goal() && count >= goal())) { count = 0; done = false; $('#count').textContent = 0; }
   dots();
   $('#where').hidden = false;
-  $('#where').innerHTML = `${GRADE[S.grade]} ${DEV[S.dev]} ${S.lv}단계<small>← 를 1초 누르고 있으면 단계 고르기</small>`;
+  $('#where').innerHTML = `${GRADE[S.grade]} ${DEV[S.dev]} ${S.lv}단계<small>← 를 1초 누르고 있으면 단계 고르기</small><small>전체 화면을 끄려면 Esc</small>`;
   $('#guide').textContent = guideText(); $('#guide').hidden = false;
   S.played = `${S.grade}/${S.dev}/`; S.playedLv = S.lv; save();
   audio();
