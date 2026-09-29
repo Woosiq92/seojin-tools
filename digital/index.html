@@ -109,7 +109,7 @@ body.chatting #typebox{top:auto;bottom:40vh}
 .devs button[aria-pressed="true"]{border-color:var(--accent)}
 .devs button[aria-pressed="true"] svg{color:var(--accent)}
 .side .foot{margin-top:auto;display:flex;flex-direction:column;gap:12px}
-.ghost{align-self:flex-start;display:flex;align-items:center;gap:8px;padding:12px 18px;border:1.5px solid var(--line);border-radius:12px;background:none;font-size:16px;color:var(--text);cursor:pointer}
+.foot .ghost{align-self:flex-start;display:flex;align-items:center;gap:8px;padding:12px 18px;border:1.5px solid var(--line);border-radius:12px;background:none;font-size:16px;color:var(--text);cursor:pointer}
 .ghost svg{width:20px;height:20px}
 .note{margin:0;font-size:13px;line-height:1.55;color:var(--dim)}
 
@@ -145,6 +145,28 @@ body.chatting #typebox{top:auto;bottom:40vh}
 .lvlist button.now em{background:var(--accent);color:var(--ink)}
 .lvlist button.now .play{color:var(--accent)}
 
+#starttip{position:fixed;top:calc(env(safe-area-inset-top,0px) + 92px);left:50%;transform:translateX(-50%);
+  z-index:11;display:flex;gap:18px;align-items:center;padding:14px 26px;border-radius:999px;
+  background:rgba(255,255,255,.1);border:2px solid rgba(255,209,102,.45);color:var(--text);
+  font-size:19px;font-weight:700;white-space:nowrap;pointer-events:none;animation:tipgo 4.5s ease forwards}
+#starttip b{color:var(--accent)}
+@keyframes tipgo{0%{opacity:0;transform:translate(-50%,-8px)}12%{opacity:1;transform:translateX(-50%)}78%{opacity:1}100%{opacity:0}}
+#kbnote{position:absolute;left:50%;bottom:1.4vh;transform:translateX(-50%);font-size:2.6vmin;
+  color:rgba(244,241,234,.45);pointer-events:none}
+
+/* ---------- 처음 도움말 ---------- */
+#help{position:fixed;inset:0;z-index:35;display:grid;place-items:center;padding:24px;background:rgba(6,8,12,.72);overflow:auto}
+#help .card{width:min(680px,100%);padding:30px 32px;border-radius:20px;background:var(--side);border:1px solid var(--line)}
+#help h2{margin:0 0 6px;font-size:26px}
+#help .sub{margin:0 0 20px;color:var(--muted);font-size:15px}
+#help ul{margin:0;padding:0;list-style:none;display:grid;gap:14px}
+#help li{display:grid;grid-template-columns:34px 1fr;gap:4px 14px;font-size:16px;color:var(--text)}
+#help li i{grid-row:span 2;display:grid;place-items:center;width:34px;height:34px;border-radius:10px;
+  background:var(--card);color:var(--accent);font-style:normal;font-weight:800;font-size:15px}
+#help li span{grid-column:2;color:var(--muted);font-size:14.5px;line-height:1.5}
+#help footer{display:flex;align-items:center;gap:12px;margin-top:24px}
+#help .ok{margin-left:auto;padding:13px 30px;border:0;border-radius:12px;background:var(--accent);color:var(--ink);font-size:17px;font-weight:800;cursor:pointer}
+
 /* ---------- 설정 ---------- */
 #detail{position:fixed;inset:0;z-index:30;display:flex;justify-content:flex-end;background:rgba(6,8,12,.6)}
 #detail .sheet{width:min(560px,100%);height:100%;display:flex;flex-direction:column;background:var(--side);border-left:1px solid var(--line)}
@@ -155,6 +177,10 @@ body.chatting #typebox{top:auto;bottom:40vh}
 #curlv{margin:0 0 6px;padding:14px 16px;border-radius:14px;background:var(--card);font-size:15px;line-height:1.5;color:var(--muted)}
 #curlv b{display:block;font-size:17px;color:var(--text)}
 #detail h3{margin:22px 0 10px;font-size:14px;font-weight:600;color:var(--dim)}
+#detail .adv{display:none}
+body.adv #detail .adv{display:flex}
+body.adv #detail h3.adv,body.adv #detail p.adv{display:block}
+#advtoggle{margin-top:6px;padding:11px 18px;border:1.5px solid var(--line);border-radius:12px;background:none;font-size:15px;cursor:pointer}
 .grp{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin-bottom:12px}
 .lab{flex:none;width:110px;font-size:15px;color:var(--muted)}
 .chips{display:flex;flex-wrap:wrap;gap:6px}
@@ -216,6 +242,7 @@ body.chatting #typebox{top:auto;bottom:40vh}
         </div>
       </div>
       <div class="foot">
+        <button id="helpopen" class="ghost"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.3a2.5 2.5 0 1 1 3.3 2.4c-.6.2-.9.7-.9 1.3v.5M12 17h.01"/></svg>처음 쓰시나요? 사용법 보기</button>
         <button id="more" class="ghost"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>설정 · 소리 · 횟수</button>
         <p class="note">학생 이름이나 기록은 저장하지 않습니다. 고른 설정만 이 컴퓨터의 브라우저에 남습니다.</p>
       </div>
@@ -228,6 +255,22 @@ body.chatting #typebox{top:auto;bottom:40vh}
       <div id="lvls" class="lvlist"></div>
       <p class="note">단계를 누르면 바로 전체 화면으로 시작합니다. 전체 화면을 끄려면 Esc를 누릅니다. 활동 중 왼쪽 위 ←를 1초 누르면 이 화면으로 돌아옵니다. 다음 단계로 갈지, 같은 단계를 다시 할지는 학생을 보고 정하세요.</p>
     </main>
+  </div>
+
+  <div id="help" hidden>
+    <div class="card">
+      <h2>이 화면은 이렇게 씁니다</h2>
+      <p class="sub">선생님이 전자칠판에 띄우고, 학생이 나와서 화면을 만지는 프로그램입니다.</p>
+      <ul>
+        <li><i>1</i><b>수준과 기기를 고르고, 단계를 누르면 바로 시작합니다</b><span>처음이면 초급 1단계부터 하세요. 학년이 아니라 학생이 할 수 있는 정도로 고릅니다.</span></li>
+        <li><i>2</i><b>나가려면 왼쪽 위 ←를 1초 누르고 있습니다</b><span>학생이 스쳐도 수업이 멈추지 않도록 1초를 눌러야 열립니다. 전체 화면은 Esc로 끕니다.</span></li>
+        <li><i>3</i><b>단계마다 「가이드 영상」으로 먼저 보여 줄 수 있습니다</b><span>20초 안팎의 짧은 영상입니다. 소리는 없고 자막만 나옵니다.</span></li>
+        <li><i>4</i><b>키보드 단계는 화면 자판을 손으로 눌러도 됩니다</b><span>칠판에 키보드가 없어도 할 수 있습니다. 진짜 키보드도 그대로 됩니다.</span></li>
+        <li><i>5</i><b>학생 이름과 기록은 저장되지 않습니다</b><span>화면에는 이번 시간 성공 횟수만 보입니다. 촉진 수준(신체·시범·언어·시각·독립)은 선생님이 적어 주세요.</span></li>
+        <li><i>?</i><b>소리가 안 나면</b><span>학교 PC 음량과 칠판 스피커를 먼저 확인하고, 그래도 안 나면 「설정 · 소리 · 횟수」에서 소리가 켜져 있는지 봅니다.</span></li>
+      </ul>
+      <footer><button class="ok" id="helpok">알겠습니다</button></footer>
+    </div>
   </div>
 
   <div id="player" hidden>
@@ -247,37 +290,39 @@ body.chatting #typebox{top:auto;bottom:40vh}
         <div class="grp" data-for="tap1 pick drag hover hold dbl rclick seq scroll pinch"><span class="lab">모양 크기</span>
           <div class="chips" data-opt="size"><button data-val="S">작게</button><button data-val="M">보통</button><button data-val="L">크게</button><button data-val="XL">아주 크게</button></div>
         </div>
-        <div class="grp" data-for="pick"><span class="lab">고를 개수</span>
+        <div class="grp adv" data-for="pick"><span class="lab">고를 개수</span>
           <div class="chips" data-opt="count"><button data-val="2">2개</button><button data-val="3">3개</button><button data-val="4">4개</button></div>
         </div>
-        <div class="grp" data-for="tap1 pick drag hover hold dbl rclick seq"><span class="lab">나오는 높이</span>
+        <div class="grp adv" data-for="tap1 pick drag hover hold dbl rclick seq"><span class="lab">나오는 높이</span>
           <div class="chips" data-opt="zone"><button data-val="all">화면 전체</button><button data-val="lower2">아래 3분의 2</button><button data-val="lower">아래 절반</button></div>
           <span class="sub">키가 작거나 휠체어를 탄 학생은 아래쪽으로 두면 손이 닿습니다.</span>
         </div>
-        <div class="grp" data-for="key2 syl word chat"><span class="lab">자판 그림 표시</span>
+        <div class="grp adv" data-for="key2 syl word chat"><span class="lab">자판 그림 표시</span>
           <div class="chips" data-opt="hint"><button data-val="on">누를 키 표시</button><button data-val="off">표시 없음</button></div>
         </div>
-        <p class="note" data-for="tap0 move swipe key0 key1">이 활동은 따로 조절할 것이 없습니다.</p>
-        <h3>진행</h3>
+        <p class="note adv" data-for="tap0 move swipe key0 key1">이 활동은 따로 조절할 것이 없습니다.</p>
+        <h3 class="adv">진행</h3>
         <div class="grp"><span class="lab">몇 번 하고 끝낼까</span>
           <div class="chips" data-opt="goal"><button data-val="5">5번</button><button data-val="10">10번</button><button data-val="20">20번</button><button data-val="off">끝없이</button></div>
           <span class="sub">화면 맨 위 점이 성공할 때마다 채워지고, 다 채우면 「끝」이 나옵니다.</span>
         </div>
-        <div class="grp"><span class="lab">다음 문제까지</span>
+        <div class="grp adv"><span class="lab">다음 문제까지</span>
           <div class="chips" data-opt="delay"><button data-val="short">짧게</button><button data-val="mid">보통</button><button data-val="long">길게</button></div>
         </div>
-        <div class="grp"><span class="lab">연달아 누름</span>
+        <div class="grp adv"><span class="lab">연달아 누름</span>
           <div class="chips" data-opt="gap"><button data-val="off">모두 받기</button><button data-val="short">0.25초 무시</button><button data-val="mid">0.5초 무시</button><button data-val="long">1초 무시</button></div>
         </div>
         <h3>소리와 효과</h3>
         <div class="grp"><span class="lab">소리</span>
           <div class="chips" data-opt="sound"><button data-val="on">켬</button><button data-val="off">끔</button></div>
-          <div class="chips" data-opt="vol"><button data-val="low">작게</button><button data-val="mid">보통</button><button data-val="high">크게</button></div>
+          <div class="chips adv" data-opt="vol"><button data-val="low">작게</button><button data-val="mid">보통</button><button data-val="high">크게</button></div>
         </div>
-        <div class="grp"><span class="lab">효과</span>
+        <div class="grp adv"><span class="lab">효과</span>
           <div class="chips" data-opt="calm"><button data-val="off">보통</button><button data-val="on">차분하게</button></div>
           <span class="sub">차분하게: 흩어지는 불꽃 없이 둥근 테두리만 천천히 퍼집니다.</span>
         </div>
+        <button id="advtoggle">자세한 설정 보기</button>
+        <p class="note">소리가 안 나면 학교 PC 음량과 칠판 스피커를 먼저 확인하세요.</p>
       </div>
       <footer>
         <span>이번 시간 성공 <span id="count">0</span>번</span>
@@ -581,6 +626,11 @@ function makeTarget(shape, color, p, ok) {
   return el;
 }
 const oneTarget = top => makeTarget(pickOne(Object.keys(SHAPES)), pickOne(COLORS), slots(1, top)[0], true);
+function kbNote() {
+  const n = document.createElement('div'); n.id = 'kbnote';
+  n.textContent = '화면 자판을 손으로 눌러도 됩니다';
+  stage.appendChild(n);
+}
 function keyboardPic(rows, hl, extra = []) {
   const kb = document.createElement('div'); kb.id = 'kb';
   rows.forEach((row, ri) => {
@@ -617,7 +667,7 @@ function typebox() {
 
 function clearStage() {
   document.body.classList.remove('chatting');
-  stage.querySelectorAll('.target,.goal,#sample,#bigchar,#kb,#done,#typebox,#arrow,#chat').forEach(e => e.remove());
+  stage.querySelectorAll('.target,.goal,#sample,#bigchar,#kb,#done,#typebox,#arrow,#chat,#kbnote').forEach(e => e.remove());
   cur = {};
 }
 
@@ -676,6 +726,7 @@ function spawn() {
     place(g, {x:p.x, y:H / 2, s:p.s * 1.35}); stage.appendChild(g);
   } else if (a === 'key1') {
     const kb = bigKey(S.key1);
+    kbNote();
     if (S.key1 === 'Backspace') {
       kb.classList.add('lower');
       cur.word = pickOne(WORDS.one); cur.stray = pickOne([...CONS]);
@@ -683,12 +734,14 @@ function spawn() {
     }
   } else if (a === 'key0') {
     stage.appendChild(keyboardPic(ROWS.letters, '', ['Space']));
+    kbNote();
   } else if (a === 'key2') {
     const pool = POOL[S.pool];
     cur.code = shuffle(pool.filter(c => c !== spawn.prevCode))[0]; spawn.prevCode = cur.code;
     const big = document.createElement('div'); big.id = 'bigchar'; big.textContent = JAMO[cur.code];
     stage.appendChild(big);
     stage.appendChild(keyboardPic(S.pool === 'num' ? ROWS.num : ROWS.letters, S.hint === 'on' ? cur.code : ''));
+    kbNote();
   } else if (a === 'chat') {
     const c = shuffle(CHATS.filter(x => x !== spawn.prevChat))[0];
     spawn.prevChat = c;
@@ -729,6 +782,7 @@ function drawTyping() {
   const need = [...(cur.seq.includes('Space') ? ['Space'] : []), ...(cur.seq.includes('Enter') ? ['Enter'] : [])];
   const want = cur.seq[cur.pos];                          // 엔터(보내기)는 표시 없음 단계에서도 알려 준다
   stage.appendChild(keyboardPic(ROWS.letters, S.hint === 'on' || want === 'Enter' ? want : '', need));
+  if (!$('#kbnote')) kbNote();
 }
 
 // ---------- 터치·마우스 ----------
@@ -942,9 +996,10 @@ function renderHome() {
   const nextLv = done && here && playedLv < LEVELS[S.grade][S.dev].length ? playedLv + 1 : 0;
   $('#lvls').innerHTML = LEVELS[S.grade][S.dev].map((l, i) => {
     const n = i + 1, now = n === playedLv;
+    const first = !S.played && n === 1;          // 아직 한 번도 안 해 봤으면 1단계를 가리킨다
     const vid = `<button class="vid" data-vid="${videoOf(l.set)}" data-vidname="${l.name}" aria-label="${l.name} 가이드 영상 보기">` +
       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><rect x="2.5" y="5" width="19" height="14" rx="3"/><path d="M10 9.5v5l4.5-2.5z" fill="currentColor"/></svg>가이드 영상</button>';
-    const go = `<button class="go${now ? ' now' : ''}" data-lv="${n}"><em>${n}</em><b>${l.name}${now ? '<i class="tag now">지금 단계</i>' : ''}${n === nextLv ? '<i class="tag next">다음 단계</i>' : ''}</b><span>${l.desc}</span>` +
+    const go = `<button class="go${now ? ' now' : ''}" data-lv="${n}"><em>${n}</em><b>${l.name}${now ? '<i class="tag now">지금 단계</i>' : ''}${n === nextLv ? '<i class="tag next">다음 단계</i>' : ''}${first ? '<i class="tag next">여기부터</i>' : ''}</b><span>${l.desc}</span>` +
       '<svg class="play" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13l10.5-6.5z"/></svg></button>';
     return `<div class="row">${vid}${go}</div>`;
   }).join('');
@@ -990,6 +1045,22 @@ $('#more').addEventListener('click', () => { refresh(); $('#detail').hidden = fa
 $('#less').addEventListener('click', () => { $('#detail').hidden = true; renderHome(); });
 $('#start').addEventListener('click', begin);
 
+// 처음 열었을 때 한 번, 그리고 「사용법 보기」를 누를 때
+function showHelp() { $('#help').hidden = false; }
+function hideHelp() {
+  $('#help').hidden = true;
+  try { localStorage.setItem('sonkkeut-help', '1'); } catch (e) {}
+}
+$('#helpok').addEventListener('click', hideHelp);
+$('#helpopen').addEventListener('click', showHelp);
+$('#help').addEventListener('click', e => { if (e.target === $('#help')) hideHelp(); });
+try { if (!localStorage.getItem('sonkkeut-help')) showHelp(); } catch (e) {}
+
+$('#advtoggle').addEventListener('click', () => {
+  const on = document.body.classList.toggle('adv');
+  $('#advtoggle').textContent = on ? '자세한 설정 접기' : '자세한 설정 보기';
+});
+
 function begin() {
   panel.hidden = true; $('#detail').hidden = true; gear.hidden = false;
   document.activeElement?.blur?.();
@@ -998,6 +1069,11 @@ function begin() {
   $('#where').hidden = false;
   $('#where').innerHTML = `${GRADE[S.grade]} ${DEV[S.dev]} ${S.lv}단계<small>← 를 1초 누르고 있으면 단계 고르기</small><small>전체 화면을 끄려면 Esc</small>`;
   $('#guide').textContent = guideText(); $('#guide').hidden = false;
+  stage.querySelector('#starttip')?.remove();   // 시작하고 몇 초만 크게 알려 준다
+  const tip = document.createElement('div'); tip.id = 'starttip';
+  tip.innerHTML = '나가기 <b>← 1초 누르기</b> · 전체 화면 끄기 <b>Esc</b>';
+  document.body.appendChild(tip);
+  setTimeout(() => tip.remove(), 4600);
   S.played = `${S.grade}/${S.dev}/`; S.playedLv = S.lv; save();
   audio();
   const fs = document.documentElement.requestFullscreen?.();
@@ -1006,6 +1082,7 @@ function begin() {
 }
 function openPanel() {
   clearTimeout(timer); clearStage(); pointers.clear();
+  document.getElementById('starttip')?.remove();
   gear.classList.remove('holding'); gear.hidden = true; panel.hidden = false;
   $('#dots').hidden = true; $('#where').hidden = true; $('#guide').hidden = true; $('#detail').hidden = true;
   renderHome(); refresh();
