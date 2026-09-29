@@ -113,8 +113,21 @@ button{font:inherit;color:inherit}
 .main h2 small{margin-left:10px;font-size:16px;font-weight:600;color:var(--muted)}
 #devtip{margin:6px 0 0;font-size:15px;color:var(--muted)}
 .lvlist{display:grid;gap:10px}
+.lvlist .row{display:flex;gap:8px}
+.lvlist .row>button{border:2px solid var(--line);border-radius:18px;background:var(--card);cursor:pointer}
+.lvlist .vid{flex:none;width:96px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;color:var(--muted);font-size:13px;font-weight:600}
+.lvlist .vid svg{width:26px;height:26px}
+.lvlist .vid:hover{border-color:var(--accent);color:var(--accent)}
+.lvlist .go{flex:1;min-width:0}
+#player{position:fixed;inset:0;z-index:40;display:grid;place-items:center;padding:24px;background:rgba(6,8,12,.86)}
+#player .box{width:min(1000px,100%);display:flex;flex-direction:column;gap:12px}
+#player header{display:flex;align-items:center;gap:12px}
+#player h3{margin:0;font-size:20px}
+#player video{width:100%;border-radius:16px;background:#000}
+#player .close{margin-left:auto;padding:10px 18px;border:1.5px solid var(--line);border-radius:12px;background:none;font-size:15px;cursor:pointer}
+#player .miss{padding:18px 20px;border:1.5px dashed var(--line);border-radius:14px;color:var(--muted);font-size:15px}
 .lvlist button{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:0 18px;padding:14px 20px;border:2px solid var(--line);border-radius:18px;background:var(--card);text-align:left;cursor:pointer}
-.lvlist button:hover{border-color:#46506a}
+.lvlist .go:hover{border-color:#46506a}
 .lvlist em{grid-row:span 2;display:grid;place-items:center;width:48px;height:48px;border-radius:50%;background:var(--bg);font-style:normal;font-size:22px;font-weight:800;color:var(--muted)}
 .lvlist b{font-size:21px}
 .lvlist span{grid-column:2;font-size:15px;line-height:1.45;color:var(--muted)}
@@ -209,6 +222,14 @@ button{font:inherit;color:inherit}
       <div id="lvls" class="lvlist"></div>
       <p class="note">단계를 누르면 바로 전체 화면으로 시작합니다. 활동 중 왼쪽 위 ←를 1초 누르면 이 화면으로 돌아옵니다. 다음 단계로 갈지, 같은 단계를 다시 할지는 학생을 보고 정하세요.</p>
     </main>
+  </div>
+
+  <div id="player" hidden>
+    <div class="box">
+      <header><h3 id="vidname"></h3><button class="close" id="vidclose">닫기</button></header>
+      <video id="vidplay" controls playsinline preload="metadata"></video>
+      <p class="miss" id="vidmiss" hidden>영상 파일이 없습니다. 프로그램과 같은 곳에 「영상」 폴더가 있어야 합니다.</p>
+    </div>
   </div>
 
   <div id="detail" hidden>
@@ -864,6 +885,29 @@ addEventListener('keydown', e => {
 });
 
 // ---------- 홈 ----------
+// 기능(활동)마다 가이드 영상 한 편. 프로그램 옆 「영상」 폴더에서 찾는다
+const videoOf = set => {
+  const a = set.act;
+  return a === 'key1' ? 'key-' + (set.key1 || 'Space') : a;
+};
+function showVideo(code, name) {
+  const v = $('#vidplay'), miss = $('#vidmiss');
+  $('#vidname').textContent = name + ' — 가이드 영상';
+  miss.hidden = true; v.hidden = false;
+  v.src = `영상/${code}.mp4`;
+  v.onerror = () => { v.hidden = true; miss.hidden = false; };
+  $('#player').hidden = false;
+  v.play?.().catch(() => {});
+}
+function hideVideo() {
+  const v = $('#vidplay');
+  v.pause?.(); v.removeAttribute('src'); v.load?.();
+  $('#player').hidden = true;
+}
+$('#vidclose').addEventListener('click', hideVideo);
+$('#player').addEventListener('click', e => { if (e.target === $('#player')) hideVideo(); });
+addEventListener('keydown', e => { if (e.key === 'Escape' && !$('#player').hidden) hideVideo(); });
+
 function renderHome() {
   $('#grades').querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.grade === S.grade)));
   $('#devs').querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.dev === S.dev)));
@@ -874,8 +918,10 @@ function renderHome() {
   const nextLv = done && here && playedLv < LEVELS[S.grade][S.dev].length ? playedLv + 1 : 0;
   $('#lvls').innerHTML = LEVELS[S.grade][S.dev].map((l, i) => {
     const n = i + 1, now = n === playedLv;
-    return `<button data-lv="${n}"${now ? ' class="now"' : ''}><em>${n}</em><b>${l.name}${now ? '<i class="tag now">지금 단계</i>' : ''}${n === nextLv ? '<i class="tag next">다음 단계</i>' : ''}</b><span>${l.desc}</span>` +
-      '<svg class="play" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13l10.5-6.5z"/></svg></button>';
+    return `<div class="row"><button class="go${now ? ' now' : ''}" data-lv="${n}"><em>${n}</em><b>${l.name}${now ? '<i class="tag now">지금 단계</i>' : ''}${n === nextLv ? '<i class="tag next">다음 단계</i>' : ''}</b><span>${l.desc}</span>` +
+      '<svg class="play" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13l10.5-6.5z"/></svg></button>' +
+      `<button class="vid" data-vid="${videoOf(l.set)}" data-vidname="${l.name}" aria-label="${l.name} 가이드 영상 보기">` +
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><rect x="2.5" y="5" width="19" height="14" rx="3"/><path d="M10 9.5v5l4.5-2.5z" fill="currentColor"/></svg>영상</button></div>';
   }).join('');
 }
 // 학교급이나 기기를 바꾸면 그 1단계로 옮겨 둔다(시작은 단계를 눌러야)
@@ -888,6 +934,8 @@ $('#devs').addEventListener('click', e => {
   applyLevel(S.grade, b.dataset.dev, 1); done = false; save(); renderHome();
 });
 $('#lvls').addEventListener('click', e => {
+  const v = e.target.closest('[data-vid]');
+  if (v) { showVideo(v.dataset.vid, v.dataset.vidname); return; }
   const b = e.target.closest('[data-lv]'); if (!b) return;
   applyLevel(S.grade, S.dev, +b.dataset.lv);
   save();
