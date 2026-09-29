@@ -50,6 +50,10 @@ a.card:hover .go{color:var(--tone,var(--clay));transform:translateX(3px)}
   border:1px solid var(--line);background:var(--sheet);font-size:14px;color:var(--ink2)}
 .crumb:hover{border-color:var(--clay);color:var(--ink)}
 footer{margin-top:54px;padding-top:18px;border-top:1px solid var(--line);color:var(--muted);font-size:13.5px}
+footer p{margin:0 0 8px}
+footer a.gh{display:inline-flex;align-items:center;gap:7px;color:var(--ink2);text-decoration:none;font-weight:600}
+footer a.gh:hover{color:var(--ink);text-decoration:underline}
+footer a.gh svg{width:16px;height:16px}
 @media (max-width:640px){
   .wrap{padding:44px 18px 64px}
   h1{font-size:36px}.lead{font-size:16.5px}
