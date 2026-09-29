@@ -40,19 +40,24 @@ button{font:inherit;color:inherit}
 
 #sample{position:absolute;left:50%;top:12vmin;transform:translateX(-50%);width:16vmin;height:16vmin;padding:2vmin;border-radius:3vmin;background:rgba(255,255,255,.08);pointer-events:none}
 #sample svg{width:100%;height:100%;display:block}
-#bigchar{position:absolute;left:50%;top:13vh;transform:translateX(-50%);font-size:28vmin;font-weight:800;line-height:1;white-space:pre;pointer-events:none}
-#bigchar.word{font-size:15vmin;color:rgba(244,241,234,.9)}
-#typebox{position:absolute;left:50%;top:37vh;transform:translateX(-50%);min-width:40vmin;height:13vmin;padding:0 3vmin;border-radius:2vmin;background:#1e2330;border:.4vmin solid #394050;display:flex;align-items:center;justify-content:center;font-size:9vmin;font-weight:700;white-space:pre;pointer-events:none}
+#bigchar{position:absolute;left:50%;top:14vh;transform:translateX(-50%);font-size:21vmin;font-weight:800;line-height:1.1;white-space:pre;pointer-events:none}
+#bigchar.labeled::before{content:'이대로 쳐요';position:absolute;left:50%;top:-4.6vmin;transform:translateX(-50%);
+  font-size:2.6vmin;font-weight:600;letter-spacing:.08em;color:var(--muted)}
+#bigchar.word{font-size:13vmin;color:rgba(244,241,234,.92)}
+#typebox{position:absolute;left:50%;top:44vh;transform:translateX(-50%);min-width:44vmin;height:14vmin;padding:0 4vmin;border-radius:2.4vmin;background:#1a1f2a;border:.4vmin solid #3c4450;display:flex;align-items:center;justify-content:center;font-size:9vmin;font-weight:700;white-space:pre;pointer-events:none}
+#typebox::before{content:'내가 친 것';position:absolute;left:50%;top:-4.6vmin;transform:translateX(-50%);
+  font-size:2.6vmin;font-weight:600;letter-spacing:.08em;color:var(--muted)}
 #typebox .stray{color:#ff8f8f}
 #typebox .caret{width:.5vmin;height:9vmin;margin-left:.6vmin;background:var(--accent);animation:blink 1s steps(1) infinite}
 @keyframes blink{50%{opacity:0}}
-#chat{position:absolute;left:50%;top:7vh;transform:translateX(-50%);width:min(86vmin,900px);display:flex;flex-direction:column;gap:2vmin;pointer-events:none}
+#chat{position:absolute;left:50%;top:13vh;transform:translateX(-50%);width:min(86vmin,900px);display:flex;flex-direction:column;gap:2vmin;pointer-events:none}
 #chat .who{align-self:flex-start;padding:.6vmin 2vmin;border-radius:999px;background:rgba(255,255,255,.08);font-size:2.4vmin;color:var(--muted)}
 #chat .bub{max-width:80%;padding:2.2vmin 3vmin;border-radius:3vmin;font-size:4.6vmin;font-weight:700;line-height:1.35}
 #chat .them{align-self:flex-start;border-bottom-left-radius:.8vmin;background:#232834;color:#e7eaef}
 #chat .me{align-self:flex-end;border-bottom-right-radius:.8vmin;background:var(--accent);color:var(--ink)}
 #chat .ask{align-self:flex-end;padding:1.4vmin 2.6vmin;border-radius:2vmin;border:.35vmin dashed rgba(255,209,102,.55);font-size:3.6vmin;font-weight:700;color:var(--accent)}
 #chat .ask small{display:block;font-size:2.2vmin;font-weight:600;color:rgba(255,209,102,.65)}
+body.chatting #typebox{top:auto;bottom:40vh}
 #kb{position:absolute;left:50%;bottom:5vh;transform:translateX(-50%);display:flex;flex-direction:column;align-items:flex-start;gap:1vmin;pointer-events:none}
 #kb.single{bottom:auto;top:50%;transform:translate(-50%,-50%)}
 #kb.lower{top:auto;bottom:14vh;transform:translateX(-50%)}
@@ -115,8 +120,9 @@ button{font:inherit;color:inherit}
 .lvlist{display:grid;gap:10px}
 .lvlist .row{display:flex;gap:8px}
 .lvlist .row>button{border:2px solid var(--line);border-radius:18px;background:var(--card);cursor:pointer}
-.lvlist .vid{flex:none;width:96px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;color:var(--muted);font-size:13px;font-weight:600}
+.lvlist .vid{flex:none;width:118px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;color:var(--muted);font-size:13px;font-weight:600}
 .lvlist .vid svg{width:26px;height:26px}
+.lvlist .vid span{white-space:nowrap}
 .lvlist .vid:hover{border-color:var(--accent);color:var(--accent)}
 .lvlist .go{flex:1;min-width:0}
 #player{position:fixed;inset:0;z-index:40;display:grid;place-items:center;padding:24px;background:rgba(6,8,12,.86)}
@@ -609,6 +615,7 @@ function typebox() {
 }
 
 function clearStage() {
+  document.body.classList.remove('chatting');
   stage.querySelectorAll('.target,.goal,#sample,#bigchar,#kb,#done,#typebox,#arrow,#chat').forEach(e => e.remove());
   cur = {};
 }
@@ -685,6 +692,7 @@ function spawn() {
     cur.units = units(c.me);
     cur.seq = cur.units.flatMap(u => u.codes).concat(['Enter']);
     cur.pos = 0; cur.chat = c;
+    document.body.classList.add('chatting');
     const box = document.createElement('div'); box.id = 'chat';
     box.innerHTML = `<span class="who">${c.tag}</span><div class="bub them">${c.them}</div>` +
       `<div class="ask">${c.me}<small>이렇게 답해요</small></div>`;
@@ -699,6 +707,7 @@ function spawn() {
     cur.seq = cur.units.flatMap(u => u.codes).concat(S.enter === 'on' && a === 'word' ? ['Enter'] : []);
     cur.pos = 0;
     const big = document.createElement('div'); big.id = 'bigchar'; big.textContent = text;
+    big.classList.add('labeled');
     if (a === 'word') big.classList.add('word');
     stage.appendChild(big);
     drawTyping();
@@ -921,7 +930,7 @@ function renderHome() {
     return `<div class="row"><button class="go${now ? ' now' : ''}" data-lv="${n}"><em>${n}</em><b>${l.name}${now ? '<i class="tag now">지금 단계</i>' : ''}${n === nextLv ? '<i class="tag next">다음 단계</i>' : ''}</b><span>${l.desc}</span>` +
       '<svg class="play" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13l10.5-6.5z"/></svg></button>' +
       `<button class="vid" data-vid="${videoOf(l.set)}" data-vidname="${l.name}" aria-label="${l.name} 가이드 영상 보기">` +
-      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><rect x="2.5" y="5" width="19" height="14" rx="3"/><path d="M10 9.5v5l4.5-2.5z" fill="currentColor"/></svg>영상</button></div>';
+      '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><rect x="2.5" y="5" width="19" height="14" rx="3"/><path d="M10 9.5v5l4.5-2.5z" fill="currentColor"/></svg>가이드 영상</button></div>';
   }).join('');
 }
 // 학교급이나 기기를 바꾸면 그 1단계로 옮겨 둔다(시작은 단계를 눌러야)
