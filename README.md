@@ -29,3 +29,14 @@ Railway 는 이 저장소 맨 위의 `package.json` 을 보고 `vibe/server.mjs`
 
 `vibe/` 는 결과물입니다. 원본은 비공개 저장소 seojin 의 `shelf/` 와 `저장소.html` 이고, 거기서 고친 뒤 이리로 옮깁니다.
 공간은 `vibe/spaces.json` 에 적어 두면 서버가 켜질 때 없는 것만 만듭니다(코드·열쇠는 Railway 로그에 한 번 찍힘).
+
+## 카메라로 하는 도구 세 가지
+
+바이브 코딩 저장소의 도구 모음에서 여는 페이지입니다. 카메라 영상은 기기 안에서만 처리하고 밖으로 보내지 않습니다.
+손·얼굴 인식은 MediaPipe(jsDelivr·Google 저장소에서 받아 옴)를 쓰니 인터넷이 필요합니다.
+
+- 사이에서 핀다: https://woosiq92.github.io/seojin-tools/bloom/
+- 손으로 내는 소리: https://woosiq92.github.io/seojin-tools/hand-sound/
+- 머리로 받는 소리: https://woosiq92.github.io/seojin-tools/head-notes/
+
+원본은 이 컴퓨터의 `~/media-art`, `~/hand-sound`, `~/head-notes` 의 `index.html` 입니다.

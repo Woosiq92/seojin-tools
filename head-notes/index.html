@@ -1,0 +1,496 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>머리로 받는 소리</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gothic+A1:wght@400;500;700;900&family=Nanum+Myeongjo:wght@700&display=swap">
+<style>
+  :root {
+    --bg: #14161B; --panel: #1D2027; --panel-2: #272B34;
+    --ink: #F2F1EC; --ink-2: #B9BAC1; --muted: #85878F;
+    --line: #343845; --hot: #7FC8F0; --hot-2: #4FA8DA; --live: #8BD9A8;
+  }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; }
+  body {
+    margin: 0; background: var(--bg); color: var(--ink);
+    font-family: "Gothic A1", -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", sans-serif;
+    font-size: 16px; line-height: 1.6; word-break: keep-all; overflow-wrap: break-word;
+    -webkit-font-smoothing: antialiased; overflow: hidden;
+  }
+  button { font-family: inherit; cursor: pointer; }
+  button:focus-visible { outline: 3px solid var(--hot); outline-offset: 3px; }
+  .wrap { position: relative; width: 100vw; height: 100vh; overflow: hidden; }
+
+  /* 시작 화면 */
+  #start {
+    position: absolute; inset: 0; z-index: 20; background: var(--bg);
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 24px; padding: 24px; text-align: center;
+  }
+  #start h1 { font-family: "Nanum Myeongjo", serif; font-size: clamp(30px, 6vw, 52px); margin: 0; }
+  #start p { margin: 0; color: var(--ink-2); max-width: 34ch; font-size: 16.5px; }
+  .btn-row { display: flex; flex-wrap: wrap; gap: 14px; justify-content: center; }
+  .big {
+    background: var(--hot); color: #10151A; border: 0; border-radius: 4px;
+    font-size: 20px; font-weight: 700; padding: 20px 34px; min-width: 210px;
+  }
+  .big:hover { background: var(--hot-2); }
+  .big.ghost { background: none; color: var(--ink); border: 2px solid var(--line); }
+  .big.ghost:hover { border-color: var(--hot); color: var(--hot); }
+  .big[disabled] { opacity: .5; cursor: default; }
+  .note-s { font-size: 13.5px; color: var(--muted); max-width: 42ch; line-height: 1.7; }
+
+  /* 놀이 화면 */
+  #stage { position: absolute; inset: 0; display: none; }
+  #stage.on { display: block; }
+  #view {
+    position: absolute; inset: 0; width: 100%; height: 100%;
+    object-fit: cover; transform: scaleX(-1); filter: saturate(.5) brightness(.62);
+  }
+  #paint { position: absolute; inset: 0; width: 100%; height: 100%; }
+
+  #hud {
+    position: absolute; left: 16px; top: 16px; z-index: 6; display: flex; gap: 10px; align-items: center;
+  }
+  .pill {
+    background: rgba(20,22,27,.82); border: 1px solid var(--line); border-radius: 999px;
+    padding: 8px 16px; font-size: 15px; font-weight: 700; color: var(--ink);
+  }
+  .pill i { font-style: normal; color: var(--hot); }
+  #badge.warn { color: #F0C36B; border-color: #6A5A2E; }
+
+  #big-note {
+    position: absolute; left: 50%; top: 12%; transform: translateX(-50%); z-index: 5;
+    font-family: "Nanum Myeongjo", serif; font-size: clamp(48px, 12vw, 132px);
+    color: var(--ink); opacity: 0; transition: opacity .12s ease;
+    text-shadow: 0 6px 40px rgba(0,0,0,.7); pointer-events: none;
+  }
+  #big-note.on { opacity: 1; }
+
+  #hint {
+    position: absolute; left: 50%; bottom: 108px; transform: translateX(-50%); z-index: 5;
+    color: var(--ink-2); font-size: 17px; background: rgba(20,22,27,.72);
+    border: 1px solid var(--line); padding: 10px 18px; border-radius: 999px;
+  }
+  #hint.off { display: none; }
+
+  /* 아래 막대 */
+  #bar {
+    position: absolute; left: 0; right: 0; bottom: 0; z-index: 8;
+    display: flex; flex-wrap: wrap; gap: 10px; align-items: center;
+    padding: 12px 16px; background: rgba(20,22,27,.9); border-top: 1px solid var(--line);
+  }
+  .sound-btn, .mini {
+    background: var(--panel); color: var(--ink-2); border: 1px solid var(--line);
+    border-radius: 4px; padding: 11px 16px; font-size: 15px;
+  }
+  .sound-btn[aria-pressed="true"] { background: var(--hot); color: #10151A; border-color: var(--hot); font-weight: 700; }
+  .mini { font-size: 14px; padding: 10px 14px; }
+  .spacer { flex: 1; }
+
+  /* 교사 설정 */
+  #cfg {
+    position: absolute; right: 16px; bottom: 74px; z-index: 9; width: min(340px, calc(100vw - 32px));
+    background: var(--panel); border: 1px solid var(--line); border-radius: 6px;
+    padding: 18px 20px; display: none;
+  }
+  #cfg.on { display: block; }
+  #cfg h2 { margin: 0 0 14px; font-size: 15px; letter-spacing: .08em; color: var(--hot); }
+  #cfg label {
+    display: flex; justify-content: space-between; align-items: baseline;
+    font-size: 14.5px; color: var(--ink-2); margin: 14px 0 6px;
+  }
+  #cfg label:first-of-type { margin-top: 0; }
+  #cfg .val { color: var(--ink); font-weight: 700; }
+  #cfg input[type=range] { width: 100%; accent-color: var(--hot); }
+  #cfg p { font-size: 13px; color: var(--muted); margin: 14px 0 0; line-height: 1.7; }
+  #cfg .row { display: flex; gap: 8px; margin-top: 6px; }
+  #cfg .row button {
+    flex: 1; background: var(--panel-2); color: var(--ink-2);
+    border: 1px solid var(--line); border-radius: 4px; padding: 9px 6px; font-size: 13.5px;
+  }
+  #cfg .row button[aria-pressed="true"] { background: var(--hot); color: #10151A; border-color: var(--hot); font-weight: 700; }
+
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div id="start">
+    <h1>머리로 받는 소리</h1>
+    <p>위에서 공이 떨어집니다. 머리에 닿으면 소리가 납니다. 놓쳐도 아무 일도 생기지 않습니다.</p>
+    <div class="btn-row">
+      <button class="big" id="go-cam" type="button">카메라로 시작</button>
+      <button class="big ghost" id="go-touch" type="button">화면 만지기</button>
+    </div>
+    <p class="note-s">카메라가 열리지 않으면 화면 만지기로 같은 놀이가 됩니다. 손가락이나 마우스가 머리 자리가 됩니다.</p>
+    <p class="note-s">카메라 화면은 이 기기 안에서만 처리합니다. 저장하지 않고 어디로도 보내지 않습니다.</p>
+    <p class="note-s" id="err" style="color:#F0C36B"></p>
+  </div>
+
+  <div id="stage">
+    <video id="view" playsinline muted></video>
+    <canvas id="paint"></canvas>
+
+    <div id="hud">
+      <span class="pill" id="badge">준비</span>
+      <span class="pill">받은 소리 <i id="score">0</i></span>
+    </div>
+    <div id="big-note">도</div>
+    <div id="hint">머리를 움직여 공을 받아 보세요</div>
+
+    <div id="cfg">
+      <h2>교사 설정</h2>
+      <label>음량 <span class="val" id="v-vol">45</span></label>
+      <input type="range" id="s-vol" min="0" max="100" value="45">
+      <label>떨어지는 속도 <span class="val" id="v-speed">3</span></label>
+      <input type="range" id="s-speed" min="1" max="10" value="3">
+      <label>한 번에 몇 개 <span class="val" id="v-max">2</span></label>
+      <input type="range" id="s-max" min="1" max="6" value="2">
+      <label>공 크기 <span class="val" id="v-size">7</span></label>
+      <input type="range" id="s-size" min="3" max="12" value="7">
+      <label>음 개수 <span class="val" id="v-steps">5</span></label>
+      <input type="range" id="s-steps" min="1" max="8" value="5">
+      <label>머리 범위 <span class="val" id="v-head">10</span></label>
+      <input type="range" id="s-head" min="5" max="20" value="10">
+      <label>떨어지는 자리</label>
+      <div class="row">
+        <button id="w-all" type="button" aria-pressed="true">화면 전체</button>
+        <button id="w-mid" type="button" aria-pressed="false">가운데만</button>
+      </div>
+      <p>공을 못 받으면 속도를 낮추고 크기를 키우세요. 팔이나 몸을 잘 못 움직이는 학생에게는 「가운데만」과 「머리 범위」를 크게 두면 됩니다. 음 개수를 1로 두면 어떤 공이든 같은 소리가 납니다.</p>
+    </div>
+
+    <div id="bar">
+      <button class="sound-btn" data-tone="0" aria-pressed="true" type="button">맑은 소리</button>
+      <button class="sound-btn" data-tone="1" aria-pressed="false" type="button">부드러운 소리</button>
+      <button class="sound-btn" data-tone="2" aria-pressed="false" type="button">방울 소리</button>
+      <span class="spacer"></span>
+      <button class="mini" id="reset" type="button">다시 세기</button>
+      <button class="mini" id="toggle-cfg" type="button">설정</button>
+      <button class="mini" id="stop" type="button">멈추기</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+import { FaceDetector, FilesetResolver } from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/vision_bundle.mjs";
+window.__mp = { FaceDetector: FaceDetector, FilesetResolver: FilesetResolver };
+window.dispatchEvent(new Event('mp-ready'));
+</script>
+
+<script>
+(function () {
+  var startEl = document.getElementById('start');
+  var stage   = document.getElementById('stage');
+  var video   = document.getElementById('view');
+  var paint   = document.getElementById('paint');
+  var pctx    = paint.getContext('2d');
+  var badge   = document.getElementById('badge');
+  var scoreEl = document.getElementById('score');
+  var bigNote = document.getElementById('big-note');
+  var hintEl  = document.getElementById('hint');
+  var errEl   = document.getElementById('err');
+  var cfg     = document.getElementById('cfg');
+
+  var NAMES = ['도','레','미','솔','라','높은 도','높은 레','높은 미'];
+  var FREQS = [261.63, 293.66, 329.63, 392.00, 440.00, 523.25, 587.33, 659.25];
+  var HUES  = [8, 40, 62, 150, 190, 215, 265, 305];
+
+  var volume = 0.45, speed = 3, maxBalls = 2, ballSize = 7, steps = 5, headR = 10, tone = 0;
+  var wide = true;                    // 떨어지는 자리: 전체 / 가운데
+  var mode = null;                    // 'cam' | 'touch'
+  var stream = null, raf = 0, detector = null, lastVideoTime = -1;
+  var ctx = null, master = null;
+  var balls = [], sparks = [], score = 0, spawnAt = 0, noteTimer = 0;
+  var head = null;                    // {x, y, r} 0~1 좌표
+  var mpReady = false;
+
+  window.addEventListener('mp-ready', function () { mpReady = true; });
+
+  /* ── 소리 ───────────────────────────────────────── */
+  function audio() {
+    if (ctx) return;
+    var AC = window.AudioContext || window.webkitAudioContext;
+    ctx = new AC();
+    master = ctx.createGain();
+    master.gain.value = 1;
+    master.connect(ctx.destination);
+  }
+  function ding(freq, pan) {
+    if (!ctx) return;
+    var t = ctx.currentTime;
+    var g = ctx.createGain();
+    var p = ctx.createStereoPanner ? ctx.createStereoPanner() : null;
+    var o1 = ctx.createOscillator();
+    var o2 = ctx.createOscillator();
+    var lp = ctx.createBiquadFilter();
+    lp.type = 'lowpass';
+
+    if (tone === 0) {            // 맑은 소리
+      o1.type = 'triangle'; o2.type = 'sine';
+      o2.frequency.value = freq * 2; lp.frequency.value = 5200;
+    } else if (tone === 1) {     // 부드러운 소리
+      o1.type = 'sine'; o2.type = 'sine';
+      o2.frequency.value = freq * 1.005; lp.frequency.value = 1800;
+    } else {                     // 방울 소리
+      o1.type = 'sine'; o2.type = 'sine';
+      o2.frequency.value = freq * 2.76; lp.frequency.value = 7000;
+    }
+    o1.frequency.value = freq;
+
+    var dur = tone === 1 ? 0.9 : 1.4;
+    g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(Math.max(0.0002, volume), t + 0.012);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+
+    o1.connect(lp); o2.connect(lp);
+    if (p) { p.pan.value = Math.max(-1, Math.min(1, (pan - 0.5) * 1.6)); lp.connect(g); g.connect(p); p.connect(master); }
+    else { lp.connect(g); g.connect(master); }
+    o1.start(t); o2.start(t);
+    o1.stop(t + dur + 0.05); o2.stop(t + dur + 0.05);
+  }
+
+  /* ── 공 ─────────────────────────────────────────── */
+  function spawn() {
+    var n = Math.floor(Math.random() * steps);
+    var x = wide ? (0.08 + Math.random() * 0.84) : (0.32 + Math.random() * 0.36);
+    balls.push({ x: x, y: -0.08, v: (0.0016 + speed * 0.0011), note: n, r: ballSize / 100, spin: Math.random() * 6.28 });
+  }
+  function burst(x, y, hue) {
+    for (var i = 0; i < 14; i++) {
+      var a = Math.random() * 6.28, s = 0.004 + Math.random() * 0.012;
+      sparks.push({ x: x, y: y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, life: 1, hue: hue });
+    }
+  }
+  function showNote(n) {
+    bigNote.textContent = NAMES[n];
+    bigNote.classList.add('on');
+    clearTimeout(noteTimer);
+    noteTimer = setTimeout(function () { bigNote.classList.remove('on'); }, 650);
+  }
+
+  /* ── 그리기 ─────────────────────────────────────── */
+  function resize() { paint.width = paint.clientWidth; paint.height = paint.clientHeight; }
+  function draw() {
+    var W = paint.width, H = paint.height, R = Math.min(W, H);
+    pctx.clearRect(0, 0, W, H);
+
+    if (head) {
+      var hr = head.r * R;
+      var g = pctx.createRadialGradient(head.x * W, head.y * H, hr * 0.5, head.x * W, head.y * H, hr * 1.35);
+      g.addColorStop(0, 'rgba(127,200,240,.30)');
+      g.addColorStop(1, 'rgba(127,200,240,0)');
+      pctx.fillStyle = g;
+      pctx.beginPath(); pctx.arc(head.x * W, head.y * H, hr * 1.35, 0, 6.284); pctx.fill();
+      pctx.strokeStyle = 'rgba(127,200,240,.75)'; pctx.lineWidth = Math.max(2, R * 0.005);
+      pctx.beginPath(); pctx.arc(head.x * W, head.y * H, hr, 0, 6.284); pctx.stroke();
+    }
+
+    for (var i = 0; i < balls.length; i++) {
+      var b = balls[i], br = b.r * R, hue = HUES[b.note % HUES.length];
+      var bg = pctx.createRadialGradient(b.x * W - br * 0.3, b.y * H - br * 0.3, br * 0.1, b.x * W, b.y * H, br);
+      bg.addColorStop(0, 'hsla(' + hue + ',85%,78%,1)');
+      bg.addColorStop(1, 'hsla(' + hue + ',70%,48%,1)');
+      pctx.fillStyle = bg;
+      pctx.beginPath(); pctx.arc(b.x * W, b.y * H, br, 0, 6.284); pctx.fill();
+      pctx.strokeStyle = 'rgba(255,255,255,.35)'; pctx.lineWidth = Math.max(1, R * 0.0022);
+      pctx.stroke();
+    }
+
+    for (var k = 0; k < sparks.length; k++) {
+      var s = sparks[k];
+      pctx.fillStyle = 'hsla(' + s.hue + ',90%,72%,' + s.life.toFixed(2) + ')';
+      pctx.beginPath(); pctx.arc(s.x * W, s.y * H, Math.max(1, R * 0.006 * s.life), 0, 6.284); pctx.fill();
+    }
+  }
+
+  /* ── 한 프레임 ──────────────────────────────────── */
+  function step(now) {
+    raf = requestAnimationFrame(step);
+
+    if (mode === 'cam' && detector && video.readyState >= 2 && video.currentTime !== lastVideoTime) {
+      lastVideoTime = video.currentTime;
+      var res = null;
+      try { res = detector.detectForVideo(video, now); } catch (e) { res = null; }
+      if (res && res.detections && res.detections.length) {
+        var box = res.detections[0].boundingBox;
+        var cx = (box.originX + box.width / 2) / video.videoWidth;
+        var cy = (box.originY + box.height / 2) / video.videoHeight;
+        head = { x: 1 - cx, y: cy, r: headR / 100 };
+        badge.textContent = '보입니다'; badge.classList.remove('warn');
+        hintEl.classList.add('off');
+      } else {
+        head = null;
+        badge.textContent = '얼굴이 안 보입니다'; badge.classList.add('warn');
+      }
+    }
+
+    if (!spawnAt) spawnAt = now;
+    var gap = 2600 - speed * 150;
+    if (now - spawnAt > gap && balls.length < maxBalls) { spawn(); spawnAt = now; }
+
+    for (var i = balls.length - 1; i >= 0; i--) {
+      var b = balls[i];
+      b.y += b.v;
+      if (head) {
+        var dx = (b.x - head.x), dy = (b.y - head.y);
+        if (Math.sqrt(dx * dx + dy * dy) < b.r + head.r) {
+          ding(FREQS[b.note % FREQS.length], b.x);
+          burst(b.x, b.y, HUES[b.note % HUES.length]);
+          showNote(b.note);
+          score++; scoreEl.textContent = score;
+          balls.splice(i, 1);
+          continue;
+        }
+      }
+      if (b.y > 1.15) balls.splice(i, 1);      // 놓쳐도 아무 일 없다
+    }
+
+    for (var k = sparks.length - 1; k >= 0; k--) {
+      var s = sparks[k];
+      s.x += s.vx; s.y += s.vy; s.vy += 0.0007; s.life -= 0.035;
+      if (s.life <= 0) sparks.splice(k, 1);
+    }
+
+    draw();
+  }
+
+  /* ── 들어가기 ───────────────────────────────────── */
+  function enter(kind) {
+    mode = kind;
+    audio();
+    startEl.style.display = 'none';
+    stage.classList.add('on');
+    resize();
+    balls = []; sparks = []; score = 0; scoreEl.textContent = '0'; spawnAt = 0;
+    if (kind === 'touch') {
+      head = { x: 0.5, y: 0.6, r: headR / 100 };
+      badge.textContent = '화면 만지기';
+      hintEl.textContent = '손가락으로 공을 받아 보세요';
+    }
+    cancelAnimationFrame(raf);
+    raf = requestAnimationFrame(step);
+  }
+
+  function why(e) {
+    var n = (e && e.name) || '';
+    if (n === 'NotAllowedError') return '카메라를 막아 두었습니다. 주소창 옆 자물쇠에서 카메라를 허용해 주세요.';
+    if (n === 'NotFoundError')   return '카메라를 찾지 못했습니다. 화면 만지기로 해 보세요.';
+    if (n === 'NotReadableError') return '다른 프로그램이 카메라를 쓰고 있습니다. 그 프로그램을 닫고 다시 시작해 주세요.';
+    return '카메라를 열지 못했습니다. 화면 만지기로 해 보세요.';
+  }
+
+  document.getElementById('go-touch').addEventListener('click', function () { enter('touch'); });
+
+  document.getElementById('go-cam').addEventListener('click', function () {
+    errEl.textContent = '';
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      errEl.textContent = '이 주소에서는 카메라를 쓸 수 없습니다. 화면 만지기로 해 보세요.';
+      return;
+    }
+    if (!mpReady || !window.__mp) {
+      errEl.textContent = '얼굴 인식 파일을 아직 못 받았습니다. 인터넷 연결을 확인하거나 화면 만지기로 해 보세요.';
+      return;
+    }
+    errEl.textContent = '카메라와 얼굴 인식을 준비하는 중입니다…';
+    var mp = window.__mp;
+    mp.FilesetResolver.forVisionTasks("https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm")
+      .then(function (fs) {
+        return mp.FaceDetector.createFromOptions(fs, {
+          baseOptions: {
+            modelAssetPath: "https://storage.googleapis.com/mediapipe-models/face_detector/blaze_face_short_range/float16/1/blaze_face_short_range.tflite",
+            delegate: "GPU"
+          },
+          runningMode: "VIDEO"
+        });
+      })
+      .then(function (fd) {
+        detector = fd;
+        return navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: { ideal: 960 } }, audio: false });
+      })
+      .then(function (s) {
+        stream = s;
+        video.srcObject = s;
+        var p = video.play();
+        if (p && p.catch) p.catch(function () {
+          errEl.textContent = '화면을 한 번 눌러 주세요.';
+          document.addEventListener('click', function once() { video.play(); document.removeEventListener('click', once); });
+        });
+        errEl.textContent = '';
+        enter('cam');
+      })
+      .catch(function (e) { errEl.textContent = why(e); });
+  });
+
+  document.getElementById('stop').addEventListener('click', function () {
+    cancelAnimationFrame(raf); raf = 0;
+    if (stream) { stream.getTracks().forEach(function (t) { t.stop(); }); stream = null; }
+    if (detector && detector.close) { try { detector.close(); } catch (e) {} detector = null; }
+    mode = null; head = null; balls = []; sparks = [];
+    stage.classList.remove('on'); startEl.style.display = 'flex';
+    hintEl.classList.remove('off');
+  });
+
+  document.getElementById('reset').addEventListener('click', function () {
+    score = 0; scoreEl.textContent = '0';
+  });
+
+  document.getElementById('toggle-cfg').addEventListener('click', function () { cfg.classList.toggle('on'); });
+
+  /* 화면 만지기: 손가락이 머리 자리 */
+  function pointer(ev) {
+    if (mode !== 'touch') return;
+    var r = paint.getBoundingClientRect();
+    var t = ev.touches ? ev.touches[0] : ev;
+    head = { x: (t.clientX - r.left) / r.width, y: (t.clientY - r.top) / r.height, r: headR / 100 };
+    hintEl.classList.add('off');
+  }
+  paint.addEventListener('mousemove', pointer);
+  paint.addEventListener('touchmove', function (e) { pointer(e); e.preventDefault(); }, { passive: false });
+  paint.addEventListener('touchstart', pointer, { passive: true });
+
+  /* 설정 */
+  var tb = document.querySelectorAll('.sound-btn');
+  for (var i = 0; i < tb.length; i++) {
+    (function (n) {
+      tb[n].addEventListener('click', function () {
+        tone = n;
+        for (var k = 0; k < tb.length; k++) tb[k].setAttribute('aria-pressed', k === n ? 'true' : 'false');
+      });
+    })(i);
+  }
+  function bind(id, out, fn) {
+    var el = document.getElementById(id), o = document.getElementById(out);
+    el.addEventListener('input', function () { o.textContent = el.value; fn(Number(el.value)); });
+  }
+  bind('s-vol',   'v-vol',   function (v) { volume = v / 220; });
+  bind('s-speed', 'v-speed', function (v) { speed = v; });
+  bind('s-max',   'v-max',   function (v) { maxBalls = v; });
+  bind('s-size',  'v-size',  function (v) { ballSize = v; });
+  bind('s-steps', 'v-steps', function (v) { steps = v; });
+  bind('s-head',  'v-head',  function (v) { headR = v; if (head) head.r = v / 100; });
+
+  var wAll = document.getElementById('w-all'), wMid = document.getElementById('w-mid');
+  wAll.addEventListener('click', function () { wide = true;  wAll.setAttribute('aria-pressed','true');  wMid.setAttribute('aria-pressed','false'); });
+  wMid.addEventListener('click', function () { wide = false; wAll.setAttribute('aria-pressed','false'); wMid.setAttribute('aria-pressed','true'); });
+
+  window.addEventListener('resize', resize);
+
+  /* 자동 검사용 손잡이 */
+  window.__test = {
+    enter: enter,
+    tick: function (t) { step(t || performance.now()); },
+    setHead: function (x, y) { head = { x: x, y: y, r: headR / 100 }; },
+    spawnAt: function (x, y, note) { balls.push({ x: x, y: y, v: 0.001, note: note || 0, r: ballSize / 100, spin: 0 }); },
+    state: function () { return { balls: balls.length, sparks: sparks.length, score: score, head: head, mode: mode, audio: !!ctx }; }
+  };
+})();
+</script>
+</body>
+</html>

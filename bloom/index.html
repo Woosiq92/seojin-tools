@@ -1,0 +1,437 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+<title>사이에서 핀다 — 프로토타입</title>
+<style>
+  :root { color-scheme: dark; }
+  * { box-sizing: border-box; }
+  html, body { margin:0; height:100%; background:#04060c; overflow:hidden;
+    font-family: -apple-system, BlinkMacSystemFont, "Apple SD Gothic Neo", sans-serif; color:#cfe3ff; }
+  #stage { position:fixed; inset:0; }
+  #cam { position:absolute; inset:0; width:100%; height:100%; object-fit:cover;
+    transform:scaleX(-1); filter:brightness(.16) saturate(.25) contrast(1.25); }
+  #fx { position:absolute; inset:0; width:100%; height:100%; }
+  #hud { position:fixed; left:16px; top:14px; font-size:12px; line-height:1.7;
+    letter-spacing:.02em; opacity:.55; pointer-events:none; white-space:pre; }
+  #hint { position:fixed; left:0; right:0; bottom:22px; text-align:center;
+    font-size:13px; opacity:.4; pointer-events:none; }
+  #gate { position:fixed; inset:0; display:flex; flex-direction:column; gap:18px;
+    align-items:center; justify-content:center; background:#04060c; z-index:9; }
+  #gate h1 { margin:0; font-size:22px; font-weight:600; letter-spacing:.06em; }
+  #gate p { margin:0; font-size:13px; opacity:.5; line-height:1.8; text-align:center; }
+  #start { padding:13px 34px; border-radius:999px; border:1px solid #3a5580;
+    background:#0d1526; color:#cfe3ff; font-size:14px; letter-spacing:.05em; cursor:pointer; }
+  #start:hover { background:#152037; }
+  #err { font-size:12px; color:#ff9aa8; max-width:420px; text-align:center; line-height:1.7; }
+</style>
+</head>
+<body>
+<div id="stage">
+  <video id="cam" playsinline muted></video>
+  <canvas id="fx"></canvas>
+</div>
+<div id="hud"></div>
+<div id="hint">손끝이 닿으면 꽃이 핍니다. 붙여 두면 곁꽃이 번집니다.</div>
+
+<div id="gate">
+  <h1>사이에서 핀다</h1>
+  <p>카메라 앞에서 손을 움직입니다.<br>크게 휘두르면 흩어지고, 천천히 다가가면 피어납니다.</p>
+  <button id="start">카메라 켜기</button>
+  <div id="err"></div>
+</div>
+
+<script type="module">
+import { HandLandmarker, FilesetResolver }
+  from "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/vision_bundle.mjs";
+
+const video = document.getElementById('cam');
+const cv    = document.getElementById('fx');
+const ctx   = cv.getContext('2d');
+const hud   = document.getElementById('hud');
+const gate  = document.getElementById('gate');
+const errEl = document.getElementById('err');
+
+let W = 0, H = 0, dpr = Math.min(devicePixelRatio || 1, 2);
+function resize() {
+  W = innerWidth; H = innerHeight;
+  cv.width = W * dpr; cv.height = H * dpr;
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+}
+addEventListener('resize', resize); resize();
+
+// ---------- 튜닝 손잡이 ----------
+const K = {
+  agitateSpeed : 0.020,  // 화면 높이 대비 프레임당 이동량. 넘으면 완전히 흩어짐
+  linkRange    : 0.50,   // 별자리 선이 보이기 시작하는 두 손 거리 (화면 높이 비율)
+  touchRange   : 0.075,  // 손끝과 손끝이 "닿았다"고 보는 거리
+  releaseRange : 0.130,  // 여기까지 벌어져야 떨어진 것 (깜빡임 방지 이력)
+  chainInterval: 420,    // 닿아 있는 동안 곁꽃이 연달아 피는 간격 (ms)
+  maxChain     : 7,      // 한 번의 만남에서 피는 곁꽃 최대 개수
+  maxParticles : 6500,
+};
+const TIPS = [4, 8, 12, 16, 20];   // 엄지~새끼 끝
+const PALM = 9;                    // 중지 밑동 = 손바닥 기준점
+
+// ---------- 파티클 ----------
+const P = [];
+function emit(x, y, vx, vy, life, size, col, glow) {
+  if (P.length >= K.maxParticles) return;
+  P.push({ x, y, vx, vy, t: 0, life, size, col, glow });
+}
+const flowers = [];
+const rings   = [];
+const pairs   = new Map();   // 손과 손의 만남 상태
+
+function createFlower(x, y, size, dur) {
+  flowers.push({
+    x, y, t: 0, dur,
+    R: H * size,
+    n: 5 + (Math.random() * 2 | 0),    // 바깥 꽃잎
+    m: 4 + (Math.random() * 2 | 0),    // 안쪽 꽃잎
+    rot: Math.random() * 6.2832,
+    spin: (Math.random() - .5) * 0.4,
+    hue: 328 + Math.random() * 42,     // 분홍에서 살구빛까지
+  });
+}
+function ring(x, y, size) { rings.push({ x, y, t: 0, dur: 0.8, R: H * size }); }
+
+// ---------- 손 추적 (프레임 간 동일 손 잇기) ----------
+let hands = [];   // {x,y,tips:[{x,y}],px,py,speed,calm,seen}
+function trackHands(landmarks, dt) {
+  const fresh = landmarks.map(lm => {
+    const px = x => (1 - x) * W;   // 좌우 반전
+    const py = y => y * H;
+    return {
+      x: px(lm[PALM].x), y: py(lm[PALM].y),
+      tips: TIPS.map(i => ({ x: px(lm[i].x), y: py(lm[i].y) })),
+    };
+  });
+
+  const used = new Array(hands.length).fill(false);
+  const next = [];
+  for (const f of fresh) {
+    let best = -1, bestD = H * 0.25;
+    for (let i = 0; i < hands.length; i++) {
+      if (used[i]) continue;
+      const d = Math.hypot(hands[i].x - f.x, hands[i].y - f.y);
+      if (d < bestD) { bestD = d; best = i; }
+    }
+    if (best >= 0) {
+      const prev = hands[best]; used[best] = true;
+      const v = Math.hypot(f.x - prev.x, f.y - prev.y);
+      const speed = prev.speed * 0.7 + v * 0.3;
+      const calm = Math.max(0, Math.min(1, 1 - speed / (H * K.agitateSpeed)));
+      next.push({ ...f, speed, calm: prev.calm * 0.75 + calm * 0.25,
+                  vx: f.x - prev.x, vy: f.y - prev.y, id: prev.id });
+    } else {
+      next.push({ ...f, speed: 0, calm: 0, vx: 0, vy: 0, id: Math.random() });
+    }
+  }
+  hands = next;
+}
+
+// ---------- 물리 + 방출 ----------
+function step(dt, now) {
+  // 손끝에서 나오는 것
+  for (const h of hands) {
+    const calm = h.calm;
+    if (calm > 0.25) {
+      // 고요할 때: 별. 느리게 떠오르고 오래 남는다.
+      const n = Math.round(calm * 2.4);
+      for (const t of h.tips) {
+        for (let i = 0; i < n; i++) {
+          const a = Math.random() * 6.28, r = Math.random() * 9;
+          emit(t.x + Math.cos(a) * r, t.y + Math.sin(a) * r,
+               (Math.random() - .5) * 8, -6 - Math.random() * 14,
+               1.6 + Math.random() * 1.6, 0.8 + Math.random() * 1.5,
+               [205, 235, 255], 0.55 + calm * 0.45);
+        }
+      }
+    }
+    if (calm < 0.75) {
+      // 휘두를 때: 흩어짐. 손 속도를 그대로 물려받고 금방 죽는다.
+      const n = Math.round((1 - calm) * 3);
+      for (const t of h.tips) {
+        for (let i = 0; i < n; i++) {
+          emit(t.x, t.y,
+               h.vx * 34 + (Math.random() - .5) * 260,
+               h.vy * 34 + (Math.random() - .5) * 260,
+               0.18 + Math.random() * 0.22, 0.6 + Math.random(),
+               [120, 150, 190], 0.16);
+        }
+      }
+    }
+  }
+
+  // 손과 손 사이
+  for (let i = 0; i < hands.length; i++) {
+    for (let j = i + 1; j < hands.length; j++) {
+      const a = hands[i], b = hands[j];
+      const d = Math.hypot(a.x - b.x, a.y - b.y);
+      const calm = Math.min(a.calm, b.calm);
+
+      // 손끝과 손끝의 최단 거리. 이게 "실제로 닿았는가"다.
+      let td = Infinity, tx = 0, ty = 0;
+      for (const p of a.tips) for (const q of b.tips) {
+        const dd = Math.hypot(p.x - q.x, p.y - q.y);
+        if (dd < td) { td = dd; tx = (p.x + q.x) / 2; ty = (p.y + q.y) / 2; }
+      }
+      const key = a.id < b.id ? a.id + '|' + b.id : b.id + '|' + a.id;
+      let pr = pairs.get(key);
+      if (!pr) { pr = { touching: false, last: 0, chain: 0 }; pairs.set(key, pr); }
+      pr.alive = now;
+
+      if (!pr.touching && td < H * K.touchRange) {
+        // 만나는 순간. 고요할수록 크게 핀다.
+        pr.touching = true; pr.chain = 0; pr.last = now;
+        ring(tx, ty, 0.10 + calm * 0.08);
+        createFlower(tx, ty, 0.145 + calm * 0.105, 5.4);
+        const n = 150 + (calm * 130 | 0);
+        for (let k = 0; k < n; k++) {
+          const ang = Math.random() * 6.2832, sp = 70 + Math.random() * 620;
+          emit(tx, ty, Math.cos(ang) * sp, Math.sin(ang) * sp,
+               0.9 + Math.random() * 2.0, 1.0 + Math.random() * 2.2,
+               [255, 214, 232], 1.0);
+        }
+      } else if (pr.touching && td > H * K.releaseRange) {
+        pr.touching = false;
+      }
+
+      if (pr.touching) {
+        // 붙어 있는 동안 곁꽃이 연달아 번진다
+        if (now - pr.last > K.chainInterval && pr.chain < K.maxChain) {
+          pr.last = now; pr.chain++;
+          const ang = Math.random() * 6.2832, rr = H * (0.09 + Math.random() * 0.17);
+          createFlower(tx + Math.cos(ang) * rr, ty + Math.sin(ang) * rr,
+                       0.055 + Math.random() * 0.05, 4.2);
+        }
+        // 맞닿은 곳에서 씨앗이 피어오른다
+        for (let k = 0; k < 6; k++) {
+          emit(tx + (Math.random() - .5) * 44, ty + (Math.random() - .5) * 44,
+               (Math.random() - .5) * 44, -40 - Math.random() * 80,
+               1.4 + Math.random() * 1.2, 1.1 + Math.random() * 1.4,
+               [255, 228, 240], 0.9);
+        }
+      }
+
+      const near = 1 - d / (H * K.linkRange);
+      if (near <= 0 || calm < 0.15) continue;
+
+      const mx = (a.x + b.x) / 2, my = (a.y + b.y) / 2;
+      // 선 위를 흐르는 별가루
+      const n = Math.round(near * calm * 4);
+      for (let k = 0; k < n; k++) {
+        const u = Math.random();
+        const x = a.x + (b.x - a.x) * u, y = a.y + (b.y - a.y) * u;
+        const toM = Math.atan2(my - y, mx - x);
+        const sp = 20 + Math.random() * 45;
+        emit(x + (Math.random() - .5) * 10, y + (Math.random() - .5) * 10,
+             Math.cos(toM) * sp, Math.sin(toM) * sp,
+             0.9 + Math.random(), 0.7 + Math.random(),
+             [225, 240, 255], 0.5 + near * 0.5);
+      }
+      a._link = Math.max(a._link || 0, near * calm);
+      b._link = Math.max(b._link || 0, near * calm);
+      a._lx = b.x; a._ly = b.y; a._ln = near * calm;
+    }
+  }
+
+  for (let i = P.length - 1; i >= 0; i--) {
+    const p = P[i];
+    p.t += dt;
+    if (p.t >= p.life) { P.splice(i, 1); continue; }
+    p.x += p.vx * dt; p.y += p.vy * dt;
+    p.vy += 14 * dt;              // 아주 약한 부력 반대쪽
+    p.vx *= 0.985; p.vy *= 0.985;
+  }
+  for (let i = flowers.length - 1; i >= 0; i--) {
+    const f = flowers[i];
+    f.t += dt; f.rot += f.spin * dt;
+    if (f.t >= f.dur) {
+      // 질 때 꽃잎이 별이 되어 떠오른다
+      for (let k = 0; k < 30; k++) {
+        const ang = Math.random() * 6.2832;
+        emit(f.x + Math.cos(ang) * f.R * 0.55, f.y + Math.sin(ang) * f.R * 0.55,
+             Math.cos(ang) * 22, -22 - Math.random() * 40,
+             1.6 + Math.random() * 1.6, 1.0 + Math.random() * 1.3,
+             [255, 226, 240], 0.7);
+      }
+      flowers.splice(i, 1);
+    }
+  }
+  for (let i = rings.length - 1; i >= 0; i--) {
+    rings[i].t += dt;
+    if (rings[i].t >= rings[i].dur) rings.splice(i, 1);
+  }
+  for (const [k, v] of pairs) if (now - v.alive > 1500) pairs.delete(k);
+}
+
+// ---------- 그리기 ----------
+function render() {
+  ctx.globalCompositeOperation = 'source-over';
+  ctx.fillStyle = 'rgba(4,6,12,0.28)';
+  ctx.fillRect(0, 0, W, H);
+  ctx.globalCompositeOperation = 'lighter';
+
+  // 손 사이 선
+  for (const h of hands) {
+    if (h._ln > 0.02) {
+      const g = ctx.createLinearGradient(h.x, h.y, h._lx, h._ly);
+      const al = h._ln * 0.5;
+      g.addColorStop(0, `rgba(150,190,255,0)`);
+      g.addColorStop(.5, `rgba(190,225,255,${al})`);
+      g.addColorStop(1, `rgba(150,190,255,0)`);
+      ctx.strokeStyle = g; ctx.lineWidth = 1.1;
+      ctx.beginPath(); ctx.moveTo(h.x, h.y); ctx.lineTo(h._lx, h._ly); ctx.stroke();
+    }
+    h._ln = 0; h._link = 0;
+  }
+
+  // 별가루
+  for (const p of P) {
+    const k = 1 - p.t / p.life;
+    const a = k * k * p.glow;
+    const [r, g, b] = p.col;
+    const s = p.size * (0.5 + k);
+    ctx.fillStyle = `rgba(${r},${g},${b},${a})`;
+    ctx.beginPath(); ctx.arc(p.x, p.y, s, 0, 6.2832); ctx.fill();
+    if (a > 0.35) {
+      ctx.fillStyle = `rgba(${r},${g},${b},${a * 0.13})`;
+      ctx.beginPath(); ctx.arc(p.x, p.y, s * 5, 0, 6.2832); ctx.fill();
+    }
+  }
+
+  // 만남의 파문
+  for (const r of rings) {
+    const u = r.t / r.dur, k = 1 - u;
+    ctx.strokeStyle = `rgba(255,212,234,${k * k * 0.6})`;
+    ctx.lineWidth = 2.6 * k + 0.4;
+    ctx.beginPath(); ctx.arc(r.x, r.y, r.R * (0.2 + u * 2.8), 0, 6.2832); ctx.stroke();
+  }
+
+  // 꽃
+  for (const f of flowers) {
+    const u = f.t / f.dur;
+    const open = backOut(Math.min(1, u / 0.2));            // 살짝 넘쳤다 자리잡는다
+    const fade = u < 0.6 ? 1 : Math.pow(1 - (u - 0.6) / 0.4, 1.6);
+    drawFlower(f, open, fade);
+  }
+}
+
+function backOut(t) {
+  if (t >= 1) return 1;
+  const s = 2.0, x = t - 1;
+  return 1 + x * x * ((s + 1) * x + s);
+}
+
+function petal(len, wid) {
+  ctx.beginPath();
+  ctx.moveTo(0, 0);
+  ctx.bezierCurveTo(wid, -len * 0.22, wid * 0.82, -len * 0.78, 0, -len);
+  ctx.bezierCurveTo(-wid * 0.82, -len * 0.78, -wid, -len * 0.22, 0, 0);
+  ctx.fill();
+}
+
+function drawFlower(f, open, fade) {
+  const R = f.R * open;
+  if (R <= 0.5 || fade <= 0) return;
+  ctx.save();
+  ctx.translate(f.x, f.y);
+
+  for (let i = 0; i < f.n; i++) {                 // 바깥 꽃잎
+    ctx.save();
+    ctx.rotate(f.rot + (i / f.n) * 6.2832);
+    const g = ctx.createLinearGradient(0, 0, 0, -R);
+    g.addColorStop(0,   `hsla(${f.hue},100%,90%,${0.52 * fade})`);
+    g.addColorStop(.55, `hsla(${f.hue},95%,76%,${0.34 * fade})`);
+    g.addColorStop(1,   `hsla(${f.hue + 15},95%,66%,0)`);
+    ctx.fillStyle = g;
+    petal(R, R * 0.46);
+    ctx.restore();
+  }
+
+  const R2 = R * 0.58;
+  for (let i = 0; i < f.m; i++) {                 // 안쪽 꽃잎
+    ctx.save();
+    ctx.rotate(-f.rot * 0.6 + ((i + 0.5) / f.m) * 6.2832);
+    const g = ctx.createLinearGradient(0, 0, 0, -R2);
+    g.addColorStop(0, `hsla(${f.hue - 12},100%,94%,${0.60 * fade})`);
+    g.addColorStop(1, `hsla(${f.hue},100%,80%,0)`);
+    ctx.fillStyle = g;
+    petal(R2, R2 * 0.52);
+    ctx.restore();
+  }
+
+  const cg = ctx.createRadialGradient(0, 0, 0, 0, 0, R * 0.34);
+  cg.addColorStop(0,   `hsla(46,100%,93%,${0.85 * fade})`);
+  cg.addColorStop(.45, `hsla(40,100%,80%,${0.32 * fade})`);
+  cg.addColorStop(1,   `hsla(36,100%,74%,0)`);
+  ctx.fillStyle = cg;
+  ctx.beginPath(); ctx.arc(0, 0, R * 0.34, 0, 6.2832); ctx.fill();
+
+  for (let i = 0; i < 7; i++) {                   // 꽃술
+    const a = f.rot * 1.4 + (i / 7) * 6.2832, rr = R * 0.17;
+    ctx.fillStyle = `hsla(48,100%,95%,${0.7 * fade})`;
+    ctx.beginPath();
+    ctx.arc(Math.cos(a) * rr, Math.sin(a) * rr, Math.max(0.8, R * 0.028), 0, 6.2832);
+    ctx.fill();
+  }
+  ctx.restore();
+}
+
+// ---------- 구동 ----------
+let landmarker = null, lastVT = -1, lastT = 0, fps = 0;
+
+async function boot() {
+  errEl.textContent = '모델 받는 중...';
+  const fileset = await FilesetResolver.forVisionTasks(
+    "https://cdn.jsdelivr.net/npm/@mediapipe/tasks-vision@0.10.14/wasm");
+  landmarker = await HandLandmarker.createFromOptions(fileset, {
+    baseOptions: {
+      modelAssetPath: "https://storage.googleapis.com/mediapipe-models/hand_landmarker/hand_landmarker/float16/1/hand_landmarker.task",
+      delegate: "GPU"
+    },
+    runningMode: "VIDEO", numHands: 4,
+    minHandDetectionConfidence: 0.4, minTrackingConfidence: 0.4
+  });
+
+  errEl.textContent = '카메라 여는 중...';
+  const stream = await navigator.mediaDevices.getUserMedia({
+    video: { width: { ideal: 1280 }, height: { ideal: 720 }, facingMode: 'user' }, audio: false });
+  video.srcObject = stream;
+  await video.play();
+
+  gate.style.display = 'none';
+  lastT = performance.now();
+  requestAnimationFrame(loop);
+}
+
+function loop(now) {
+  const dt = Math.min(0.05, (now - lastT) / 1000);
+  lastT = now;
+  fps = fps * 0.92 + (1 / Math.max(dt, 1e-4)) * 0.08;
+
+  if (video.readyState >= 2 && video.currentTime !== lastVT) {
+    lastVT = video.currentTime;
+    const res = landmarker.detectForVideo(video, now);
+    trackHands(res.landmarks || [], dt);
+  }
+  step(dt, now);
+  render();
+
+  const calm = hands.length ? Math.max(...hands.map(h => h.calm)) : 0;
+  hud.textContent =
+    `손 ${hands.length}   고요함 ${(calm * 100 | 0)}%\n` +
+    `별가루 ${P.length}   꽃 ${flowers.length}   ${fps | 0}fps`;
+
+  requestAnimationFrame(loop);
+}
+
+document.getElementById('start').addEventListener('click', () => {
+  boot().catch(e => { errEl.textContent = '실패: ' + (e && e.message ? e.message : e); });
+});
+</script>
+</body>
+</html>
