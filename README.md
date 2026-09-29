@@ -14,3 +14,18 @@
 전자칠판에 띄우고 학생이 나와서 만지는 방식을 생각하고 만들었습니다. 활동 중 왼쪽 위 ← 를 1초 누르면 단계 고르기 화면으로 돌아갑니다.
 
 학생 이름이나 학습 기록은 저장하지 않습니다. 교사가 고른 설정(소리·크기·횟수 등)만 그 컴퓨터의 브라우저에 남습니다. 서버로 나가는 정보는 없습니다.
+
+## 바이브 코딩 저장소
+
+선생님들이 수업에 쓰고 싶은 도구를 요청하고, AI와 함께 만든 도구를 분류별로 모아 씁니다. 요청과 도구를 모두가 함께 봐야 해서
+이것만은 서버가 있어야 합니다. GitHub Pages 는 정적 파일만 내보내므로 Railway 에서 돌립니다.
+
+- 열기: https://seojin-tools-production.up.railway.app/s/seojin/
+- 조직 이름으로 찾아 들어가기: https://seojin-tools-production.up.railway.app/s/
+
+Railway 는 이 저장소 맨 위의 `package.json` 을 보고 `vibe/server.mjs` 를 돌립니다. 이 서버가 자료실의 정적 파일(`/`, `digital/`, `gear/`)도
+그대로 함께 내보냅니다(`STATIC_ROOT=.`). 자료는 Railway 볼륨 `/data` 에 SQLite 파일 한 장으로 남습니다(변수 `DATA_DIR=/data`).
+볼륨이 없으면 push 할 때마다 요청과 도구가 지워집니다.
+
+`vibe/` 는 결과물입니다. 원본은 비공개 저장소 seojin 의 `shelf/` 와 `저장소.html` 이고, 거기서 고친 뒤 이리로 옮깁니다.
+공간은 `vibe/spaces.json` 에 적어 두면 서버가 켜질 때 없는 것만 만듭니다(코드·열쇠는 Railway 로그에 한 번 찍힘).

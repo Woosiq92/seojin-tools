@@ -1,0 +1,8 @@
+{
+  "name": "seojin-tools",
+  "private": true,
+  "type": "module",
+  "description": "서진 수업 자료실(정적) + 바이브 코딩 저장소(/s/) 를 한 주소에서 내보낸다",
+  "scripts": { "start": "STATIC_ROOT=. node vibe/server.mjs" },
+  "engines": { "node": ">=22.13" }
+}
