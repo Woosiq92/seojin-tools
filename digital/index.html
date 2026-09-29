@@ -58,11 +58,11 @@ button{font:inherit;color:inherit}
 #chat .ask{align-self:flex-end;padding:1.4vmin 2.6vmin;border-radius:2vmin;border:.35vmin dashed rgba(255,209,102,.55);font-size:3.6vmin;font-weight:700;color:var(--accent)}
 #chat .ask small{display:block;font-size:2.2vmin;font-weight:600;color:rgba(255,209,102,.65)}
 body.chatting #typebox{top:auto;bottom:40vh}
-#kb{position:absolute;left:50%;bottom:5vh;transform:translateX(-50%);display:flex;flex-direction:column;align-items:flex-start;gap:1vmin;pointer-events:none}
+#kb{position:absolute;left:50%;bottom:5vh;touch-action:none;transform:translateX(-50%);display:flex;flex-direction:column;align-items:flex-start;gap:1vmin;pointer-events:none}
 #kb.single{bottom:auto;top:50%;transform:translate(-50%,-50%)}
 #kb.lower{top:auto;bottom:14vh;transform:translateX(-50%)}
 .kr{display:flex;gap:1vmin}
-.key{width:7.5vmin;height:7.5vmin;border-radius:1.2vmin;background:#232834;border:.3vmin solid #394050;display:grid;place-items:center;font-size:3.6vmin;color:#c9cfda;transition:transform .15s}
+.key{pointer-events:auto;cursor:pointer;width:7.5vmin;height:7.5vmin;border-radius:1.2vmin;background:#232834;border:.3vmin solid #394050;display:grid;place-items:center;font-size:3.6vmin;color:#c9cfda;transition:transform .15s}
 .key.hint{background:var(--accent);border-color:var(--accent);color:var(--ink)}
 .key.w2{width:13vmin;font-size:2.6vmin}
 .key.space{width:48vmin;font-size:2.6vmin}
@@ -604,6 +604,7 @@ function bigKey(code) {
   const kb = document.createElement('div'); kb.id = 'kb'; kb.className = 'single';
   const k = document.createElement('div');
   k.className = 'key big hint' + (code === 'Space' ? ' space' : '');
+  k.dataset.code = code;
   k.textContent = {Space:'스페이스', Enter:'엔터 ↵', Backspace:'⌫ 지우기'}[code];
   kb.appendChild(k); stage.appendChild(kb);
   return kb;
@@ -680,6 +681,8 @@ function spawn() {
       cur.word = pickOne(WORDS.one); cur.stray = pickOne([...CONS]);
       typebox().innerHTML = `${cur.word}<span class="stray">${cur.stray}</span><span class="caret"></span>`;
     }
+  } else if (a === 'key0') {
+    stage.appendChild(keyboardPic(ROWS.letters, '', ['Space']));
   } else if (a === 'key2') {
     const pool = POOL[S.pool];
     cur.code = shuffle(pool.filter(c => c !== spawn.prevCode))[0]; spawn.prevCode = cur.code;
@@ -733,6 +736,13 @@ const mouseOnly = () => S.dev === 'mouse';
 const pointers = new Map();
 stage.addEventListener('pointerdown', e => {
   if (!panel.hidden || done) return;
+  const kb = e.target.closest?.('.key');          // 화면 자판을 손으로 누르기
+  if (kb && KEYACT(S.act)) {
+    kb.classList.add('hit');
+    setTimeout(() => kb.classList.remove('hit'), 200);
+    keyPress(kb.dataset.code || '');
+    return;
+  }
   if (mouseOnly() && e.pointerType === 'touch') return;   // 마우스 연습은 손가락 터치를 받지 않는다
   audio();
   const a = S.act;
@@ -858,11 +868,10 @@ function startDrag(t, e) {
 }
 
 // ---------- 키보드 ----------
-addEventListener('keydown', e => {
-  if (!panel.hidden || !S.act.startsWith('key') && !['syl', 'word', 'chat'].includes(S.act)) return;
-  if (e.metaKey || e.ctrlKey || e.altKey || e.key === 'Escape' || /^F\d+$/.test(e.key)) return;   // 교사용 단축키는 그대로 둔다
-  e.preventDefault();
-  if (e.repeat || done) return;
+const KEYACT = a => a.startsWith('key') || ['syl', 'word', 'chat'].includes(a);
+// 실제 키보드와 화면 자판(손가락)이 같은 길을 쓴다
+function keyPress(code) {
+  if (!panel.hidden || done || !KEYACT(S.act)) return;
   audio();
   const a = S.act;
   if (a === 'key0') {
@@ -872,7 +881,7 @@ addEventListener('keydown', e => {
   if (busy) return;
   if (a === 'syl' || a === 'word' || a === 'chat') {
     const want = cur.seq[cur.pos];
-    if (e.code !== want && !(want === 'Enter' && e.code === 'NumpadEnter')) return;
+    if (code !== want && !(want === 'Enter' && code === 'NumpadEnter')) return;
     cur.pos++;
     drawTyping();
     if (cur.pos < cur.seq.length) { tick(); return; }
@@ -885,15 +894,22 @@ addEventListener('keydown', e => {
     success(...center($('#typebox'))); next();
     return;
   }
-  const ok = a === 'key1' ? (e.code === S.key1 || (S.key1 === 'Enter' && e.code === 'NumpadEnter')) : e.code === cur.code;
+  const ok = a === 'key1' ? (code === S.key1 || (S.key1 === 'Enter' && code === 'NumpadEnter')) : code === cur.code;
   if (!ok || !gate()) return;
   const k = a === 'key1' ? stage.querySelector('.key.big') : stage.querySelector(`.key[data-code="${cur.code}"]`);
   k.classList.add('hint', 'hit');
   if (S.key1 === 'Backspace' && a === 'key1') typebox().innerHTML = cur.word + '<span class="caret"></span>';
   success(...center(a === 'key1' ? (S.key1 === 'Backspace' ? $('#typebox') : k) : $('#bigchar'))); next();
+}
+addEventListener('keydown', e => {
+  if (!panel.hidden || !KEYACT(S.act)) return;
+  if (e.metaKey || e.ctrlKey || e.altKey || e.key === 'Escape' || /^F\d+$/.test(e.key)) return;   // 교사용 단축키는 그대로 둔다
+  e.preventDefault();
+  if (e.repeat) return;
+  keyPress(e.code);
 });
+addEventListener('keydown', e => { if (e.key === 'Escape' && !$('#player').hidden) hideVideo(); });
 
-// ---------- 홈 ----------
 // 기능(활동)마다 가이드 영상 한 편. 프로그램 옆 「영상」 폴더에서 찾는다
 const videoOf = set => {
   const a = set.act;
@@ -915,7 +931,6 @@ function hideVideo() {
 }
 $('#vidclose').addEventListener('click', hideVideo);
 $('#player').addEventListener('click', e => { if (e.target === $('#player')) hideVideo(); });
-addEventListener('keydown', e => { if (e.key === 'Escape' && !$('#player').hidden) hideVideo(); });
 
 function renderHome() {
   $('#grades').querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.grade === S.grade)));
