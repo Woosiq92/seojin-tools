@@ -332,6 +332,8 @@ section.make .mini{margin:0}
 .stdsum{margin:0;font-size:13px;color:var(--muted)}
 .pulse{outline:2px solid var(--blue);outline-offset:3px}
 
+/* 보이는 줄이 하나도 없으면(학교 공간에서 담당자 열쇠도 안 열었을 때) 바닥글째 숨긴다 */
+footer:not(:has(> :not([hidden]))){display:none}
 footer{border-top:1px solid var(--rule);padding-top:18px;font-size:13px;color:var(--muted);
   display:flex;flex-direction:column;gap:7px}
 footer code{background:var(--sheet);border:1px solid var(--rule);padding:1px 5px;font-size:12px}
@@ -480,8 +482,6 @@ footer a{color:var(--ink2)}
 </div>
 
 <footer>
-  <span>학습지원 소프트웨어로 정식 선정하려면 학교운영위원회 심의를 거쳐야 합니다(초·중등교육법 제29조의2).
-    여기에 올리는 것만으로 학급 도입이 되지는 않습니다.</span>
   <span id="devnote">서버 위에서 열면 선생님이 넣은 카드가 바로 모두에게 보입니다. 서버 없이 열면 그 브라우저에만 남습니다.
     기본 카드 여섯 개는 <code>~/seojin/저장소.html</code> 의 <code>ITEMS</code> 에 있습니다.
     담당자가 바뀌면 주소 끝에 <code>#admin</code> 을 붙여 열쇠를 넣고 '전체 내려받기'로 자료를 통째로 옮깁니다.
