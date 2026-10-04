@@ -157,6 +157,8 @@ h1{font-family:"Gowun Batang",serif;font-weight:700;font-size:36px;line-height:1
 /* 요청하기에서 더 적기를 누르기 전에는 한 칸만 보인다 */
 /* 요청하기는 한 문장 + 요청문 여섯 칸만. 분류·대상·성취기준 같은 칸은 도구 넣기에서만 쓴다 */
 section.add.asking .toolonly{display:none!important}
+/* 요청문 여섯 칸은 요청하기에서만 — 다 만든 도구를 올리는 자리에서는 묻지 않는다(나중에 고쳐 쓰기로 채울 수 있다) */
+section.add:not(.asking) .askonly{display:none!important}
 .similar .linked{margin-top:6px}
 .panetop{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
 @media (max-width:560px){.guide li span{display:none}.guide ol{gap:2px;grid-template-columns:1fr}.guide{padding:10px 12px}}
@@ -475,7 +477,7 @@ footer a{color:var(--ink2)}
   </div>
 
   <!-- 요청하기에서는 이 상자 제목이 곧 '자세히 적기' 단추다. 눌러서 펼치고 다시 눌러 접는다 -->
-  <details class="more">
+  <details class="more askonly">
     <summary>요청문 여섯 칸 (선택, 자세할수록 AI가 정확하게 만듭니다)</summary>
     <div class="fields" style="margin-top:14px">
       <div class="f"><label for="a0">무엇을</label><textarea id="a0"></textarea></div>
@@ -1842,7 +1844,7 @@ document.addEventListener('input', e => {
 function formPost(f){
   const common = {name: f.name, line: f.line, use: f.use, cam: f.cam, ask: f.ask, stds: f.stds, category: f.category};
   return tab === 'make'
-    ? ['tools', Object.assign(common, {url: f.url, maker: f.maker, knobs: f.knobs, source: f.source})]
+    ? ['tools', Object.assign(common, {ask: [], url: f.url, maker: f.maker, knobs: f.knobs, source: f.source})]
     : ['requests', {name: shortName(f.wish), line: f.wish, ask: f.ask}];
 }
 
