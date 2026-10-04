@@ -102,7 +102,6 @@ h1{font-family:"Gowun Batang",serif;font-weight:700;font-size:36px;line-height:1
 .move{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:2px}
 .move input{flex:1 1 170px;min-width:0;font:13px "Gothic A1",sans-serif;background:var(--paper);
   border:1px solid var(--rule);color:var(--ink);padding:7px 9px}
-details.notes{border-top:1px solid var(--rule);margin-top:2px}
 .notelist{list-style:none;margin:0 0 10px;padding:0;display:flex;flex-direction:column;gap:10px}
 .note{border-left:2px solid var(--rule);padding:2px 0 2px 10px}
 .note.done{opacity:.55}
@@ -135,15 +134,6 @@ details.notes{border-top:1px solid var(--rule);margin-top:2px}
 .links a{color:var(--sec);text-decoration:none;font-weight:700}
 .links a:hover{text-decoration:underline}
 .links a.plain{color:var(--ink2);font-weight:500}
-
-details.ask,details.notes{border-top:1px solid var(--rule);margin-top:2px}
-details.ask summary,details.notes summary{list-style:none;cursor:pointer;padding:11px 0 2px;
-  font-size:13.5px;color:var(--ink2);display:flex;align-items:center;gap:6px}
-details.ask summary::-webkit-details-marker,
-details.notes summary::-webkit-details-marker{display:none}
-details.ask summary::before,details.notes summary::before{content:"+";color:var(--muted);
-  font:700 15px/1 "Gothic A1",sans-serif;width:13px;text-align:center}
-details.ask[open] summary::before,details.notes[open] summary::before{content:"\2212"}
 
 /* 도구 모음 — 분류마다 제목과 격자 한 묶음 */
 .catsecs{display:flex;flex-direction:column;gap:30px;margin-top:6px}
@@ -183,9 +173,6 @@ section.add.asking .toolonly{display:none!important}
   letter-spacing:-.01em;text-wrap:balance}
 .row .line{margin:0;font-size:14px;color:var(--ink2)}
 .rowside{display:flex;flex-direction:column;align-items:flex-end;gap:6px;white-space:nowrap}
-.rowfoot{grid-column:1/-1;min-width:0}
-.rowfoot details.ask,.rowfoot details.notes{border-top:1px dotted var(--rule)}
-.row .rowbtns{margin-top:8px}
 @media (max-width:560px){
   .row{grid-template-columns:minmax(0,1fr);gap:10px}
   .rowside{flex-direction:row;align-items:center;justify-content:flex-start}
@@ -266,37 +253,47 @@ section.form{padding-top:4px}
 .chipsel{font:500 13px/1.2 "Gothic A1",sans-serif;color:var(--ink2);background:transparent;
   border:1px solid var(--rule);padding:7px 9px;min-width:0;max-width:100%}
 .tag.std{color:var(--blue);border-color:var(--blue)}
-details.std,details.make{border-top:1px solid var(--rule);margin-top:2px}
-.rowfoot details.make{border-top:1px dotted var(--rule)}
-details.make summary{list-style:none;cursor:pointer;padding:11px 0 2px;
-  font-size:13.5px;color:var(--ink);font-weight:700;display:flex;align-items:center;gap:6px}
-details.make summary::-webkit-details-marker{display:none}
-details.make summary::before{content:"+";color:var(--muted);font:700 15px/1 "Gothic A1",sans-serif;width:13px;text-align:center}
-details.make[open] summary::before{content:"\2212"}
-details.make .move{margin-top:8px}
-details.make .mini{margin:6px 0 0}
-/* 카드의 '자세히' — 겉은 짧게, 나머지는 여기 */
-details.detail{border-top:1px solid var(--rule);margin-top:4px}
-.rowfoot details.detail{border-top:1px dotted var(--rule)}
-details.detail > summary{list-style:none;cursor:pointer;padding:10px 0 2px;font-size:13.5px;color:var(--ink2);
-  display:flex;align-items:center;gap:6px}
-details.detail > summary::-webkit-details-marker{display:none}
-details.detail > summary::before{content:"+";color:var(--muted);font:700 15px/1 "Gothic A1",sans-serif;width:13px;text-align:center}
-details.detail[open] > summary::before{content:"\2212"}
-details.detail[open] > summary{margin-bottom:6px}
-details.detail .tags{margin:4px 0 6px}
 .clamp{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-a.btn.use{align-self:flex-start;margin-top:4px}
+/* 카드 — 모두 같은 크기, 카드 전체가 상세를 여는 단추 */
+.grid{align-items:stretch}
+.card{cursor:pointer;transition:border-color .15s}
+.card:hover,.row:hover{border-color:var(--ink2)}
+.card:focus-visible,.row:focus-visible{outline:2px solid var(--focus);outline-offset:2px}
+.card .body{height:100%;box-sizing:border-box}
+.cardfoot{margin-top:auto;padding-top:6px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.more{font-size:12.5px;color:var(--muted);white-space:nowrap}
+.row{cursor:pointer}
+.rowside{justify-content:space-between;align-self:stretch}
+/* 상세 패널 — 넓은 화면은 오른쪽, 휴대폰은 전체 화면 */
+.dback{position:fixed;inset:0;background:rgba(15,17,20,.38);z-index:20}
+.dpanel{position:fixed;top:0;right:0;bottom:0;width:min(580px,100%);z-index:21;overflow-y:auto;
+  background:var(--sheet);border-left:1px solid var(--rule);box-shadow:-10px 0 34px rgba(0,0,0,.18);
+  padding:16px 26px 48px;box-sizing:border-box;display:flex;flex-direction:column;gap:14px}
+body.dopen{overflow:hidden}
+.dtop{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.dclose{font:500 13.5px "Gothic A1",sans-serif;background:transparent;border:0;color:var(--ink2);padding:6px 0;cursor:pointer}
+.dclose:hover{color:var(--ink)}
+.dcat{display:inline-flex;align-items:center;gap:8px;font-size:12.5px;color:var(--muted)}
+.dcat .caticon{width:30px;height:30px}.dcat .caticon svg{width:18px;height:18px}
+.dpanel h2{font-family:"Gowun Batang",serif;font-weight:700;font-size:24px;line-height:1.35;margin:0;text-wrap:balance}
+.dline{margin:-6px 0 0;font-size:15px;color:var(--ink2)}
+.dact{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.dact .copy{margin:0}
+section.make{background:var(--tint);padding:14px 16px;display:flex;flex-direction:column;gap:8px}
+section.make h3{font-size:15px;margin:0}
+section.make .mini{margin:0}
+.copy.go{background:var(--ink);border-color:var(--ink);color:var(--paper);font-weight:700}
+.dtabs{display:flex;gap:2px;border-bottom:1px solid var(--rule);margin-top:4px;overflow-x:auto}
+.dtabs button{font:500 14px "Gothic A1",sans-serif;background:transparent;border:0;border-bottom:2px solid transparent;
+  color:var(--ink2);padding:10px 12px 9px;cursor:pointer;white-space:nowrap}
+.dtabs button[aria-selected="true"]{border-bottom-color:var(--ink);color:var(--ink);font-weight:700}
+.dbody{display:flex;flex-direction:column;gap:10px;min-height:120px}
+.dbody .slots{margin-top:2px}
+.dfoot{display:flex;flex-wrap:wrap;gap:8px;border-top:1px solid var(--rule);padding-top:14px;margin-top:auto}
+@media (max-width:560px){.dpanel{padding:12px 16px 40px;border-left:0}}
 .copybox{grid-column:1/-1;margin:8px 0 4px}
 .copybox textarea{width:100%;box-sizing:border-box;min-height:140px;font:12.5px/1.5 ui-monospace,Menlo,monospace;
   background:var(--paper);border:1px solid var(--coral);color:var(--ink);padding:8px;resize:vertical}
-.rowfoot details.std{border-top:1px dotted var(--rule)}
-details.std summary{list-style:none;cursor:pointer;padding:11px 0 2px;
-  font-size:13.5px;color:var(--ink2);display:flex;align-items:center;gap:6px}
-details.std summary::-webkit-details-marker{display:none}
-details.std summary::before{content:"+";color:var(--muted);font:700 15px/1 "Gothic A1",sans-serif;
-  width:13px;text-align:center}
-details.std[open] summary::before{content:"\2212"}
 .scode{font:600 11.5px/1.4 ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--blue);
   white-space:nowrap;margin-right:6px}
 .stdlist{list-style:none;margin:10px 0 6px;padding:0;display:flex;flex-direction:column;gap:8px}
@@ -420,6 +417,9 @@ footer a{color:var(--ink2)}
   <p class="mini" id="stdsrc" style="margin-top:18px"></p>
 </section>
 
+<div class="dback" id="dback" hidden></div>
+<aside class="dpanel" id="dpanel" hidden role="dialog" aria-modal="true" aria-labelledby="dtitle"></aside>
+
 <section class="add" id="add">
   <h2 id="addTitle">요청 넣기</h2>
   <p class="sub"><span id="addSubText"></span>
@@ -447,6 +447,8 @@ footer a{color:var(--ink2)}
       </div></div>
     <div class="f toolonly"><label for="i-maker">만든 사람</label>
       <input type="text" id="i-maker" placeholder="예: 초등 3학년 김 선생님"></div>
+    <div class="f wide toolonly" id="f-src"><label for="i-src">소스 코드 주소 (GitHub 등, 선택)</label>
+      <input type="url" id="i-src" placeholder="https://github.com/…"></div>
     <div class="f wide" id="f-knobs"><label for="i-knobs">교사가 바꿀 수 있는 설정</label>
       <input type="text" id="i-knobs" placeholder="예: 속도 · 글자 크기 · 소리 켜기"></div>
     <div class="f wide toolonly" id="f-std"><label id="curform">성취기준 (특수교육 기본 교육과정, 여섯 개까지)</label>
@@ -512,7 +514,7 @@ const CAT_ICONS = {
 
 const ITEMS = [
   {
-    id:'bloom', category:'표현·미디어아트', tone:'coral', use:'student',
+    id:'bloom', source:'https://github.com/Woosiq92/seojin-tools/tree/main/bloom', category:'표현·미디어아트', tone:'coral', use:'student',
     name:'사이에서 핀다',
     line:'두 사람 사이에서만 꽃이 핍니다. 손끝이 가까워지면 피어나고, 붙여 두면 곁꽃이 번집니다.',
     tags:['카메라 필요','둘이서'],
@@ -533,7 +535,7 @@ const ITEMS = [
     ]
   },
   {
-    id:'hand', category:'표현·미디어아트', tone:'blue', use:'student',
+    id:'hand', source:'https://github.com/Woosiq92/seojin-tools/tree/main/hand-sound', category:'표현·미디어아트', tone:'blue', use:'student',
     name:'손으로 내는 소리',
     line:'손을 올리면 높은 음, 내리면 낮은 음이 납니다. 카메라가 열리지 않으면 화면을 만져도 같은 소리가 납니다.',
     tags:['카메라 없이도 됨','태블릿 가능'],
@@ -554,7 +556,7 @@ const ITEMS = [
     ]
   },
   {
-    id:'head', category:'게임·놀이', tone:'green', use:'student',
+    id:'head', source:'https://github.com/Woosiq92/seojin-tools/tree/main/head-notes', category:'게임·놀이', tone:'green', use:'student',
     name:'머리로 받는 소리',
     line:'위에서 공이 떨어집니다. 머리에 닿으면 소리가 나고, 놓쳐도 아무 일이 생기지 않습니다.',
     tags:['카메라 없이도 됨','실패 표시 없음'],
@@ -760,17 +762,14 @@ function parts(it){
     + (it.from ? `<span class="tag" title="${esc(it.from.name)}">요청에서 만들어짐</span>` : '');
 
   const stdEdit = stdEditing === it.id;
-  p.stds = STD_ON && (stds.length || canEdit)
-    ? `<details class="std" data-card="${it.id}" open>
-        <summary>성취기준${stds.length ? ' ' + stds.length : ' 붙이기'}</summary>
-        ${stdEdit
+  p.stds = STD_ON
+    ? `${stdEdit
           ? `<div class="stdpick" data-pk="${it.id}"></div>
              <div class="rowbtns"><button class="copy" data-stdsave="${it.id}">저장</button>
                <button class="copy" data-stdcancel="1">취소</button></div>`
           : (stds.length ? `<ul class="stdlist">${stds.map(c => `<li>${stdLine(STD_BY.get(c))}</li>`).join('')}</ul>`
               : `<p class="empty">성취기준을 붙이면 성취기준 탭에서 이 카드를 찾을 수 있습니다.</p>`)
-            + (canEdit ? `<button class="copy" data-stdedit="${it.id}">성취기준 고르기</button>` : '')}
-      </details>`
+            + (canEdit ? `<button class="copy" data-stdedit="${it.id}">성취기준 고르기</button>` : '')}`
     : '';
 
   p.links = it.links.length
@@ -782,10 +781,11 @@ function parts(it){
     ? `<dl class="slots">${it.ask.map(([k,v]) =>
         `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join('')}</dl>`
     : `<p class="empty">아직 적힌 내용이 없습니다. 비어 있으면 한 줄 설명만으로 프롬프트를 만듭니다.</p>`;
-  /* 프롬프트 복사는 접힌 상자 안이 아니라 카드 겉에 둔다 — 안내의 'AI로 만들기'가 바로 이 단추다 */
+  /* 상세 맨 위에 두는 핵심 단추 — 안내의 'AI로 만들기'가 바로 이 단추다 */
   p.prompt = `<button class="copy prompt" data-copy="${it.id}">프롬프트 복사하기</button>`;
   const askEdit = editing === it.id
-    ? `<div class="askedit"><label class="slotlab">분류</label>
+    ? `<div class="askedit">${it.kind === 'tool' ? `<label class="slotlab">소스 코드 주소 (GitHub 등, 선택)</label>
+       <input type="url" class="chipsel" data-asrc="1" value="${esc(it.source || '')}" placeholder="https://github.com/…">` : ''}<label class="slotlab">분류</label>
        <select class="chipsel" data-acat="1">${CATEGORIES.map(c =>
          `<option${c === (it.category || '기타') ? ' selected' : ''}>${esc(c)}</option>`).join('')}</select>${SLOTS.map((k,i) =>
         `<label class="slotlab">${esc(k)}</label><textarea data-ae="${i}">${esc(rawAsk[i] || '')}</textarea>`).join('')}
@@ -795,8 +795,7 @@ function parts(it){
        <div class="rowbtns"><button class="copy" data-asksave="${it.id}">저장</button>
          <button class="copy" data-askcancel="1">취소</button></div></div>`
     : (canEdit ? `<button class="copy" data-askedit="${it.id}">고쳐 쓰기</button>` : '');
-  p.ask = `<details class="ask" open>
-      <summary>요청문 여섯 칸</summary>${askInner}${askEdit}</details>`;
+  p.ask = askInner + askEdit;
 
   const canDelNote = n => mode === 'local' || !!noteKeys[n.id] || !!adminToken;
   const noteList = notes.length
@@ -814,8 +813,7 @@ function parts(it){
       <textarea data-ntext="${it.id}" placeholder="더할 내용이나 고칠 점을 적어 주세요"></textarea>
       <p class="mini warn">학생 이름, 건강·장애 정보는 적지 마세요. 학년·반까지만 적어 주세요.</p>
       <button class="copy" data-note="${it.id}">의견 남기기</button></div>`;
-  p.notesBox = `<details class="notes" data-card="${it.id}" open>
-      <summary>의견${notes.length ? ' ' + notes.length : ''}</summary>${noteList}${VIEW ? '' : noteForm}</details>`;
+  p.notesBox = noteList + (VIEW ? '' : noteForm);
 
   p.need = !VIEW && st !== 'done'
     ? `<button class="copy need" data-need="${it.id}" data-hot="${needed[it.id] ? '1' : '0'}">저도 필요해요${
@@ -833,18 +831,21 @@ function parts(it){
 
   /* 누구나 요청을 집어 들고 만들어 올린다 — 요청한 사람이 아니어도 된다 */
   p.move = (!VIEW && it.kind === 'request' && st !== 'done')
-    ? `<details class="make" data-card="${it.id}"${openMake.has(it.id) ? ' open' : ''}>
-        <summary>내가 만들어 올리기</summary>
-        <p class="mini">'프롬프트 복사하기'로 AI에서 만든 뒤, 주소를 넣고 올리면 도구 모음에 올라갑니다.</p>
+    ? `<section class="make">
+        <h3>내가 만들어 올리기</h3>
+        <p class="mini">누구나 만들 수 있습니다. 프롬프트로 AI에서 만든 뒤 주소를 넣어 올리면 도구 모음에 올라갑니다.</p>
         <div class="move">
           <input class="mvurl" data-maker="${it.id}" type="text" placeholder="내 이름 (선택)">
           ${st === 'ask' ? `<button class="copy" data-move="${it.id}" data-to="making">만들어 볼게요</button>` : ''}
         </div>
         <div class="move">
           <input class="mvurl" data-url="${it.id}" type="url" placeholder="완성한 도구 주소 (https://)">
-          <button class="copy" data-move="${it.id}" data-to="done">완성해서 올리기</button>
         </div>
-      </details>`
+        <div class="move">
+          <input class="mvurl" data-src="${it.id}" type="url" placeholder="소스 코드 주소 (GitHub 등, 선택)">
+          <button class="copy go" data-move="${it.id}" data-to="done">완성해서 올리기</button>
+        </div>
+      </section>`
     : '';
   return p;
 }
@@ -852,58 +853,107 @@ function parts(it){
 const attrs = (it, st) => `data-use="${it.use}" data-cam="${it.cam}" data-state="${st}" data-cid="${esc(it.id)}"
   data-subj="${esc(stdSubjects(it.stds || []).join('|'))}"`;
 
-/* 도구 모음 — 분류 묶음 안에서 격자로 본다. 분류는 묶음 제목과 아이콘이 알려 주니 카드에 꼬리표로 또 달지 않는다 */
-/* 겉에는 알아보고 쓰는 데 필요한 것만(아이콘·이름·한 줄·도구 쓰기). 나머지는 '자세히'를 눌러야 펼친다 */
-const detailSummary = it => '자세히' + ((it.notes || []).length ? ' · 의견 ' + it.notes.length : '');
+const catIcon = c => `<span class="caticon" title="${esc(c)}" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"
+  stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${
+  CAT_ICONS[c] || CAT_ICONS['기타']}</svg></span>`;
+/* 요청 이름이 문장 앞부분을 자른 것이면 문장 하나만 제목으로 */
+const reqTitle = it => it.line.startsWith(it.name.replace(/…$/, ''));
+
+/* 도구 모음 — 카드는 모두 같은 크기. 알아보고 바로 쓰는 데 필요한 것만 겉에 두고, 누르면 상세 패널이 열린다 */
 function cardHTML(it){
-  const p = parts(it);
-  const own = p.own.length ? `<div class="rowbtns">${p.own.join('')}</div>` : '';
-  const [first, ...more] = it.links;
-  return `<article class="card ${it.tone}" ${attrs(it, p.st)}>
+  const first = it.links[0], n = (it.notes || []).length;
+  return `<article class="card ${it.tone}" ${attrs(it, it.state || 'done')} data-open="tool:${esc(it.id)}"
+      tabindex="0" role="button" aria-label="${esc(it.name)} 자세히 보기">
     <div class="body">
-      <div class="cardhead"><span class="caticon" title="${esc(it.category)}" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"
-        stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${
-        CAT_ICONS[it.category] || CAT_ICONS['기타']}</svg></span><h3>${esc(it.name)}</h3></div>
+      <div class="cardhead">${catIcon(it.category)}<h3>${esc(it.name)}</h3></div>
       <p class="clamp">${esc(it.line)}</p>
-      ${first ? `<a class="btn go use" href="${esc(first.u)}">${esc(first.t)}</a>` : ''}
-      <details class="detail" data-card="${it.id}"${openDetail.has(it.id) ? ' open' : ''}>
-        <summary>${detailSummary(it)}</summary>
-        <div class="tags">${p.tags}</div>
-        ${it.knobs ? `<p class="knobs"><b>${esc(it.knobs)}</b></p>` : ''}
-        ${more.length ? `<div class="links">${more.map(l => `<a href="${esc(l.u)}" class="plain">${esc(l.t)}</a>`).join('')}</div>` : ''}
-        <div class="rowbtns">${p.prompt}</div>
-        ${p.ask}
-        ${p.stds}
-        ${p.notesBox}
-        ${own}
-      </details>
+      <div class="cardfoot">
+        ${first ? `<a class="btn go use" href="${esc(first.u)}">${esc(first.t)}</a>` : '<span></span>'}
+        <span class="more">${n ? '의견 ' + n + ' · ' : ''}자세히 ›</span>
+      </div>
     </div></article>`;
 }
 
-/* 게시판 — 아직 물건이 아니라 글이다. 그림 없이 줄로 읽는다 */
+/* 요청 목록 — 문장·상태·필요해요만 겉에. 누르면 상세 패널(프롬프트·만들어 올리기·요청문·의견) */
 function rowHTML(it){
-  const p = parts(it);
-  const own = p.own.length ? `<div class="rowbtns">${p.own.join('')}</div>` : '';
-  return `<article class="row ${it.tone}" ${attrs(it, p.st)}>
+  const p = parts(it), n = (it.notes || []).length;
+  return `<article class="row ${it.tone}" ${attrs(it, p.st)} data-open="req:${esc(it.id)}"
+      tabindex="0" role="button" aria-label="요청 자세히 보기">
     <div class="rowmain">
-      ${it.line.startsWith(it.name.replace(/…$/, ''))
-        ? `<h3>${esc(it.line)}</h3>`
-        : `<h3>${esc(it.name)}</h3><p class="line">${esc(it.line)}</p>`}
-      <div class="tags">${p.tags}</div>
-      ${it.knobs ? `<p class="knobs"><b>${esc(it.knobs)}</b></p>` : ''}
-      ${p.links}
+      ${reqTitle(it) ? `<h3>${esc(it.line)}</h3>` : `<h3>${esc(it.name)}</h3><p class="line">${esc(it.line)}</p>`}
+      <div class="tags">${p.tags}${n ? `<span class="tag">의견 ${n}</span>` : ''}</div>
     </div>
-    <div class="rowside">${p.prompt}${p.need}</div>
-    <div class="rowfoot">
-      ${p.move}
-      <details class="detail" data-card="${it.id}"${openDetail.has(it.id) ? ' open' : ''}>
-        <summary>${detailSummary(it)}</summary>
-        ${p.ask}
-        ${p.stds}
-        ${p.notesBox}
-        ${own}
-      </details>
-    </div></article>`;
+    <div class="rowside">${p.need}<span class="more">자세히 ›</span></div>
+  </article>`;
+}
+
+/* ---- 상세 패널 — 넓은 화면은 오른쪽, 휴대폰은 전체 화면. 주소 #tool/아이디 · #req/아이디 ---- */
+let detail = null;                // {kind:'tool'|'req', id}
+let dtab = '';                    // 상세 안의 탭
+let detailPushed = false;         // 이 창에서 눌러 연 상세인가(닫을 때 뒤로가기로)
+function detailHTML(it){
+  const p = parts(it), isReq = it.kind === 'request';
+  const [first, ...more] = it.links, n = (it.notes || []).length;
+  const tabs = (isReq ? [] : [['about', '소개']]).concat([['ask', '요청문'], STD_ON && ['std', '성취기준'],
+    ['notes', '의견' + (n ? ' ' + n : '')]].filter(Boolean));
+  if (!tabs.some(t => t[0] === dtab)) dtab = tabs[0][0];
+  const body = {
+    about: (it.knobs ? `<p class="knobs"><b>${esc(it.knobs)}</b></p>` : '')
+      + (more.length ? `<div class="links">${more.map(l => `<a href="${esc(l.u)}" class="plain">${esc(l.t)}</a>`).join('')}</div>` : '')
+      + (it.from ? `<p class="mini">요청에서 만들어진 도구입니다: ${esc(it.from.line)}</p>` : '')
+      + (!it.knobs && !more.length && !it.from ? '<p class="empty">더 적힌 소개가 없습니다.</p>' : ''),
+    ask: p.ask, std: p.stds, notes: p.notesBox
+  }[dtab] || '';
+  return `<div class="dtop">
+      <button class="dclose" data-dclose>← 목록으로</button>
+      <span class="dcat">${catIcon(it.category)}${esc(it.category || '기타')}</span>
+    </div>
+    ${isReq && reqTitle(it) ? `<h2 id="dtitle">${esc(it.line)}</h2>`
+      : `<h2 id="dtitle">${esc(it.name)}</h2><p class="dline">${esc(it.line)}</p>`}
+    <div class="tags">${p.tags}</div>
+    <div class="dact">
+      ${isReq ? p.prompt.replace('copy prompt', 'btn go') + p.need
+        : (first ? `<a class="btn go" href="${esc(first.u)}">${esc(first.t)}</a>` : '') + p.prompt
+          + (it.source ? `<a class="btn" href="${esc(it.source)}">소스 보기</a>` : '')}
+    </div>
+    ${p.move}
+    <div class="dtabs" role="tablist">${tabs.map(([k, t]) =>
+      `<button role="tab" data-dtab="${k}" aria-selected="${k === dtab}">${esc(t)}</button>`).join('')}</div>
+    <div class="dbody">${body}</div>
+    ${p.own.length ? `<div class="dfoot">${p.own.join('')}</div>` : ''}`;
+}
+function renderDetail(){
+  const panel = document.getElementById('dpanel');
+  const it = detail && all().find(i => i.id === detail.id);
+  if (!it) {                       // 닫혔거나 지워졌다(없는 상세 링크면 탭 주소로 되돌린다)
+    if (detail) { detail = null; detailPushed = false; history.replaceState(null, '', '#' + tab); }
+    panel.hidden = document.getElementById('dback').hidden = true;
+    document.body.classList.remove('dopen');
+    return;
+  }
+  panel.innerHTML = detailHTML(it);
+  panel.hidden = document.getElementById('dback').hidden = false;
+  document.body.classList.add('dopen');
+}
+function openDetail(kind, id, push){
+  const opening = !detail || detail.id !== id;
+  detail = {kind, id};
+  if (opening) dtab = '';
+  const h = '#' + kind + '/' + id;
+  if (push && location.hash !== h) { history.pushState({detail: true}, '', h); detailPushed = true; }
+  else history.replaceState(history.state, '', h);
+  renderDetail();
+  if (opening) { document.getElementById('dpanel').scrollTop = 0; document.querySelector('#dpanel [data-dclose]').focus(); }
+}
+function closeDetail(){
+  if (!detail) return;
+  const id = detail.id;
+  if (detailPushed) { history.back(); return; }   // 뒤로가기와 같은 길로 닫는다(hashchange 가 마저 정리)
+  detail = null;
+  history.replaceState(null, '', '#' + tab);
+  renderDetail();
+  const el = [...grid.querySelectorAll('[data-cid]')].find(c => c.dataset.cid === id);
+  if (el) el.focus();
 }
 
 const KEY = 'seojin-shelf-v2', OLD_KEY = 'seojin-shelf-v1', DRAFT = 'seojin-shelf-draft',
@@ -937,10 +987,8 @@ let secrets = load(SECRETS, {});  // 내가 넣은 글을 고치고 지울 때 �
 let adminToken = load(ADMIN, '');
 let needed = load(NEEDED, {});    // 같은 사람이 두 번 누르지 않게
 let noteKeys = load(NOTEKEYS, {});
-let openDetail = new Set();       // 다시 그려도 펼쳐 둔 '자세히'는 펼친 채로
 let editing = null;               // 지금 요청문을 고쳐 쓰는 중인 카드
 let stdEditing = null;            // 지금 성취기준을 고르는 중인 카드
-let openMake = new Set();         // 펼쳐 둔 '내가 만들어 올리기'
 
 /* 옛 형식(한 레코드가 state 로 요청·도구를 오가던 것) → 세 가지 글. 서버의 migrate 와 같다 */
 function migrate(old){
@@ -1009,8 +1057,8 @@ const api = {
     {maker}, '표시하지 못했습니다'),
   reopen: id => call('/requests/' + encodeURIComponent(id) + '/reopen',
     {token: secrets[id] || ''}, '되돌리지 못했습니다', true),
-  done: (id, url, maker) => call('/requests/' + encodeURIComponent(id) + '/done',
-    {url, maker, token: secrets[id] || ''}, '올리지 못했습니다'),
+  done: (id, url, maker, source) => call('/requests/' + encodeURIComponent(id) + '/done',
+    {url, maker, source, token: secrets[id] || ''}, '올리지 못했습니다'),
   need: id => call('/requests/' + encodeURIComponent(id) + '/need', {}, '누르지 못했습니다'),
   addNote: note => call('/notes', note, '남기지 못했습니다'),
   delNote: noteId => call('/notes/' + encodeURIComponent(noteId) + '/delete',
@@ -1046,7 +1094,7 @@ function toItem(rec, n){
     links: !isReq && rec.url ? [{t:'도구 쓰기', u: rec.url}] : [],
     ask: (rec.ask && rec.ask.some(v => v)) ? SLOTS.map((k,x) => [k, rec.ask[x] || '(비어 있음)']) : null,
     state: isReq ? rec.status : 'done', needs: rec.needs || 0,
-    notes: notesOf(rec.id, rec.from), from, mine: true, rec,
+    notes: notesOf(rec.id, rec.from), from, mine: true, rec, source: isReq ? '' : (rec.source || ''),
     stds: (rec.stds || []).filter(c => STD_BY.has(c))   // 심어 둔 목록에 없는 코드는 버린다
   };
 }
@@ -1106,6 +1154,7 @@ function firstTab(){
 /* push: 사람이 눌러서 옮길 때만 방문 기록을 쌓는다 — 뒤로가기로 이전 탭에 돌아오게.
    처음 열 때·뒤로가기로 돌아올 때·올린 뒤 목록으로 넘어갈 때는 기록을 덮어쓴다(빈 폼으로 되돌아가지 않게) */
 function setTab(t, push){
+  if (detail) { detail = null; detailPushed = false; renderDetail(); }   // 탭을 옮기면 상세는 닫는다
   if (!TABS.includes(t) || (t === 'std' && !STD_ON) || (t === 'ask' && VIEW)) t = firstTab();
   const moved = t !== tab;
   tab = t;
@@ -1156,6 +1205,12 @@ document.getElementById('side').addEventListener('click', e => {
 /* 이미 열린 창에서 주소만 바뀌어도 갈래가 따라오게 (공유한 #tools 링크) */
 addEventListener('hashchange', () => {
   const h = location.hash.replace('#','');
+  const m = h.match(/^(tool|req)\/(.+)$/);
+  if (m) {                         // 앞으로가기·공유한 상세 링크
+    if (!detail || detail.id !== decodeURIComponent(m[2])) { detailPushed = false; openDetail(m[1], decodeURIComponent(m[2]), false); }
+    return;
+  }
+  if (detail) { detail = null; detailPushed = false; renderDetail(); }   // 뒤로가기로 상세를 닫았다
   if (h && h !== 'admin' && h !== tab) setTab(h);   // 뒤로가기·공유 링크. 모르는 이름은 처음 갈래로
 });
 
@@ -1181,6 +1236,7 @@ function render(){
     board.length ? '요청 ' + n('ask') + ' · 만드는 중 ' + n('making') : '요청과 의견';
   fillSubj(list);
   renderStd(list);
+  renderDetail();
   document.querySelectorAll('.stdpick').forEach(fillPick);
   apply();
 }
@@ -1276,17 +1332,26 @@ document.querySelectorAll('.chip[data-f]').forEach(b => b.addEventListener('clic
 }));
 nocam.addEventListener('change', apply);
 
-/* details 의 toggle 은 위로 올라오지 않아, 요약줄 클릭 뒤의 상태를 읽는다 */
+/* 카드를 누르면 상세가 열린다(카드 안의 링크·단추는 제 할 일만). 상세 안의 탭·닫기 */
 grid.addEventListener('click', e => {
-  const sum = e.target.closest('details.detail > summary, details.make > summary');
-  if (!sum) return;
-  const box = sum.parentElement;
-  const set = box.classList.contains('make') ? openMake : openDetail;
-  setTimeout(() => {
-    if (box.open) set.add(box.dataset.card);
-    else set.delete(box.dataset.card);
-  }, 0);
+  const close = e.target.closest('[data-dclose]');
+  if (close) { closeDetail(); return; }
+  const t = e.target.closest('[data-dtab]');
+  if (t) { dtab = t.dataset.dtab; renderDetail(); document.querySelectorAll('.stdpick').forEach(fillPick); return; }
+  const card = e.target.closest('[data-open]');
+  if (!card || e.target.closest('a, button, input, textarea, select, label')) return;
+  const [kind, id] = card.dataset.open.split(':');
+  openDetail(kind, id, true);
 });
+grid.addEventListener('keydown', e => {
+  const card = e.target.closest('[data-open]');
+  if (!card || e.target !== card || (e.key !== 'Enter' && e.key !== ' ')) return;
+  e.preventDefault();
+  const [kind, id] = card.dataset.open.split(':');
+  openDetail(kind, id, true);
+});
+document.getElementById('dback').addEventListener('click', closeDetail);
+addEventListener('keydown', e => { if (e.key === 'Escape' && detail) closeDetail(); });
 
 /* ---- 클립보드 ---- */
 function flash(btn, msg){
@@ -1395,7 +1460,13 @@ grid.addEventListener('click', async e => {
     const id = move.dataset.move, to = move.dataset.to;
     const box = grid.querySelector('.mvurl[data-url="' + id + '"]');
     const mk = grid.querySelector('.mvurl[data-maker="' + id + '"]');
-    const url = box ? box.value.trim() : '', maker = mk ? mk.value.trim() : '';
+    const sb = grid.querySelector('.mvurl[data-src="' + id + '"]');
+    const url = box ? box.value.trim() : '', maker = mk ? mk.value.trim() : '', source = sb ? sb.value.trim() : '';
+    if (to === 'done' && source && !/^https?:\/\//.test(source)) {
+      note.textContent = '소스 코드 주소는 https://로 시작해야 합니다.';
+      sb.focus();
+      return;
+    }
     if (to === 'done' && !/^https?:\/\//.test(url)) {
       note.textContent = 'https://로 시작하는 도구 주소를 넣어 주세요.';
       if (box) box.focus();
@@ -1405,7 +1476,7 @@ grid.addEventListener('click', async e => {
     if (mode === 'server') {
       try {
         if (to === 'done') {
-          const d = await api.done(id, url, maker);
+          const d = await api.done(id, url, maker, source);
           /* 도구의 주인은 올린 사람 — 남이 올렸으면 새 열쇠를, 요청한 본인이면 요청 열쇠를 그대로 */
           const key = d.token || secrets[id];
           if (key) { secrets[d.toolId] = key; save(SECRETS, secrets); }
@@ -1420,7 +1491,7 @@ grid.addEventListener('click', async e => {
       const r = local.requests.find(x => x.id === id);
       if (r && to === 'making') { r.status = 'making'; r.makingBy = maker; }
       if (r && to === 'done') {
-        const tool = {id: newId('t'), name: r.name, line: r.line, url, maker, knobs: '', category: r.category,
+        const tool = {id: newId('t'), name: r.name, line: r.line, url, maker, source, knobs: '', category: r.category,
           use: r.use, cam: r.cam, ask: (r.ask || []).slice(), stds: (r.stds || []).slice(),
           from: r.id, at: new Date().toISOString()};
         local.tools.push(tool);
@@ -1447,7 +1518,6 @@ grid.addEventListener('click', async e => {
     const slBox = grid.querySelector('[data-nslot="' + id + '"]');
     const rec = { by: byBox ? byBox.value.trim() : '', text,
       slot: slBox && slBox.value !== '' ? Number(slBox.value) : null };
-    openDetail.add(id);
     nbtn.disabled = true;
     if (mode === 'server') {
       try {
@@ -1473,7 +1543,6 @@ grid.addEventListener('click', async e => {
   const ndel = e.target.closest('[data-ndel]');
   if (ndel) {
     const [id, noteId] = ndel.dataset.ndel.split(':');
-    openDetail.add(id);
     if (mode === 'server') {
       try {
         await api.delNote(noteId);
@@ -1488,21 +1557,12 @@ grid.addEventListener('click', async e => {
     return;
   }
 
-  /* 성취기준 갈래에서 카드로 건너가기 — 거르개를 풀어야 카드가 보인다 */
+  /* 성취기준 탭·비슷한 것에서 카드로 건너가기 — 지금 탭 위에 상세를 연다 */
   const jump = e.target.closest('[data-jump]');
   if (jump) {
     const it = all().find(i => i.id === jump.dataset.jump);
     if (!it) return;
-    filter = 'all'; nocam.checked = false; subjSel.value = '';
-    document.querySelectorAll('.chip[data-f]').forEach(x =>
-      x.setAttribute('aria-pressed', String(x.dataset.f === 'all')));
-    setTab(it.kind === 'request' ? 'board' : 'tools', true);
-    const el = [...grid.querySelectorAll('[data-cid]')].find(c => c.dataset.cid === it.id);
-    if (el) {
-      el.scrollIntoView({behavior:'smooth', block:'center'});
-      el.classList.add('pulse');
-      setTimeout(() => el.classList.remove('pulse'), 1800);
-    }
+    openDetail(it.kind === 'request' ? 'req' : 'tool', it.id, true);
     return;
   }
 
@@ -1542,7 +1602,6 @@ grid.addEventListener('click', async e => {
     }
     delete pickState[id];
     stdEditing = null;
-    openDetail.add(id);
     render();
     note.textContent = '성취기준을 저장했습니다.';
     return;
@@ -1556,14 +1615,15 @@ grid.addEventListener('click', async e => {
   const asave = e.target.closest('[data-asksave]');
   if (asave) {
     const id = asave.dataset.asksave;
-    const card = asave.closest('.card, .row');
+    const card = asave.closest('.card, .row, .dpanel');
     const vals = [...card.querySelectorAll('[data-ae]')].map(t => t.value.trim());
     const applied = [...card.querySelectorAll('[data-ap]')].filter(c => c.checked).map(c => c.dataset.ap);
     const category = card.querySelector('[data-acat]').value;
+    const srcBox = card.querySelector('[data-asrc]');
     asave.disabled = true;
     if (mode === 'server') {
       try {
-        await api.edit(id, {ask: vals, applied, category});
+        await api.edit(id, Object.assign({ask: vals, applied, category}, srcBox ? {source: srcBox.value.trim()} : {}));
         remote = await api.load();
       } catch (err) {
         asave.disabled = false;
@@ -1575,6 +1635,7 @@ grid.addEventListener('click', async e => {
       if (t) {
         t.ask = vals;
         t.category = category;
+        if (srcBox) t.source = srcBox.value.trim();
         const on = new Set(applied), mine = new Set([t.id, t.from].filter(Boolean));
         local.notes.forEach(n => { if (mine.has(n.on)) n.applied = on.has(n.id); });
         saveLocal();
@@ -1657,7 +1718,8 @@ const F = {
   knobs: document.getElementById('i-knobs'),
   cam: document.getElementById('i-cam'),
   cat: document.getElementById('i-cat'),
-  wish: document.getElementById('i-wish')
+  wish: document.getElementById('i-wish'),
+  src: document.getElementById('i-src')
 };
 /* 한 문장에서 카드 이름을 짧게 — 첫 마디(쉼표·마침표 앞)를 24자 안에서 자르고, 잘렸으면 … */
 function shortName(t){
@@ -1677,7 +1739,7 @@ function readForm(){
     name: F.name.value.trim(), url: F.url.value.trim(), line: F.line.value.trim(),
     maker: F.maker.value.trim(), knobs: F.knobs.value.trim(),
     cam: F.cam.checked, use: useOf(), ask: A.map(t => t.value.trim()),
-    stds: pickOf('form').chosen.slice(), category: F.cat.value, wish: F.wish.value.trim()
+    stds: pickOf('form').chosen.slice(), category: F.cat.value, wish: F.wish.value.trim(), source: F.src.value.trim()
   };
 }
 function writeForm(d){
@@ -1686,6 +1748,7 @@ function writeForm(d){
   F.maker.value = d.maker || ''; F.knobs.value = d.knobs || ''; F.cam.checked = !!d.cam;
   F.cat.value = catOf(d.category);
   F.wish.value = d.wish || '';
+  F.src.value = d.source || '';
   const r = document.querySelector('input[name="use"][value="' + (d.use || 'student') + '"]');
   if (r) r.checked = true;
   (d.ask || []).forEach((v, n) => { if (A[n]) A[n].value = v || ''; });
@@ -1696,6 +1759,7 @@ function emptyForm(){
   F.cam.checked = false;
   F.cat.value = '기타';
   F.wish.value = '';
+  F.src.value = '';
   document.querySelector('input[name="use"][value="student"]').checked = true;
   A.forEach(t => { t.value = ''; });
   Object.assign(pickOf('form'), {q: '', chosen: []});
@@ -1755,7 +1819,7 @@ document.addEventListener('input', e => {
 function formPost(f){
   const common = {name: f.name, line: f.line, use: f.use, cam: f.cam, ask: f.ask, stds: f.stds, category: f.category};
   return tab === 'tools'
-    ? ['tools', Object.assign(common, {url: f.url, maker: f.maker, knobs: f.knobs})]
+    ? ['tools', Object.assign(common, {url: f.url, maker: f.maker, knobs: f.knobs, source: f.source})]
     : ['requests', {name: shortName(f.wish), line: f.wish, ask: f.ask}];
 }
 
@@ -1933,7 +1997,9 @@ function start(){
   adminRow();
   render();
   const h = location.hash.replace('#','');
-  setTab(h === 'admin' || !h ? firstTab() : h);
+  const m = h.match(/^(tool|req)\/(.+)$/);   // 공유한 상세 링크로 들어왔다
+  if (m) { setTab(m[1] === 'req' ? 'board' : 'tools'); openDetail(m[1], decodeURIComponent(m[2]), false); }
+  else setTab(h === 'admin' || !h ? firstTab() : h);
   if (!load(GUIDE, false)) document.getElementById('guide').hidden = false;
 }
 const GUIDE = 'seojin-shelf-guide-seen';

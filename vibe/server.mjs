@@ -93,11 +93,13 @@ function validateTool(b) {
     ask: cleanAsk(b.ask),
     stds: cleanStds(b.stds),
     category: catOf(b.category),
+    source: clean(b.source, CAPS.url),
     from: ''
   };
   if (!rec.name) return { error: '도구 이름을 채워 주세요.' };
   if (!rec.line) return { error: '한 줄 설명을 채워 주세요.' };
   if (!isUrl(rec.url)) return { error: URLMSG };
+  if (rec.source && !isUrl(rec.source)) return { error: '소스 코드 주소는 https:// 로 시작해야 합니다.' };
   return { rec };
 }
 
@@ -404,7 +406,7 @@ const server = http.createServer(async (req, res) => {
       const r = find('requests', s.id, m[1]);
       if (!r) return json(res, 404, { error: '없는 요청입니다.' });
       if (r.toolId) return json(res, 409, { error: '이미 완성된 요청입니다.' });
-      const { rec, error } = validateTool({ name: r.name, line: r.line, url: body.url, maker: body.maker,
+      const { rec, error } = validateTool({ name: r.name, line: r.line, url: body.url, maker: body.maker, source: body.source,
         use: r.use, cam: r.cam, ask: r.ask, stds: r.stds, category: r.category });
       if (error) return json(res, 400, { error: '주소를 먼저 붙여 주세요. ' + error });
       /* 도구의 주인은 올린 사람이다. 요청한 사람이 직접 올렸으면 요청과 같은 열쇠, 다른 사람이면 새 열쇠 */
@@ -457,6 +459,11 @@ const server = http.createServer(async (req, res) => {
       if (Array.isArray(body.ask)) t.ask = cleanAsk(body.ask);
       if (Array.isArray(body.stds)) t.stds = cleanStds(body.stds);
       if (typeof body.category === 'string') t.category = catOf(body.category);
+      if (m[1] === 'tools' && typeof body.source === 'string') {
+        const src = clean(body.source, CAPS.url);
+        if (src && !isUrl(src)) return json(res, 400, { error: '소스 코드 주소는 https:// 로 시작해야 합니다.' });
+        db.prepare('UPDATE tools SET source = ? WHERE id = ?').run(src, t.id);
+      }
       db.prepare(`UPDATE ${m[1]} SET ask = ?, stds = ?, category = ? WHERE id = ?`)
         .run(JSON.stringify(t.ask), JSON.stringify(t.stds), t.category, t.id);
       if (Array.isArray(body.applied)) {

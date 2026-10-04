@@ -51,6 +51,10 @@ for (const t of ['requests', 'tools']) {
     db.exec(`ALTER TABLE ${t} ADD COLUMN category TEXT NOT NULL DEFAULT '기타'`);
   }
 }
+/* 소스 코드 주소(GitHub 등) — 도구를 다른 사람이 가져다 고칠 수 있게. 선택 */
+if (!db.prepare('PRAGMA table_info(tools)').all().some(c => c.name === 'source')) {
+  db.exec(`ALTER TABLE tools ADD COLUMN source TEXT NOT NULL DEFAULT ''`);
+}
 /* 누가 만들고 있는지 — 누구나 요청을 집어 들 수 있어서, 같은 걸 두 사람이 만들지 않게 이름을 남긴다 */
 if (!db.prepare('PRAGMA table_info(requests)').all().some(c => c.name === 'making_by')) {
   db.exec(`ALTER TABLE requests ADD COLUMN making_by TEXT NOT NULL DEFAULT ''`);
@@ -91,7 +95,7 @@ export const rowToRequest = r => ({ id: r.id, name: r.name, line: r.line, by: r.
   toolId: r.tool_id || '', category: catOf(r.category), makingBy: r.making_by || '', token: r.token, at: r.at });
 export const rowToTool = r => ({ id: r.id, name: r.name, line: r.line, url: r.url, maker: r.maker,
   knobs: r.knobs, use: r.use, cam: !!r.cam, ask: arr(r.ask), stds: arr(r.stds), from: r.from_req || '',
-  category: catOf(r.category), token: r.token, at: r.at });
+  category: catOf(r.category), source: r.source || '', token: r.token, at: r.at });
 export const rowToNote = r => ({ id: r.id, on: r.on_id, by: r.by, text: r.text, slot: r.slot,
   applied: !!r.applied, token: r.token, at: r.at });
 
@@ -106,10 +110,10 @@ export function insertRequest(space, x) {
     x.needs || 0, str(x.toolId), str(x.token), str(x.at), catOf(x.category));
 }
 export function insertTool(space, x) {
-  db.prepare(`INSERT INTO tools (id, space, name, line, url, maker, knobs, use, cam, ask, stds, from_req, token, at, category)
-    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`).run(x.id, space, str(x.name), str(x.line), str(x.url), str(x.maker),
+  db.prepare(`INSERT INTO tools (id, space, name, line, url, maker, knobs, use, cam, ask, stds, from_req, token, at, category, source)
+    VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)`).run(x.id, space, str(x.name), str(x.line), str(x.url), str(x.maker),
     str(x.knobs), useOf(x.use), x.cam ? 1 : 0, JSON.stringify(x.ask || []), JSON.stringify(x.stds || []),
-    str(x.from), str(x.token), str(x.at), catOf(x.category));
+    str(x.from), str(x.token), str(x.at), catOf(x.category), str(x.source));
 }
 export function insertNote(space, x) {
   db.prepare(`INSERT INTO notes (id, space, on_id, by, text, slot, applied, token, at)
