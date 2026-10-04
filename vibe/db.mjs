@@ -41,7 +41,8 @@ db.exec(`
 if (!db.prepare('PRAGMA table_info(spaces)').all().some(c => c.name === 'access')) {
   db.exec(`ALTER TABLE spaces ADD COLUMN access TEXT NOT NULL DEFAULT 'open'`);
 }
-export const ACCESS = ['open', 'invite'];
+/* open: 조직 이름만 알면 누구나 · invite: 초대 링크가 있어야 · view: 누구나 보기만(둘러보기용 예시 공간) */
+export const ACCESS = ['open', 'invite', 'view'];
 /* 바이브 코딩으로 만드는 것의 분류 — 화면(저장소.html 의 CATEGORIES)과 같아야 한다. 모르는 값은 '기타' */
 export const CATEGORIES = ['수업 활동', '게임·놀이', '표현·미디어아트', '연습·익히기', '수업 준비', '기록·학급 운영', '기타'];
 export const catOf = v => CATEGORIES.includes(v) ? v : '기타';

@@ -9,6 +9,7 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { db, DB_FILE, getSpace, findSpaces, catOf, checkSecret, hashSecret, newCode, CURRICULA, ACCESS, newId, newToken,
+  insertRequest as seedRequest,
   rowToRequest, rowToTool, rowToNote, insertRequest, insertTool, insertNote } from './db.mjs';
 
 const ROOT = path.dirname(fileURLToPath(import.meta.url));
@@ -194,7 +195,7 @@ async function find(enter){
   const ss = r.spaces || [];
   if (enter && ss.length === 1) return go(ss[0]);
   list.innerHTML = ss.map(s => '<li><a href="/s/' + s.id + '/">' + esc(s.name)
-    + (s.invite ? '<small>초대 링크가 있어야 합니다</small>' : '') + '</a></li>').join('');
+    + (s.invite ? '<small>초대 링크가 있어야 합니다</small>' : s.view ? '<small>둘러보기만</small>' : '') + '</a></li>').join('');
   if (enter && !ss.length) msg.textContent = r.error || '아직 없는 이름입니다. 띄어쓰기를 빼고 다시 쳐 보거나, 담당자에게 정확한 이름을 물어봐 주세요.';
 }
 let t; q.addEventListener('input', () => { clearTimeout(t); t = setTimeout(() => find(false), 250); });
@@ -253,6 +254,10 @@ function seedSpaces() {
       VALUES (?,?,?,?,?,?,?,?,?)`).run(x.id, x.name, x.lede || '', CURRICULA.includes(x.curriculum) ? x.curriculum : 'common',
       x.builtin ? 1 : 0, hashSecret(code), hashSecret(admin), new Date().toISOString(),
       ACCESS.includes(x.access) ? x.access : 'open');
+    /* 둘러보기용 견본 요청 — 한 문장(line)과 분류만 적어 둔다 */
+    (Array.isArray(x.requests) ? x.requests : []).forEach((r, i) => seedRequest(x.id, {
+      id: x.id + '-r' + i, name: r.name || (r.line.length <= 24 ? r.line : r.line.slice(0, 24) + '…'), line: r.line,
+      status: r.status, category: r.category, needs: r.needs || 0, use: r.use, at: new Date(Date.now() - i * 864e5).toISOString() }));
     console.log('공간을 만들었습니다: ' + x.name + ' /s/' + x.id + '/  초대 코드 ' + code + '  담당자 열쇠 ' + admin);
   });
 }
@@ -285,7 +290,7 @@ const server = http.createServer(async (req, res) => {
     if (req.method === 'GET' && p === '/api/find') {
       if (tooMany(ip, findHits, 300)) return json(res, 429, { spaces: [], error: '너무 자주 찾았습니다. 잠시 뒤에 다시 해 주세요.' });
       const q = new URL(req.url, 'http://x').searchParams.get('q') || '';
-      return json(res, 200, { spaces: findSpaces(q).map(s => ({ id: s.id, name: s.name, invite: s.access === 'invite' })) });
+      return json(res, 200, { spaces: findSpaces(q).map(s => ({ id: s.id, name: s.name, invite: s.access === 'invite', view: s.access === 'view' })) });
     }
 
     if (!(m = p.match(/^\/api\/s\/([a-z0-9-]{2,40})(\/.*)$/))) {
@@ -308,7 +313,7 @@ const server = http.createServer(async (req, res) => {
     }
 
     /* 여기부터는 공개 공간이면 누구나, 초대 공간이면 초대 코드가 있어야 한다. 틀린 코드는 한 주소에서 한 시간에 30번까지 */
-    if (s.access !== 'open' && !isMember(req, s) && !isAdmin(req, s)) {
+    if (s.access === 'invite' && !isMember(req, s) && !isAdmin(req, s)) {
       if (req.headers['x-space-code'] && tooMany(ip, codeFails, 30)) {
         return json(res, 429, { error: '코드를 너무 여러 번 틀렸습니다. 한 시간 뒤에 다시 해 주세요.' });
       }
@@ -316,6 +321,10 @@ const server = http.createServer(async (req, res) => {
     }
 
     if (req.method === 'GET' && sub === '/board') return json(res, 200, boardView(s.id));
+    /* 둘러보기용 공간 — 보기만. 담당자·운영자만 고칠 수 있다 */
+    if (s.access === 'view' && !isAdmin(req, s)) {
+      return json(res, 403, { error: '예시 공간이라 둘러보기만 할 수 있습니다.' });
+    }
 
     const count = () => db.prepare(`SELECT (SELECT COUNT(*) FROM requests WHERE space = ?)
       + (SELECT COUNT(*) FROM tools WHERE space = ?) AS n`).get(s.id, s.id).n;

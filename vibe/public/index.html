@@ -778,7 +778,7 @@ function promptText(it){
 /* 카드와 줄이 같은 조각을 쓴다. 다른 건 껍데기뿐이다. */
 function parts(it){
   const st = it.state || 'done';
-  const canEdit = it.mine && canRemove(it);
+  const canEdit = !VIEW && it.mine && canRemove(it);
   const notes = it.notes || [];
   const rawAsk = (it.rec && it.rec.ask) || [];
   const p = {st, canEdit, notes};
@@ -848,9 +848,9 @@ function parts(it){
       <p class="mini warn">학생 이름과 건강·장애 정보는 적지 않습니다. 학년과 반까지만.</p>
       <button class="copy" data-note="${it.id}">의견 남기기</button></div>`;
   p.notesBox = `<details class="notes" data-card="${it.id}"${openNotes.has(it.id) ? ' open' : ''}>
-      <summary>의견${notes.length ? ' ' + notes.length : ''}</summary>${noteList}${noteForm}</details>`;
+      <summary>의견${notes.length ? ' ' + notes.length : ''}</summary>${noteList}${VIEW ? '' : noteForm}</details>`;
 
-  p.need = st !== 'done'
+  p.need = !VIEW && st !== 'done'
     ? `<button class="copy need" data-need="${it.id}" data-hot="${needed[it.id] ? '1' : '0'}">저도 필요해요${
         it.needs ? ' ' + it.needs : ''}</button>`
     : '';
@@ -990,7 +990,8 @@ if (linkCode) {
   history.replaceState(null, '', location.pathname + location.hash);
 }
 let spaceCode = load(CODEKEY, '');
-let space = null;                // {name, lede, curriculum, builtin}
+let space = null;
+let VIEW = false;                 // 둘러보기용 예시 공간 — 보기만                // {name, lede, curriculum, builtin}
 const hdr = extra => Object.assign({'X-Space-Code': spaceCode || ''}, extra || {});
 
 async function call(path, body, fail, admin){
@@ -1115,7 +1116,7 @@ function firstTab(){
   return list.some(i => i.kind === 'tool') ? 'tools' : list.some(i => i.kind === 'request') ? 'board' : 'ask';
 }
 function setTab(t){
-  if (!TABS.includes(t) || (t === 'std' && !STD_ON)) t = firstTab();
+  if (!TABS.includes(t) || (t === 'std' && !STD_ON) || (t === 'ask' && VIEW)) t = firstTab();
   tab = t;
   document.querySelectorAll('.navi').forEach(b =>
     b.setAttribute('aria-current', String(b.dataset.tab === t)));
@@ -1129,9 +1130,9 @@ function setTab(t){
   document.getElementById('barwrap').hidden = !TAB_BAR[t];
   document.getElementById('cats').hidden = t !== 'tools';
   /* 도구 넣기 폼은 드물게 쓰니 「만든 도구 올리기」를 눌러야 펼친다 */
-  document.getElementById('add').hidden = !fh || (t === 'tools' && !toolForm);
-  document.getElementById('goask').hidden = t !== 'board';
-  document.getElementById('goupload').hidden = t !== 'tools' || toolForm;
+  document.getElementById('add').hidden = VIEW || !fh || (t === 'tools' && !toolForm);
+  document.getElementById('goask').hidden = VIEW || t !== 'board';
+  document.getElementById('goupload').hidden = VIEW || t !== 'tools' || toolForm;
   if (fh) {
     document.getElementById('addTitle').textContent = fh[0];
     document.getElementById('addTitle').hidden = t === 'ask';   // 위에 '요청하기' 제목이 이미 있다
@@ -1858,7 +1859,11 @@ async function boot(){
       document.getElementById('title').textContent = document.title;
       document.getElementById('lede').textContent = space.lede
         || '선생님들이 만들고 싶은 것과 만든 것이 여기에 남습니다.';
-      document.getElementById('devnote').hidden = true;   // 서버 없이 열 때의 안내라 공간에는 맞지 않는다
+      document.getElementById('devnote').hidden = true;
+      /* 예시 공간이면 쓰는 곳(요청하기·폼·필요해요·의견 쓰기·옮기기)을 모두 걷어 낸다 */
+      VIEW = space.access === 'view';
+      document.querySelector('.navi[data-tab="ask"]').hidden = VIEW;
+      document.querySelector('#guide [data-go="ask"]').closest('li').hidden = VIEW;   // 서버 없이 열 때의 안내라 공간에는 맞지 않는다
       if (space.curriculum === 'none') {
         /* 교육과정을 쓰지 않는 공간 — 성취기준 갈래·거르개·넣는 칸을 걷어 낸다 */
         STD_ON = false;
