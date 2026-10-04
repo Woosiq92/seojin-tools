@@ -503,18 +503,13 @@ const STD = [["2건생01-01","건강한 생활","초1~2","","몸의 움직임을
 <script>
 /* 분류 아이콘 — 도구마다 그림을 그리지 않고 분류로 알아보게 한다(프로젝트가 늘어도 손이 가지 않게) */
 const CAT_ICONS = {
-  '수업 활동': '<path d="M9 11V5.5a1.5 1.5 0 0 1 3 0V11m0-1.5a1.5 1.5 0 0 1 3 0V11m0-.5a1.5 1.5 0 0 1 3 0V15a6 6 0 0 1-6 6h-.6a6 6 0 0 1-4.7-2.3L4 15.6a1.6 1.6 0 0 1 2.4-2.1L9 16"/>',
-  '게임·놀이': '<rect x="2.5" y="7" width="19" height="11" rx="5"/><path d="M7.5 10.5v4M5.5 12.5h4"/><circle cx="15.5" cy="11.2" r=".9" fill="currentColor"/><circle cx="17.8" cy="13.8" r=".9" fill="currentColor"/>',
-  '표현·미디어아트': '<path d="M12 3a9 9 0 1 0 0 18c1.1 0 1.7-.9 1.4-1.9-.3-.9.3-1.8 1.3-1.8H17a4 4 0 0 0 4-4C21 8.3 17 3 12 3z"/><circle cx="7.5" cy="11" r="1" fill="currentColor"/><circle cx="10" cy="7" r="1" fill="currentColor"/><circle cx="14.5" cy="7" r="1" fill="currentColor"/>',
-  '연습·익히기': '<path d="M4 12a8 8 0 0 1 13.7-5.6L20 9M20 4v5h-5M20 12a8 8 0 0 1-13.7 5.6L4 15M4 20v-5h5"/>',
-  '수업 준비': '<rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3h6v1M9 13l2 2 4-4"/>',
-  '기록·학급 운영': '<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h4"/>',
-  '기타': '<rect x="4" y="4" width="6" height="6" rx="1.5"/><rect x="14" y="4" width="6" height="6" rx="1.5"/><rect x="4" y="14" width="6" height="6" rx="1.5"/><rect x="14" y="14" width="6" height="6" rx="1.5"/>'
+  '수업': '<path d="M9 11V5.5a1.5 1.5 0 0 1 3 0V11m0-1.5a1.5 1.5 0 0 1 3 0V11m0-.5a1.5 1.5 0 0 1 3 0V15a6 6 0 0 1-6 6h-.6a6 6 0 0 1-4.7-2.3L4 15.6a1.6 1.6 0 0 1 2.4-2.1L9 16"/>',
+  '학급 운영': '<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h4"/>'
 };
 
 const ITEMS = [
   {
-    id:'bloom', source:'https://github.com/Woosiq92/seojin-tools/tree/main/bloom', category:'표현·미디어아트', tone:'coral', use:'student',
+    id:'bloom', source:'https://github.com/Woosiq92/seojin-tools/tree/main/bloom', category:'수업', tone:'coral', use:'student',
     name:'사이에서 핀다',
     line:'두 사람 사이에서만 꽃이 핍니다. 손끝이 가까워지면 피어나고, 붙여 두면 곁꽃이 번집니다.',
     tags:['카메라 필요','둘이서'],
@@ -535,7 +530,7 @@ const ITEMS = [
     ]
   },
   {
-    id:'hand', source:'https://github.com/Woosiq92/seojin-tools/tree/main/hand-sound', category:'표현·미디어아트', tone:'blue', use:'student',
+    id:'hand', source:'https://github.com/Woosiq92/seojin-tools/tree/main/hand-sound', category:'수업', tone:'blue', use:'student',
     name:'손으로 내는 소리',
     line:'손을 올리면 높은 음, 내리면 낮은 음이 납니다. 카메라가 열리지 않으면 화면을 만져도 같은 소리가 납니다.',
     tags:['카메라 없이도 됨','태블릿 가능'],
@@ -556,7 +551,7 @@ const ITEMS = [
     ]
   },
   {
-    id:'head', source:'https://github.com/Woosiq92/seojin-tools/tree/main/head-notes', category:'게임·놀이', tone:'green', use:'student',
+    id:'head', source:'https://github.com/Woosiq92/seojin-tools/tree/main/head-notes', category:'수업', tone:'green', use:'student',
     name:'머리로 받는 소리',
     line:'위에서 공이 떨어집니다. 머리에 닿으면 소리가 나고, 놓쳐도 아무 일이 생기지 않습니다.',
     tags:['카메라 없이도 됨','실패 표시 없음'],
@@ -574,7 +569,7 @@ const ITEMS = [
     ]
   },
   {
-    id:'dash', category:'수업 준비', tone:'gold', use:'teacher',
+    id:'dash', category:'수업', tone:'gold', use:'teacher',
     name:'Dash 설치 스테이션',
     line:'수업 전에 로봇을 순서대로 세팅하는 화면입니다. 어디까지 했는지가 남습니다.',
     tags:[],
@@ -586,7 +581,7 @@ const ITEMS = [
     ask:null
   },
   {
-    id:'record', category:'기록·학급 운영', tone:'blue', use:'teacher',
+    id:'record', category:'학급 운영', tone:'blue', use:'teacher',
     name:'현장 기록지',
     line:'수업 중에 본 것을 그 자리에서 적는 관찰 기록 양식입니다.',
     tags:[],
@@ -596,7 +591,7 @@ const ITEMS = [
     ask:null
   },
   {
-    id:'roll', category:'기록·학급 운영', tone:'coral', use:'teacher',
+    id:'roll', category:'학급 운영', tone:'coral', use:'teacher',
     name:'오늘 출석부',
     line:'연수에서 만든 예시 화면입니다. 한 시간이면 이만한 것이 나온다는 본보기로 씁니다.',
     tags:['연수 예시'],
@@ -752,11 +747,11 @@ function parts(it){
   const p = {st, canEdit, notes};
 
   const stds = it.stds || [];
-  /* 겹치는 꼬리표는 뺀다 — 도구 모음의 카드는 모두 완성이라 상태를 안 붙이고, '기타'는 정하지 않았다는 뜻이라 안 붙인다 */
+  /* 겹치는 꼬리표는 뺀다 — 도구 모음의 카드는 모두 완성이라 상태를 안 붙이고, 기본 분류('수업')는 정하지 않았을 수도 있어 안 붙인다 */
   /* 누가 만들고 있는지 보이게 — 같은 요청을 두 사람이 만들지 않도록 */
   const makingBy = st === 'making' && it.rec && it.rec.makingBy ? ' · ' + it.rec.makingBy : '';
   p.tags = (st !== 'done' ? `<span class="tag st ${st}">${STATE_LABEL[st]}${esc(makingBy)}</span>` : '')
-    + (it.kind === 'request' && it.category && it.category !== '기타' ? `<span class="tag cat">${esc(it.category)}</span>` : '')
+    + (it.kind === 'request' && it.category && it.category !== DEFAULT_CAT ? `<span class="tag cat">${esc(it.category)}</span>` : '')
     + stdSubjects(stds).map(t => `<span class="tag std">${esc(t)}</span>`).join('')
     + it.tags.map(t => `<span class="tag">${esc(t)}</span>`).join('')
     + (it.from ? `<span class="tag" title="${esc(it.from.name)}">요청에서 만들어짐</span>` : '');
@@ -787,7 +782,7 @@ function parts(it){
     ? `<div class="askedit">${it.kind === 'tool' ? `<label class="slotlab">소스 코드 주소 (GitHub 등, 선택)</label>
        <input type="url" class="chipsel" data-asrc="1" value="${esc(it.source || '')}" placeholder="https://github.com/…">` : ''}<label class="slotlab">분류</label>
        <select class="chipsel" data-acat="1">${CATEGORIES.map(c =>
-         `<option${c === (it.category || '기타') ? ' selected' : ''}>${esc(c)}</option>`).join('')}</select>${SLOTS.map((k,i) =>
+         `<option${c === catOf(it.category) ? ' selected' : ''}>${esc(c)}</option>`).join('')}</select>${SLOTS.map((k,i) =>
         `<label class="slotlab">${esc(k)}</label><textarea data-ae="${i}">${esc(rawAsk[i] || '')}</textarea>`).join('')}
        ${notes.length ? `<p class="mini">반영한 의견에 표시해 두세요.</p>`
          + notes.map(n => `<label class="applied"><input type="checkbox" data-ap="${n.id}"${
@@ -855,7 +850,7 @@ const attrs = (it, st) => `data-use="${it.use}" data-cam="${it.cam}" data-state=
 
 const catIcon = c => `<span class="caticon" title="${esc(c)}" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"
   stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${
-  CAT_ICONS[c] || CAT_ICONS['기타']}</svg></span>`;
+  CAT_ICONS[catOf(c)]}</svg></span>`;
 /* 요청 이름이 문장 앞부분을 자른 것이면 문장 하나만 제목으로 */
 const reqTitle = it => it.line.startsWith(it.name.replace(/…$/, ''));
 
@@ -906,7 +901,7 @@ function detailHTML(it){
   }[dtab] || '';
   return `<div class="dtop">
       <button class="dclose" data-dclose>← 목록으로</button>
-      <span class="dcat">${catIcon(it.category)}${esc(it.category || '기타')}</span>
+      <span class="dcat">${catIcon(it.category)}${esc(catOf(it.category))}</span>
     </div>
     ${isReq && reqTitle(it) ? `<h2 id="dtitle">${esc(it.line)}</h2>`
       : `<h2 id="dtitle">${esc(it.name)}</h2><p class="dline">${esc(it.line)}</p>`}
@@ -945,13 +940,14 @@ function openDetail(kind, id, push){
   renderDetail();
   if (opening) { document.getElementById('dpanel').scrollTop = 0; document.querySelector('#dpanel [data-dclose]').focus(); }
 }
+/* 먼저 닫고 나서 주소를 정리한다 — 브라우저가 주소 변경 신호를 안 보내도 닫히게 */
 function closeDetail(){
   if (!detail) return;
-  const id = detail.id;
-  if (detailPushed) { history.back(); return; }   // 뒤로가기와 같은 길로 닫는다(hashchange 가 마저 정리)
-  detail = null;
-  history.replaceState(null, '', '#' + tab);
+  const id = detail.id, pushed = detailPushed;
+  detail = null; detailPushed = false;
   renderDetail();
+  if (pushed) history.back();      // 열 때 쌓은 방문 기록을 걷어 낸다(돌아온 주소는 이미 닫힌 상태라 할 일이 없다)
+  else history.replaceState(null, '', '#' + tab);
   const el = [...grid.querySelectorAll('[data-cid]')].find(c => c.dataset.cid === id);
   if (el) el.focus();
 }
@@ -960,9 +956,11 @@ const KEY = 'seojin-shelf-v2', OLD_KEY = 'seojin-shelf-v1', DRAFT = 'seojin-shel
       SECRETS = 'seojin-shelf-secrets', ADMIN = 'seojin-shelf-admin';
 const TONES = ['green','blue','gold','coral'];
 const SLOTS = ['무엇을','입력','결과','조건','확인 방법','예'];
-/* 바이브 코딩으로 만드는 것의 분류 — 서버(shelf/db.mjs 의 CATEGORIES)와 같아야 한다. 마지막은 늘 '기타' */
-const CATEGORIES = ['수업 활동','게임·놀이','표현·미디어아트','연습·익히기','수업 준비','기록·학급 운영','기타'];
-const catOf = v => CATEGORIES.includes(v) ? v : '기타';
+/* 분류는 둘 — 수업 / 학급 운영. 서버(shelf/db.mjs 의 CATEGORIES·catOf)와 같아야 한다.
+   예전 분류 이름도 받아서 옮긴다. 정하지 않았으면 '수업' */
+const CATEGORIES = ['수업','학급 운영'];
+const DEFAULT_CAT = '수업';
+const catOf = v => CATEGORIES.includes(v) ? v : (v === '기록·학급 운영' ? '학급 운영' : DEFAULT_CAT);
 const NEEDED = 'seojin-shelf-needed';                       // 내가 이미 누른 카드
 const NOTEKEYS = 'seojin-shelf-notekeys';                   // 내가 쓴 의견의 열쇠
 const STATE_LABEL = {ask:'요청', making:'만드는 중', done:'완성'};
@@ -1203,7 +1201,8 @@ document.getElementById('side').addEventListener('click', e => {
   if (b) setTab(b.dataset.tab, true);
 });
 /* 이미 열린 창에서 주소만 바뀌어도 갈래가 따라오게 (공유한 #tools 링크) */
-addEventListener('hashchange', () => {
+/* 주소가 바뀌면(뒤로·앞으로가기, 공유 링크) 화면을 맞춘다. 브라우저마다 보내는 신호가 달라 둘 다 받는다 */
+function onRoute(){
   const h = location.hash.replace('#','');
   const m = h.match(/^(tool|req)\/(.+)$/);
   if (m) {                         // 앞으로가기·공유한 상세 링크
@@ -1212,7 +1211,9 @@ addEventListener('hashchange', () => {
   }
   if (detail) { detail = null; detailPushed = false; renderDetail(); }   // 뒤로가기로 상세를 닫았다
   if (h && h !== 'admin' && h !== tab) setTab(h);   // 뒤로가기·공유 링크. 모르는 이름은 처음 갈래로
-});
+}
+addEventListener('hashchange', onRoute);
+addEventListener('popstate', onRoute);
 
 function render(){
   const list = all();
@@ -1730,7 +1731,7 @@ function shortName(t){
   return (sp > 10 ? cut.slice(0, sp) : cut) + '…';
 }
 F.cat.innerHTML = CATEGORIES.map(c => `<option>${esc(c)}</option>`).join('');
-F.cat.value = '기타';
+F.cat.value = DEFAULT_CAT;
 const A = [0,1,2,3,4,5].map(n => document.getElementById('a' + n));
 const useOf = () => document.querySelector('input[name="use"]:checked').value;
 
@@ -1757,7 +1758,7 @@ function writeForm(d){
 function emptyForm(){
   F.name.value = F.url.value = F.line.value = F.maker.value = F.knobs.value = '';
   F.cam.checked = false;
-  F.cat.value = '기타';
+  F.cat.value = DEFAULT_CAT;
   F.wish.value = '';
   F.src.value = '';
   document.querySelector('input[name="use"][value="student"]').checked = true;
@@ -1884,7 +1885,7 @@ saveBtn.addEventListener('click', async () => {
   }
 
   Object.assign(rec, {id: newId(kind === 'tools' ? 't' : 'r'), at: new Date().toISOString()},
-    kind === 'tools' ? {from: ''} : {needs: 0, toolId: '', status: 'ask', use: 'student', cam: false, category: '기타', stds: []});
+    kind === 'tools' ? {from: ''} : {needs: 0, toolId: '', status: 'ask', use: 'student', cam: false, category: DEFAULT_CAT, stds: []});
   local[kind].push(rec);
   const ok = saveLocal();
   save(DRAFT, null);

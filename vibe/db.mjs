@@ -43,13 +43,17 @@ if (!db.prepare('PRAGMA table_info(spaces)').all().some(c => c.name === 'access'
 }
 /* open: 조직 이름만 알면 누구나 · invite: 초대 링크가 있어야 · view: 누구나 보기만(둘러보기용 예시 공간) */
 export const ACCESS = ['open', 'invite', 'view'];
-/* 바이브 코딩으로 만드는 것의 분류 — 화면(저장소.html 의 CATEGORIES)과 같아야 한다. 모르는 값은 '기타' */
-export const CATEGORIES = ['수업 활동', '게임·놀이', '표현·미디어아트', '연습·익히기', '수업 준비', '기록·학급 운영', '기타'];
-export const catOf = v => CATEGORIES.includes(v) ? v : '기타';
+/* 분류는 둘 — 수업 / 학급 운영. 화면(저장소.html 의 CATEGORIES·catOf)과 같아야 한다.
+   예전 분류 이름은 옮겨 받고, 정하지 않았거나 모르는 값은 '수업' */
+export const CATEGORIES = ['수업', '학급 운영'];
+export const catOf = v => CATEGORIES.includes(v) ? v : (v === '기록·학급 운영' ? '학급 운영' : '수업');
 for (const t of ['requests', 'tools']) {
   if (!db.prepare(`PRAGMA table_info(${t})`).all().some(c => c.name === 'category')) {
-    db.exec(`ALTER TABLE ${t} ADD COLUMN category TEXT NOT NULL DEFAULT '기타'`);
+    db.exec(`ALTER TABLE ${t} ADD COLUMN category TEXT NOT NULL DEFAULT '수업'`);
   }
+  /* 예전 분류(일곱 가지)를 둘로 옮긴다 — 여러 번 돌아도 같다 */
+  db.exec(`UPDATE ${t} SET category = CASE WHEN category = '기록·학급 운영' THEN '학급 운영' ELSE '수업' END
+    WHERE category NOT IN ('수업', '학급 운영')`);
 }
 /* 소스 코드 주소(GitHub 등) — 도구를 다른 사람이 가져다 고칠 수 있게. 선택 */
 if (!db.prepare('PRAGMA table_info(tools)').all().some(c => c.name === 'source')) {
