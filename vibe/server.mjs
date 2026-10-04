@@ -8,7 +8,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
-import { db, DB_FILE, getSpace, findSpaces, catOf, checkSecret, hashSecret, newCode, CURRICULA, ACCESS, newId, newToken,
+import zlib from 'node:zlib';
+import { db, DB_FILE, EPHEMERAL, snapshot, getSpace, findSpaces, catOf, checkSecret, hashSecret, newCode, CURRICULA, ACCESS, newId, newToken,
   insertRequest as seedRequest,
   rowToRequest, rowToTool, rowToNote, insertRequest, insertTool, insertNote } from './db.mjs';
 
@@ -109,6 +110,7 @@ const needHits = new Map();
 const noteHits = new Map();
 const codeFails = new Map();
 const findHits = new Map();
+const reportHits = new Map();
 function tooMany(ip, map = hits, cap = 20) {
   const now = Date.now();
   const list = (map.get(ip) || []).filter(t => now - t < 3600e3);
@@ -125,21 +127,47 @@ function json(res, status, obj) {
   });
   res.end(JSON.stringify(obj));
 }
+/* 본문은 32KB 까지. 넘으면 연결을 끊지 않고 413 으로 알려 준다 */
+const TOO_BIG = Object.assign(new Error('too big'), { status: 413 });
 function readBody(req) {
   return new Promise((resolve, reject) => {
-    let d = '';
-    req.on('data', c => { d += c; if (d.length > 32 * 1024) req.destroy(); });
-    req.on('end', () => { try { resolve(d ? JSON.parse(d) : {}); } catch { reject(new Error('bad json')); } });
+    let d = '', over = false;
+    req.on('data', c => {
+      if (over) return;
+      d += c;
+      if (d.length > 32 * 1024) { over = true; d = ''; reject(TOO_BIG); }
+    });
+    req.on('end', () => { if (over) return; try { resolve(d ? JSON.parse(d) : {}); } catch { reject(new Error('bad json')); } });
     req.on('error', reject);
   });
+}
+/* 큰 글자 응답은 gzip 으로 — 학교망에서 체감이 크다. 같은 내용은 한 번만 압축한다 */
+const gzCache = new Map();
+function sendText(req, res, status, type, body, extra, key) {
+  const buf = Buffer.isBuffer(body) ? body : Buffer.from(body);
+  const head = Object.assign({ 'Content-Type': type, 'Vary': 'Accept-Encoding' }, extra || {});
+  if (buf.length > 1024 && /\bgzip\b/.test(req.headers['accept-encoding'] || '')) {
+    let gz = key && gzCache.get(key);
+    if (!gz) { gz = zlib.gzipSync(buf); if (key) { if (gzCache.size > 200) gzCache.clear(); gzCache.set(key, gz); } }
+    res.writeHead(status, Object.assign(head, { 'Content-Encoding': 'gzip', 'Content-Length': gz.length }));
+    return res.end(req.method === 'HEAD' ? undefined : gz);
+  }
+  res.writeHead(status, Object.assign(head, { 'Content-Length': buf.length }));
+  res.end(req.method === 'HEAD' ? undefined : buf);
 }
 
 /* 내보내는 목록에서는 열쇠를 뺀다 */
 const strip = x => { const { token, ...rest } = x; return rest; };
-function boardView(space) {
+const HIDE_AT = 3;                // 서로 다른 세 사람이 신고하면 숨긴다
+function boardView(space, admin) {
   const q = t => db.prepare(`SELECT * FROM ${t} WHERE space = ? ORDER BY at`).all(space);
-  return { requests: q('requests').map(rowToRequest).map(strip),
-    tools: q('tools').map(rowToTool).map(strip), notes: q('notes').map(rowToNote).map(strip) };
+  const count = new Map(db.prepare('SELECT target, COUNT(*) AS n FROM reports WHERE space = ? GROUP BY target')
+    .all(space).map(r => [r.target, r.n]));
+  const keep = x => admin || (count.get(x.id) || 0) < HIDE_AT;
+  const mark = x => admin && count.get(x.id) ? Object.assign(x, { reports: count.get(x.id) }) : x;
+  return { requests: q('requests').map(rowToRequest).filter(keep).map(strip).map(mark),
+    tools: q('tools').map(rowToTool).filter(keep).map(strip).map(mark),
+    notes: q('notes').map(rowToNote).filter(keep).map(strip).map(mark) };
 }
 const TABLE = { requests: ['requests', rowToRequest], tools: ['tools', rowToTool] };
 const find = (kind, space, id) => {
@@ -169,6 +197,9 @@ const mayEdit = (req, s, rec, body) =>
 /* ---- 정적 ---- */
 const LANDING = `<!doctype html><html lang="ko"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1"><title>${BRAND}</title>
+<meta name="description" content="선생님들이 필요한 도구를 요청하고, 만든 도구를 함께 쓰는 곳입니다.">
+<meta property="og:title" content="${BRAND}"><meta property="og:description" content="선생님들이 필요한 도구를 요청하고, 만든 도구를 함께 쓰는 곳입니다.">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%232F6F78'/%3E%3Cpath d='M25 22l-10 10 10 10M39 22l10 10-10 10M35 18l-6 28' fill='none' stroke='%23fff' stroke-width='5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
 <style>:root{--bg:#EFECE6;--ink:#1F2226;--mut:#7C838B;--rule:#D5D1C8;--sheet:#FAF8F4;--warn:#B8435A}
 @media (prefers-color-scheme:dark){:root{--bg:#14171A;--ink:#EFEDE6;--mut:#8E949A;--rule:#333940;--sheet:#1D2125;--warn:#F492A2}}
 *{box-sizing:border-box}
@@ -238,6 +269,11 @@ function serveStatic(req, res, p) {
     fs.createReadStream(file, { start, end }).pipe(res);
     return true;
   }
+  /* 글자로 된 파일(html·css·js·json·svg)은 압축해서 */
+  if (/^(text\/|application\/json|image\/svg)/.test(type) && st.size < 8e6) {
+    sendText(req, res, 200, type, fs.readFileSync(file), { 'Cache-Control': head['Cache-Control'] }, 'static:' + file + ':' + st.mtimeMs);
+    return true;
+  }
   res.writeHead(200, Object.assign(head, { 'Content-Length': st.size }));
   if (req.method === 'HEAD') { res.end(); return true; }
   fs.createReadStream(file).pipe(res);
@@ -287,6 +323,15 @@ const sendNotFound = (res, msg) => {
 };
 const wantsHtml = req => /text\/html/.test(req.headers.accept || '');
 
+/* 공간 화면 — 메신저에 주소를 붙였을 때 학교 이름과 소개가 미리보기로 뜨게 자리표시를 채운다 */
+const pageMtime = () => fs.statSync(path.join(PUBLIC, 'index.html')).mtimeMs;
+function pageFor(sp) {
+  const attr = v => String(v).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  return fs.readFileSync(path.join(PUBLIC, 'index.html'), 'utf8')
+    .replaceAll('__OG_TITLE__', attr(sp.name + ' ' + BRAND))
+    .replaceAll('__OG_DESC__', attr(sp.lede || '선생님들이 필요한 도구를 요청하고, 만든 도구를 함께 씁니다.'));
+}
+
 const server = http.createServer(async (req, res) => {
   const p = new URL(req.url, 'http://x').pathname;
   const ip = (req.headers['x-forwarded-for'] || '').split(',')[0].trim()
@@ -296,8 +341,7 @@ const server = http.createServer(async (req, res) => {
   try {
     if (req.method === 'GET' && (STATIC_ROOT ? (p === '/s/' || p === '/s') : p === '/')) {
       if (p === '/s') { res.writeHead(301, { Location: '/s/' }); return res.end(); }
-      res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-cache' });
-      return res.end(LANDING);
+      return sendText(req, res, 200, 'text/html; charset=utf-8', LANDING, { 'Cache-Control': 'no-cache' }, 'landing');
     }
     /* 공간 주소 — 대문자로 쳤거나(/s/SEOJIN) 뒤에 무언가 붙었으면(/s/seojin/extra) 그 공간 첫 화면으로 보낸다 */
     if ((req.method === 'GET' || req.method === 'HEAD') && (m = p.match(/^\/s\/([^/]+)(\/.*)?$/))) {
@@ -308,12 +352,12 @@ const server = http.createServer(async (req, res) => {
         const q = new URL(req.url, 'http://x').search;
         res.writeHead(301, { Location: '/s/' + id + '/' + q }); return res.end();
       }
-      res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-cache' });
-      return res.end(fs.readFileSync(path.join(PUBLIC, 'index.html')));
+      return sendText(req, res, 200, 'text/html; charset=utf-8', pageFor(getSpace(id)), { 'Cache-Control': 'no-cache' },
+        'page:' + id + ':' + pageMtime());
     }
     if (req.method === 'GET' && (m = p.match(/^\/curricula\/(special|common)\.json$/))) {
-      res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'public, max-age=3600' });
-      return res.end(fs.readFileSync(path.join(CURR_DIR, m[1] + '.json')));
+      return sendText(req, res, 200, 'application/json; charset=utf-8', fs.readFileSync(path.join(CURR_DIR, m[1] + '.json')),
+        { 'Cache-Control': 'public, max-age=3600' }, 'curr:' + m[1]);
     }
 
     /* 조직 이름으로 찾기 — 첫 화면이 부른다 */
@@ -335,12 +379,12 @@ const server = http.createServer(async (req, res) => {
     /* 공간 이름과 교육과정은 코드 없이도 — 화면이 코드를 묻기 전에 누구 공간인지 보여 준다 */
     if (req.method === 'GET' && sub === '/info') {
       return json(res, 200, { id: s.id, name: s.name, lede: s.lede, curriculum: s.curriculum, builtin: !!s.builtin,
-        access: s.access });
+        access: s.access, ephemeral: EPHEMERAL });
     }
     /* 통째로 내려받기 — 담당자가 바뀌어도 자료를 옮길 수 있게 */
     if (req.method === 'GET' && sub === '/export') {
       if (!isAdmin(req, s)) return json(res, 403, { error: '담당자 열쇠가 있어야 내려받을 수 있습니다.' });
-      return json(res, 200, Object.assign({ at: new Date().toISOString(), space: s.id }, boardView(s.id)));
+      return json(res, 200, Object.assign({ at: new Date().toISOString(), space: s.id }, boardView(s.id, true)));
     }
 
     /* 여기부터는 공개 공간이면 누구나, 초대 공간이면 초대 코드가 있어야 한다. 틀린 코드는 한 주소에서 한 시간에 30번까지 */
@@ -351,7 +395,7 @@ const server = http.createServer(async (req, res) => {
       return json(res, 401, { error: '초대 링크가 필요합니다.' });
     }
 
-    if (req.method === 'GET' && sub === '/board') return json(res, 200, boardView(s.id));
+    if (req.method === 'GET' && sub === '/board') return json(res, 200, boardView(s.id, isAdmin(req, s)));
     /* 둘러보기용 공간 — 보기만. 담당자·운영자만 고칠 수 있다 */
     if (s.access === 'view' && !isAdmin(req, s)) {
       return json(res, 403, { error: '둘러보기 전용이라 글을 남길 수 없습니다.' });
@@ -491,6 +535,27 @@ const server = http.createServer(async (req, res) => {
       return json(res, 200, { ok: true });
     }
 
+    /* 신고 — 누구나. 한 사람(주소)이 한 글에 한 번. 서로 다른 세 사람이 신고하면 목록에서 숨는다 */
+    if (req.method === 'POST' && sub === '/report') {
+      if (tooMany(ip, reportHits, 30)) return json(res, 429, { error: '너무 자주 신고했습니다. 잠시 뒤에 다시 해 주세요.' });
+      const body = await readBody(req).catch(() => ({}));
+      const target = clean(body.target, 40);
+      const exists = ['requests', 'tools', 'notes'].some(t =>
+        db.prepare(`SELECT 1 FROM ${t} WHERE id = ? AND space = ?`).get(target, s.id));
+      if (!exists) return json(res, 404, { error: '없는 글입니다.' });
+      const who = crypto.createHash('sha256').update(s.id + ':' + ip).digest('hex').slice(0, 24);
+      db.prepare('INSERT OR IGNORE INTO reports (space, target, who, at) VALUES (?,?,?,?)')
+        .run(s.id, target, who, new Date().toISOString());
+      return json(res, 200, { ok: true });
+    }
+    /* 신고 풀기 — 담당자만. 괜찮은 글이면 다시 보이게 */
+    if (req.method === 'POST' && sub === '/unreport') {
+      if (!isAdmin(req, s)) return json(res, 403, { error: '담당자만 신고를 풀 수 있습니다.' });
+      const body = await readBody(req).catch(() => ({}));
+      db.prepare('DELETE FROM reports WHERE space = ? AND target = ?').run(s.id, clean(body.target, 40));
+      return json(res, 200, { ok: true });
+    }
+
     /* 의견 남기기 — 요청글이든 도구글이든. 코드가 있는 선생님은 누구나 쓴다 */
     if (req.method === 'POST' && sub === '/notes') {
       if (tooMany(ip, noteHits, 40)) {
@@ -521,6 +586,10 @@ const server = http.createServer(async (req, res) => {
 
     json(res, 404, { error: 'not found' });
   } catch (e) {
+    if (e && e.status === 413) {
+      res.setHeader('Connection', 'close');
+      return json(res, 413, { error: '글이 너무 깁니다. 줄여서 다시 올려 주세요.' });
+    }
     json(res, 500, { error: '서버가 처리하지 못했습니다.' });
   }
 });
@@ -528,5 +597,13 @@ const server = http.createServer(async (req, res) => {
 server.listen(PORT, () => {
   const n = db.prepare('SELECT COUNT(*) AS n FROM spaces').get().n;
   console.log('저장소 서버 http://localhost:' + PORT + '  (자료 ' + DB_FILE + ', 공간 ' + n + '곳)');
+  if (EPHEMERAL) {
+    console.log('!!! 경고: 볼륨 밖에 저장하고 있습니다. 다시 배포하면 요청·도구·의견이 모두 지워집니다.');
+    console.log('!!! Railway 에서 이 서비스에 볼륨을 붙이고(예: /data) 변수 DATA_DIR=/data 를 넣어 주세요.');
+  }
+  /* 하루 한 장 스냅숏 — 켜질 때 한 번, 그 뒤로 여섯 시간마다 오늘 것이 없으면 남긴다 */
+  const snap = () => { try { const f = snapshot(); if (f) console.log('백업: ' + f); } catch (e) { console.log('백업 실패: ' + e.message); } };
+  snap();
+  setInterval(snap, 6 * 3600e3).unref();
   if (!n) console.log('공간이 아직 없습니다. node spaces.mjs add <주소이름> <공간이름> 으로 만듭니다.');
 });

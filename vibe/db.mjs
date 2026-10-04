@@ -8,7 +8,12 @@ import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 
 const ROOT = path.dirname(fileURLToPath(import.meta.url));
-export const DATA_DIR = process.env.DATA_DIR || path.join(ROOT, 'data');
+/* Railway 는 볼륨이 붙으면 그 경로를 RAILWAY_VOLUME_MOUNT_PATH 로 알려 준다. DATA_DIR 을 안 줬으면 그걸 쓴다 */
+const VOLUME = process.env.RAILWAY_VOLUME_MOUNT_PATH || '';
+export const DATA_DIR = process.env.DATA_DIR || VOLUME || path.join(ROOT, 'data');
+/* Railway 위인데 볼륨 밖에 쓰고 있으면 다시 배포할 때마다 자료가 지워진다 — 서버가 경고를 띄운다 */
+const ON_RAILWAY = !!(process.env.RAILWAY_ENVIRONMENT || process.env.RAILWAY_PROJECT_ID || process.env.RAILWAY_SERVICE_ID);
+export const EPHEMERAL = ON_RAILWAY && !(VOLUME && path.resolve(DATA_DIR).startsWith(path.resolve(VOLUME)));
 export const DB_FILE = path.join(DATA_DIR, 'shelf.db');
 export const CURRICULA = ['common', 'special', 'none'];   // 2022 개정 공통 교육과정 · 특수교육 기본 교육과정 · 쓰지 않음
 
@@ -35,6 +40,9 @@ db.exec(`
   CREATE INDEX IF NOT EXISTS requests_space ON requests(space);
   CREATE INDEX IF NOT EXISTS tools_space ON tools(space);
   CREATE INDEX IF NOT EXISTS notes_space ON notes(space);
+  CREATE TABLE IF NOT EXISTS reports (
+    space TEXT NOT NULL, target TEXT NOT NULL, who TEXT NOT NULL, at TEXT NOT NULL,
+    PRIMARY KEY (space, target, who));
 `);
 /* 들어오는 방식 — open: 조직 이름만 알면 누구나 · invite: 초대 링크(코드가 든 주소)가 있어야.
    먼저 만든 파일에는 이 칸이 없어 한 번 붙인다 */
@@ -152,4 +160,20 @@ function migrateV1(old) {
     }
   });
   return out;
+}
+
+/* 하루 한 장 스냅숏 — 볼륨 안 backups/ 에 최근 14장을 남긴다(담당자 내려받기와 별개로, 사람이 잊어도 남게) */
+export function snapshot() {
+  const dir = path.join(DATA_DIR, 'backups');
+  fs.mkdirSync(dir, { recursive: true });
+  const day = new Date().toISOString().slice(0, 10);
+  const file = path.join(dir, 'shelf-' + day + '.json');
+  if (fs.existsSync(file)) return null;
+  const all = t => db.prepare(`SELECT * FROM ${t}`).all();
+  const spaces = all('spaces').map(({ code_hash, admin_hash, ...rest }) => rest);   // 코드·열쇠 해시는 빼고
+  fs.writeFileSync(file, JSON.stringify({ at: new Date().toISOString(), spaces,
+    requests: all('requests'), tools: all('tools'), notes: all('notes') }));
+  fs.readdirSync(dir).filter(f => /^shelf-\d{4}-\d{2}-\d{2}\.json$/.test(f)).sort().reverse()
+    .slice(14).forEach(f => fs.unlinkSync(path.join(dir, f)));
+  return file;
 }
