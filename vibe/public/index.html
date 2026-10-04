@@ -195,6 +195,7 @@ section.add.asking .toolonly{display:none!important}
 .copy{margin:12px 0 12px;font:500 12.5px/1 "Gothic A1",sans-serif;background:transparent;
   border:1px solid var(--rule);color:var(--ink2);padding:7px 11px;cursor:pointer}
 .copy:hover{border-color:var(--ink2)}
+.copy.prompt{border-color:var(--ink2);color:var(--ink);font-weight:700}
 .copy.warn{border-color:var(--coral);color:var(--coral)}
 .rowbtns .copy{margin:0}
 .empty{margin:10px 0 14px;font-size:13px;color:var(--muted)}
@@ -349,7 +350,7 @@ footer a{color:var(--ink2)}
   <ol>
     <li><button data-go="tools"><b>찾아서 쓰기</b><span>도구 모음에서 분류별로 둘러보고 바로 엽니다.</span></button></li>
     <li><button data-go="ask"><b>없으면 요청하기</b><span>한 문장만 적으면 됩니다. 비슷한 도구가 있으면 먼저 알려 줍니다.</span></button></li>
-    <li><button data-go="board"><b>AI로 만들기</b><span>요청 카드에서 프롬프트를 복사해 AI에 붙여 넣으면 도구를 만들 수 있습니다.</span></button></li>
+    <li><button data-go="board"><b>AI로 만들기</b><span>요청 카드의 'AI 프롬프트 복사'를 눌러 ChatGPT·Claude 같은 AI에 붙여 넣으면 도구를 만들 수 있습니다.</span></button></li>
   </ol>
   <button class="x" id="guideclose">안내 닫기</button>
 </section>
@@ -802,10 +803,11 @@ function parts(it){
 
   const askInner = it.ask
     ? `<dl class="slots">${it.ask.map(([k,v]) =>
-        `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join('')}</dl>
-       <button class="copy" data-copy="${it.id}">${it.kind === 'request' ? 'AI 프롬프트 복사' : '고쳐 만들기 프롬프트 복사'}</button>`
-    : `<p class="empty">아직 적힌 내용이 없습니다.</p>
-       <button class="copy" data-copy="${it.id}">한 줄 설명으로 프롬프트 복사</button>`;
+        `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join('')}</dl>`
+    : `<p class="empty">아직 적힌 내용이 없습니다. 비어 있으면 한 줄 설명만으로 프롬프트를 만듭니다.</p>`;
+  /* 프롬프트 복사는 접힌 상자 안이 아니라 카드 겉에 둔다 — 안내의 'AI로 만들기'가 바로 이 단추다 */
+  p.prompt = `<button class="copy prompt" data-copy="${it.id}">${
+    it.kind === 'request' ? 'AI 프롬프트 복사' : '고쳐 만들기 프롬프트 복사'}</button>`;
   const askEdit = editing === it.id
     ? `<div class="askedit"><label class="slotlab">분류</label>
        <select class="chipsel" data-acat="1">${CATEGORIES.map(c =>
@@ -878,6 +880,7 @@ function cardHTML(it){
       <div class="tags">${p.tags}</div>
       ${it.knobs ? `<p class="knobs"><b>${esc(it.knobs)}</b></p>` : ''}
       ${p.links}
+      <div class="rowbtns">${p.prompt}</div>
       ${p.ask}
       ${p.stds}
       ${p.notesBox}
@@ -899,7 +902,7 @@ function rowHTML(it){
       ${it.knobs ? `<p class="knobs"><b>${esc(it.knobs)}</b></p>` : ''}
       ${p.links}
     </div>
-    <div class="rowside">${p.need}</div>
+    <div class="rowside">${p.prompt}${p.need}</div>
     <div class="rowfoot">
       ${p.ask}
       ${p.stds}
