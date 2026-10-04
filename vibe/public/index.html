@@ -1116,8 +1116,11 @@ function firstTab(){
   const list = all();
   return list.some(i => i.kind === 'tool') ? 'tools' : list.some(i => i.kind === 'request') ? 'board' : 'ask';
 }
-function setTab(t){
+/* push: 사람이 눌러서 옮길 때만 방문 기록을 쌓는다 — 뒤로가기로 이전 탭에 돌아오게.
+   처음 열 때·뒤로가기로 돌아올 때·올린 뒤 목록으로 넘어갈 때는 기록을 덮어쓴다(빈 폼으로 되돌아가지 않게) */
+function setTab(t, push){
   if (!TABS.includes(t) || (t === 'std' && !STD_ON) || (t === 'ask' && VIEW)) t = firstTab();
+  const moved = t !== tab;
   tab = t;
   document.querySelectorAll('.navi').forEach(b =>
     b.setAttribute('aria-current', String(b.dataset.tab === t)));
@@ -1150,19 +1153,27 @@ function setTab(t){
     document.getElementById('f-url').hidden = document.getElementById('f-knobs').hidden = !isTool;
     document.getElementById('makerlab').textContent = isTool ? '만든 사람' : '요청한 사람';
   }
-  if (location.hash !== '#admin') history.replaceState(null, '', '#' + t);
+  if (location.hash !== '#admin') {
+    if (push && location.hash !== '#' + t) history.pushState(null, '', '#' + t);
+    else history.replaceState(null, '', '#' + t);
+  }
+  /* 아래로 내려 둔 채 탭을 옮기면 새 탭의 맨 위부터 보이게(위쪽 메뉴가 화면 위에 붙어 있다) */
+  if (push && moved) {
+    const top = document.getElementById('shell').getBoundingClientRect().top + scrollY;
+    if (scrollY > top) scrollTo(0, top);
+  }
   document.getElementById('status').textContent = '';
   renderSimilar();
   apply();
 }
 document.getElementById('side').addEventListener('click', e => {
   const b = e.target.closest('.navi');
-  if (b) setTab(b.dataset.tab);
+  if (b) setTab(b.dataset.tab, true);
 });
 /* 이미 열린 창에서 주소만 바뀌어도 갈래가 따라오게 (공유한 #tools 링크) */
 addEventListener('hashchange', () => {
   const h = location.hash.replace('#','');
-  if (h && h !== 'admin' && h !== tab) setTab(h);   // 모르는 이름은 게시판으로
+  if (h && h !== 'admin' && h !== tab) setTab(h);   // 뒤로가기·공유 링크. 모르는 이름은 처음 갈래로
 });
 
 function render(){
@@ -1409,7 +1420,7 @@ grid.addEventListener('click', async e => {
     render();
     if (to === 'done') {
       note.textContent = '완성으로 옮겼습니다. 도구 모음에 새 카드가 생겼습니다.';
-      setTab('tools');
+      setTab('tools', true);
     } else note.textContent = '\'만드는 중\'으로 옮겼습니다.';
     return;
   }
@@ -1474,7 +1485,7 @@ grid.addEventListener('click', async e => {
     filter = 'all'; nocam.checked = false; subjSel.value = '';
     document.querySelectorAll('.chip[data-f]').forEach(x =>
       x.setAttribute('aria-pressed', String(x.dataset.f === 'all')));
-    setTab(it.kind === 'request' ? 'board' : 'tools');
+    setTab(it.kind === 'request' ? 'board' : 'tools', true);
     const el = [...grid.querySelectorAll('[data-cid]')].find(c => c.dataset.cid === it.id);
     if (el) {
       el.scrollIntoView({behavior:'smooth', block:'center'});
@@ -1903,7 +1914,7 @@ function start(){
 const GUIDE = 'seojin-shelf-guide-seen';
 document.getElementById('guide').addEventListener('click', e => {
   const b = e.target.closest('[data-go]');
-  if (b) setTab(b.dataset.go);
+  if (b) setTab(b.dataset.go, true);
 });
 document.getElementById('guideclose').addEventListener('click', () => {
   document.getElementById('guide').hidden = true;

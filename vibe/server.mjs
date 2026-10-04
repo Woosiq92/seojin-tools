@@ -268,6 +268,23 @@ function seedSpaces() {
 }
 seedSpaces();
 
+/* 잘못된 주소 — 날것의 오류 대신 안내 화면. 조직을 다시 찾는 곳으로 보낸다 */
+const SPACES_HOME = STATIC_ROOT ? '/s/' : '/';
+const NOT_FOUND = (msg) => `<!doctype html><html lang="ko"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1"><title>찾을 수 없습니다 · ${BRAND}</title>
+<style>:root{--bg:#EFECE6;--ink:#1F2226;--mut:#7C838B}
+@media (prefers-color-scheme:dark){:root{--bg:#14171A;--ink:#EFEDE6;--mut:#8E949A}}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.65 -apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",sans-serif;
+word-break:keep-all;padding:64px 16px}main{max-width:520px;margin:0 auto}h1{font-size:24px;margin:0 0 8px}
+p{color:var(--mut);margin:0 0 24px}a{display:inline-block;font-weight:700;padding:11px 18px;background:var(--ink);color:var(--bg);text-decoration:none}</style></head>
+<body><main><h1>${msg}</h1><p>주소를 다시 확인하거나, 조직 이름으로 찾아 들어가 주세요.</p>
+<a href="${SPACES_HOME}">조직 찾기</a></main></body></html>`;
+const sendNotFound = (res, msg) => {
+  res.writeHead(404, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-cache' });
+  res.end(NOT_FOUND(msg));
+};
+const wantsHtml = req => /text\/html/.test(req.headers.accept || '');
+
 const server = http.createServer(async (req, res) => {
   const p = new URL(req.url, 'http://x').pathname;
   const ip = (req.headers['x-forwarded-for'] || '').split(',')[0].trim()
@@ -280,9 +297,15 @@ const server = http.createServer(async (req, res) => {
       res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-cache' });
       return res.end(LANDING);
     }
-    if (req.method === 'GET' && (m = p.match(/^\/s\/([a-z0-9-]{2,40})\/?$/))) {
-      if (!p.endsWith('/')) { res.writeHead(301, { Location: p + '/' }); return res.end(); }
-      if (!getSpace(m[1])) return json(res, 404, { error: '없는 공간입니다.' });
+    /* 공간 주소 — 대문자로 쳤거나(/s/SEOJIN) 뒤에 무언가 붙었으면(/s/seojin/extra) 그 공간 첫 화면으로 보낸다 */
+    if ((req.method === 'GET' || req.method === 'HEAD') && (m = p.match(/^\/s\/([^/]+)(\/.*)?$/))) {
+      let id;
+      try { id = decodeURIComponent(m[1]).toLowerCase(); } catch { id = ''; }
+      if (!/^[a-z0-9-]{2,40}$/.test(id) || !getSpace(id)) return sendNotFound(res, '찾는 조직이 없습니다');
+      if (p !== '/s/' + id + '/') {
+        const q = new URL(req.url, 'http://x').search;
+        res.writeHead(301, { Location: '/s/' + id + '/' + q }); return res.end();
+      }
       res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-cache' });
       return res.end(fs.readFileSync(path.join(PUBLIC, 'index.html')));
     }
@@ -300,6 +323,7 @@ const server = http.createServer(async (req, res) => {
 
     if (!(m = p.match(/^\/api\/s\/([a-z0-9-]{2,40})(\/.*)$/))) {
       if (STATIC_ROOT && (req.method === 'GET' || req.method === 'HEAD') && !p.startsWith('/api/') && serveStatic(req, res, p)) return;
+      if (!p.startsWith('/api/') && wantsHtml(req)) return sendNotFound(res, '찾는 페이지가 없습니다');
       return json(res, 404, { error: 'not found' });
     }
     const s = getSpace(m[1]);
