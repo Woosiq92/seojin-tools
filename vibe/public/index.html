@@ -82,7 +82,9 @@ h1{font-family:"Gowun Batang",serif;font-weight:700;font-size:36px;line-height:1
   display:flex;flex-direction:column}
 .card.blue{--sec:var(--blue)} .card.coral{--sec:var(--coral)}
 .card.green{--sec:var(--green)} .card.gold{--sec:var(--gold)}
-.cover{display:block;width:100%;height:auto;background:var(--tint);color:var(--sec)}
+.cardhead{display:flex;align-items:center;gap:11px}
+.caticon{flex:0 0 auto;display:grid;place-items:center;width:38px;height:38px;background:var(--tint);color:var(--sec)}
+.caticon svg{width:22px;height:22px}
 .body{padding:15px 16px 16px;display:flex;flex-direction:column;gap:9px}
 .card h3{font-family:"Gowun Batang",serif;font-weight:700;font-size:20px;margin:0;
   letter-spacing:-.01em}
@@ -273,6 +275,18 @@ details.make summary::before{content:"+";color:var(--muted);font:700 15px/1 "Got
 details.make[open] summary::before{content:"\2212"}
 details.make .move{margin-top:8px}
 details.make .mini{margin:6px 0 0}
+/* 카드의 '자세히' — 겉은 짧게, 나머지는 여기 */
+details.detail{border-top:1px solid var(--rule);margin-top:4px}
+.rowfoot details.detail{border-top:1px dotted var(--rule)}
+details.detail > summary{list-style:none;cursor:pointer;padding:10px 0 2px;font-size:13.5px;color:var(--ink2);
+  display:flex;align-items:center;gap:6px}
+details.detail > summary::-webkit-details-marker{display:none}
+details.detail > summary::before{content:"+";color:var(--muted);font:700 15px/1 "Gothic A1",sans-serif;width:13px;text-align:center}
+details.detail[open] > summary::before{content:"\2212"}
+details.detail[open] > summary{margin-bottom:6px}
+details.detail .tags{margin:4px 0 6px}
+.clamp{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+a.btn.use{align-self:flex-start;margin-top:4px}
 .rowfoot details.std{border-top:1px dotted var(--rule)}
 details.std summary{list-style:none;cursor:pointer;padding:11px 0 2px;
   font-size:13.5px;color:var(--ink2);display:flex;align-items:center;gap:6px}
@@ -482,70 +496,20 @@ const STD = [["2건생01-01","건강한 생활","초1~2","","몸의 움직임을
 /* STD:END */
 </script>
 <script>
-const COVERS = {
-  bloom: `<circle cx="34" cy="58" r="13" fill="none" stroke="currentColor" stroke-width="1.6"/>
-    <circle cx="126" cy="58" r="13" fill="none" stroke="currentColor" stroke-width="1.6"/>
-    <g fill="currentColor" opacity=".92">
-      <circle cx="80" cy="46" r="6"/><circle cx="80" cy="64" r="6"/>
-      <circle cx="71" cy="55" r="6"/><circle cx="89" cy="55" r="6"/></g>
-    <circle cx="80" cy="55" r="3" fill="var(--sheet)"/>
-    <g fill="currentColor" opacity=".5">
-      <path d="M56 30l1.6 4.4L62 36l-4.4 1.6L56 42l-1.6-4.4L50 36l4.4-1.6z"/>
-      <path d="M104 72l1.3 3.6L109 77l-3.7 1.3L104 82l-1.3-3.7L99 77l3.7-1.4z"/>
-      <path d="M100 26l1.1 3L104 30l-3 1.1L100 34l-1.1-3L96 30l3-1z"/></g>
-    <path d="M47 58h16M97 58h16" stroke="currentColor" stroke-width="1.2" opacity=".35" stroke-dasharray="3 4"/>`,
-  hand: `<g stroke="currentColor" stroke-width="1.2" opacity=".35">
-      <path d="M24 78h112M24 64h112M24 50h112M24 36h112M24 22h112"/></g>
-    <path d="M32 76 Q70 74 92 46 T134 26" fill="none" stroke="currentColor" stroke-width="2.2"/>
-    <circle cx="92" cy="46" r="5.5" fill="currentColor"/>
-    <g fill="currentColor" opacity=".85">
-      <circle cx="118" cy="33" r="3"/><circle cx="134" cy="26" r="3.6"/></g>
-    <path d="M136 22c5-1 8 2 7 6" fill="none" stroke="currentColor" stroke-width="1.6" opacity=".6"/>`,
-  head: `<circle cx="80" cy="76" r="15" fill="none" stroke="currentColor" stroke-width="2"/>
-    <path d="M65 92h30" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
-    <g stroke="currentColor" stroke-width="1.1" stroke-dasharray="2 5" opacity=".45">
-      <path d="M80 14v40M46 14v34M114 14v46"/></g>
-    <circle cx="80" cy="58" r="6.5" fill="currentColor"/>
-    <circle cx="46" cy="50" r="5" fill="none" stroke="currentColor" stroke-width="1.6"/>
-    <circle cx="114" cy="62" r="5" fill="none" stroke="currentColor" stroke-width="1.6"/>
-    <g stroke="currentColor" stroke-width="1.6" opacity=".7" fill="none">
-      <path d="M100 70c4-3 4-9 0-12M108 73c6-5 6-16 0-21"/></g>`,
-  robot: `<rect x="22" y="34" width="46" height="36" fill="none" stroke="currentColor" stroke-width="2"/>
-    <circle cx="34" cy="50" r="4" fill="currentColor"/><circle cx="56" cy="50" r="4" fill="currentColor"/>
-    <path d="M45 24v10M34 70v8M56 70v8" stroke="currentColor" stroke-width="2"/>
-    <circle cx="45" cy="21" r="3.5" fill="currentColor"/>
-    <g stroke="currentColor" stroke-width="1.4">
-      <path d="M88 34h48M88 52h48M88 70h48" opacity=".3"/>
-      <path d="M88 30l4 5 7-9M88 48l4 5 7-9M88 66l4 5 7-9" fill="none"/></g>`,
-  sheet: `<rect x="34" y="16" width="92" height="72" fill="none" stroke="currentColor" stroke-width="2"/>
-    <g stroke="currentColor" stroke-width="1.2" opacity=".35">
-      <path d="M46 40h68M46 52h68M46 64h68M46 76h44"/></g>
-    <path d="M46 28h40" stroke="currentColor" stroke-width="2.4"/>
-    <g fill="currentColor"><circle cx="40" cy="40" r="2.4"/><circle cx="40" cy="52" r="2.4"/>
-      <circle cx="40" cy="64" r="2.4"/></g>
-    <path d="M112 60l6 6 12-16" fill="none" stroke="currentColor" stroke-width="2.4"/>`,
-  link: `<rect x="30" y="30" width="100" height="46" fill="none" stroke="currentColor" stroke-width="2"/>
-    <path d="M30 44h100" stroke="currentColor" stroke-width="1.4" opacity=".45"/>
-    <g fill="currentColor" opacity=".7"><circle cx="40" cy="37" r="2.2"/><circle cx="48" cy="37" r="2.2"/>
-      <circle cx="56" cy="37" r="2.2"/></g>
-    <path d="M46 60h42" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/>
-    <path d="M46 68h24" stroke="currentColor" stroke-width="1.6" opacity=".5" stroke-linecap="round"/>
-    <path d="M118 86l-9-3 9-9 9 9-9 3z" fill="currentColor" opacity=".85"/>
-    <path d="M100 92h36" stroke="currentColor" stroke-width="1.2" opacity=".35"/>`,
-  roll: `<g stroke="currentColor" stroke-width="1.6" fill="none">
-      <rect x="20" y="22" width="34" height="20"/><rect x="63" y="22" width="34" height="20"/>
-      <rect x="106" y="22" width="34" height="20"/><rect x="20" y="52" width="34" height="20"/>
-      <rect x="63" y="52" width="34" height="20"/><rect x="106" y="52" width="34" height="20"/></g>
-    <g fill="currentColor" opacity=".18">
-      <rect x="20" y="22" width="34" height="20"/><rect x="106" y="22" width="34" height="20"/>
-      <rect x="63" y="52" width="34" height="20"/></g>
-    <g stroke="currentColor" stroke-width="2" fill="none">
-      <path d="M30 32l4 4 8-10M116 32l4 4 8-10M73 62l4 4 8-10"/></g>`
+/* 분류 아이콘 — 도구마다 그림을 그리지 않고 분류로 알아보게 한다(프로젝트가 늘어도 손이 가지 않게) */
+const CAT_ICONS = {
+  '수업 활동': '<path d="M9 11V5.5a1.5 1.5 0 0 1 3 0V11m0-1.5a1.5 1.5 0 0 1 3 0V11m0-.5a1.5 1.5 0 0 1 3 0V15a6 6 0 0 1-6 6h-.6a6 6 0 0 1-4.7-2.3L4 15.6a1.6 1.6 0 0 1 2.4-2.1L9 16"/>',
+  '게임·놀이': '<rect x="2.5" y="7" width="19" height="11" rx="5"/><path d="M7.5 10.5v4M5.5 12.5h4"/><circle cx="15.5" cy="11.2" r=".9" fill="currentColor"/><circle cx="17.8" cy="13.8" r=".9" fill="currentColor"/>',
+  '표현·미디어아트': '<path d="M12 3a9 9 0 1 0 0 18c1.1 0 1.7-.9 1.4-1.9-.3-.9.3-1.8 1.3-1.8H17a4 4 0 0 0 4-4C21 8.3 17 3 12 3z"/><circle cx="7.5" cy="11" r="1" fill="currentColor"/><circle cx="10" cy="7" r="1" fill="currentColor"/><circle cx="14.5" cy="7" r="1" fill="currentColor"/>',
+  '연습·익히기': '<path d="M4 12a8 8 0 0 1 13.7-5.6L20 9M20 4v5h-5M20 12a8 8 0 0 1-13.7 5.6L4 15M4 20v-5h5"/>',
+  '수업 준비': '<rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V3h6v1M9 13l2 2 4-4"/>',
+  '기록·학급 운영': '<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h4"/>',
+  '기타': '<rect x="4" y="4" width="6" height="6" rx="1.5"/><rect x="14" y="4" width="6" height="6" rx="1.5"/><rect x="4" y="14" width="6" height="6" rx="1.5"/><rect x="14" y="14" width="6" height="6" rx="1.5"/>'
 };
 
 const ITEMS = [
   {
-    id:'bloom', category:'표현·미디어아트', tone:'coral', cover:'bloom', use:'student',
+    id:'bloom', category:'표현·미디어아트', tone:'coral', use:'student',
     name:'사이에서 핀다',
     line:'두 사람 사이에서만 꽃이 핍니다. 손끝이 가까워지면 피어나고, 붙여 두면 곁꽃이 번집니다.',
     tags:['카메라 필요','둘이서'],
@@ -566,7 +530,7 @@ const ITEMS = [
     ]
   },
   {
-    id:'hand', category:'표현·미디어아트', tone:'blue', cover:'hand', use:'student',
+    id:'hand', category:'표현·미디어아트', tone:'blue', use:'student',
     name:'손으로 내는 소리',
     line:'손을 올리면 높은 음, 내리면 낮은 음이 납니다. 카메라가 열리지 않으면 화면을 만져도 같은 소리가 납니다.',
     tags:['카메라 없이도 됨','태블릿 가능'],
@@ -587,7 +551,7 @@ const ITEMS = [
     ]
   },
   {
-    id:'head', category:'게임·놀이', tone:'green', cover:'head', use:'student',
+    id:'head', category:'게임·놀이', tone:'green', use:'student',
     name:'머리로 받는 소리',
     line:'위에서 공이 떨어집니다. 머리에 닿으면 소리가 나고, 놓쳐도 아무 일이 생기지 않습니다.',
     tags:['카메라 없이도 됨','실패 표시 없음'],
@@ -605,7 +569,7 @@ const ITEMS = [
     ]
   },
   {
-    id:'dash', category:'수업 준비', tone:'gold', cover:'robot', use:'teacher',
+    id:'dash', category:'수업 준비', tone:'gold', use:'teacher',
     name:'Dash 설치 스테이션',
     line:'수업 전에 로봇을 순서대로 세팅하는 화면입니다. 어디까지 했는지가 남습니다.',
     tags:[],
@@ -617,7 +581,7 @@ const ITEMS = [
     ask:null
   },
   {
-    id:'record', category:'기록·학급 운영', tone:'blue', cover:'sheet', use:'teacher',
+    id:'record', category:'기록·학급 운영', tone:'blue', use:'teacher',
     name:'현장 기록지',
     line:'수업 중에 본 것을 그 자리에서 적는 관찰 기록 양식입니다.',
     tags:[],
@@ -627,7 +591,7 @@ const ITEMS = [
     ask:null
   },
   {
-    id:'roll', category:'기록·학급 운영', tone:'coral', cover:'roll', use:'teacher',
+    id:'roll', category:'기록·학급 운영', tone:'coral', use:'teacher',
     name:'오늘 출석부',
     line:'연수에서 만든 예시 화면입니다. 한 시간이면 이만한 것이 나온다는 본보기로 씁니다.',
     tags:['연수 예시'],
@@ -787,14 +751,14 @@ function parts(it){
   /* 누가 만들고 있는지 보이게 — 같은 요청을 두 사람이 만들지 않도록 */
   const makingBy = st === 'making' && it.rec && it.rec.makingBy ? ' · ' + it.rec.makingBy : '';
   p.tags = (st !== 'done' ? `<span class="tag st ${st}">${STATE_LABEL[st]}${esc(makingBy)}</span>` : '')
-    + (it.category && it.category !== '기타' ? `<span class="tag cat">${esc(it.category)}</span>` : '')
+    + (it.kind === 'request' && it.category && it.category !== '기타' ? `<span class="tag cat">${esc(it.category)}</span>` : '')
     + stdSubjects(stds).map(t => `<span class="tag std">${esc(t)}</span>`).join('')
     + it.tags.map(t => `<span class="tag">${esc(t)}</span>`).join('')
     + (it.from ? `<span class="tag" title="${esc(it.from.name)}">요청에서 만들어짐</span>` : '');
 
   const stdEdit = stdEditing === it.id;
   p.stds = STD_ON && (stds.length || canEdit)
-    ? `<details class="std" data-card="${it.id}"${stdEdit || openStd.has(it.id) ? ' open' : ''}>
+    ? `<details class="std" data-card="${it.id}" open>
         <summary>성취기준${stds.length ? ' ' + stds.length : ' 붙이기'}</summary>
         ${stdEdit
           ? `<div class="stdpick" data-pk="${it.id}"></div>
@@ -828,7 +792,7 @@ function parts(it){
        <div class="rowbtns"><button class="copy" data-asksave="${it.id}">저장</button>
          <button class="copy" data-askcancel="1">취소</button></div></div>`
     : (canEdit ? `<button class="copy" data-askedit="${it.id}">고쳐 쓰기</button>` : '');
-  p.ask = `<details class="ask"${editing === it.id ? ' open' : ''}>
+  p.ask = `<details class="ask" open>
       <summary>요청문 여섯 칸</summary>${askInner}${askEdit}</details>`;
 
   const canDelNote = n => mode === 'local' || !!noteKeys[n.id] || !!adminToken;
@@ -847,7 +811,7 @@ function parts(it){
       <textarea data-ntext="${it.id}" placeholder="더할 내용이나 고칠 점을 적어 주세요"></textarea>
       <p class="mini warn">학생 이름, 건강·장애 정보는 적지 마세요. 학년·반까지만 적어 주세요.</p>
       <button class="copy" data-note="${it.id}">의견 남기기</button></div>`;
-  p.notesBox = `<details class="notes" data-card="${it.id}"${openNotes.has(it.id) ? ' open' : ''}>
+  p.notesBox = `<details class="notes" data-card="${it.id}" open>
       <summary>의견${notes.length ? ' ' + notes.length : ''}</summary>${noteList}${VIEW ? '' : noteForm}</details>`;
 
   p.need = !VIEW && st !== 'done'
@@ -885,26 +849,31 @@ function parts(it){
 const attrs = (it, st) => `data-use="${it.use}" data-cam="${it.cam}" data-state="${st}" data-cid="${esc(it.id)}"
   data-subj="${esc(stdSubjects(it.stds || []).join('|'))}"`;
 
-/* 학습 도구 — 그림이 저마다 달라서 격자로 본다 */
+/* 도구 모음 — 분류 묶음 안에서 격자로 본다. 분류는 묶음 제목과 아이콘이 알려 주니 카드에 꼬리표로 또 달지 않는다 */
+/* 겉에는 알아보고 쓰는 데 필요한 것만(아이콘·이름·한 줄·도구 쓰기). 나머지는 '자세히'를 눌러야 펼친다 */
+const detailSummary = it => '자세히' + ((it.notes || []).length ? ' · 의견 ' + it.notes.length : '');
 function cardHTML(it){
   const p = parts(it);
-  const own = (p.need || p.own.length)
-    ? `<div class="rowbtns">${p.need}${p.own.join('')}</div>` : '';
+  const own = p.own.length ? `<div class="rowbtns">${p.own.join('')}</div>` : '';
+  const [first, ...more] = it.links;
   return `<article class="card ${it.tone}" ${attrs(it, p.st)}>
-    <svg class="cover" viewBox="0 0 160 100" role="img" aria-label="${esc(it.name)} 그림">
-      ${COVERS[it.cover]}</svg>
     <div class="body">
-      <h3>${esc(it.name)}</h3>
-      <p>${esc(it.line)}</p>
-      <div class="tags">${p.tags}</div>
-      ${it.knobs ? `<p class="knobs"><b>${esc(it.knobs)}</b></p>` : ''}
-      ${p.links}
-      <div class="rowbtns">${p.prompt}</div>
-      ${p.ask}
-      ${p.stds}
-      ${p.notesBox}
-      ${p.move}
-      ${own}
+      <div class="cardhead"><span class="caticon" title="${esc(it.category)}" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none"
+        stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${
+        CAT_ICONS[it.category] || CAT_ICONS['기타']}</svg></span><h3>${esc(it.name)}</h3></div>
+      <p class="clamp">${esc(it.line)}</p>
+      ${first ? `<a class="btn go use" href="${esc(first.u)}">${esc(first.t)}</a>` : ''}
+      <details class="detail" data-card="${it.id}"${openDetail.has(it.id) ? ' open' : ''}>
+        <summary>${detailSummary(it)}</summary>
+        <div class="tags">${p.tags}</div>
+        ${it.knobs ? `<p class="knobs"><b>${esc(it.knobs)}</b></p>` : ''}
+        ${more.length ? `<div class="links">${more.map(l => `<a href="${esc(l.u)}" class="plain">${esc(l.t)}</a>`).join('')}</div>` : ''}
+        <div class="rowbtns">${p.prompt}</div>
+        ${p.ask}
+        ${p.stds}
+        ${p.notesBox}
+        ${own}
+      </details>
     </div></article>`;
 }
 
@@ -923,11 +892,14 @@ function rowHTML(it){
     </div>
     <div class="rowside">${p.prompt}${p.need}</div>
     <div class="rowfoot">
-      ${p.ask}
-      ${p.stds}
-      ${p.notesBox}
       ${p.move}
-      ${own}
+      <details class="detail" data-card="${it.id}"${openDetail.has(it.id) ? ' open' : ''}>
+        <summary>${detailSummary(it)}</summary>
+        ${p.ask}
+        ${p.stds}
+        ${p.notesBox}
+        ${own}
+      </details>
     </div></article>`;
 }
 
@@ -962,10 +934,9 @@ let secrets = load(SECRETS, {});  // 내가 넣은 글을 고치고 지울 때 �
 let adminToken = load(ADMIN, '');
 let needed = load(NEEDED, {});    // 같은 사람이 두 번 누르지 않게
 let noteKeys = load(NOTEKEYS, {});
-let openNotes = new Set();        // 다시 그려도 열어 둔 의견 칸은 열린 채로
+let openDetail = new Set();       // 다시 그려도 펼쳐 둔 '자세히'는 펼친 채로
 let editing = null;               // 지금 요청문을 고쳐 쓰는 중인 카드
 let stdEditing = null;            // 지금 성취기준을 고르는 중인 카드
-let openStd = new Set();
 let openMake = new Set();         // 펼쳐 둔 '내가 만들어 올리기'
 
 /* 옛 형식(한 레코드가 state 로 요청·도구를 오가던 것) → 세 가지 글. 서버의 migrate 와 같다 */
@@ -1067,7 +1038,7 @@ function toItem(rec, n){
   if (mode === 'local') tags.push('이 브라우저에만');
   const from = !isReq && rec.from ? db().requests.find(r => r.id === rec.from) : null;
   return {
-    id: rec.id, kind: isReq ? 'request' : 'tool', category: catOf(rec.category), tone: TONES[n % TONES.length], cover: 'link', use: rec.use,
+    id: rec.id, kind: isReq ? 'request' : 'tool', category: catOf(rec.category), tone: TONES[n % TONES.length], use: rec.use,
     name: rec.name, line: rec.line, tags, cam: !!rec.cam, knobs: isReq ? '' : (rec.knobs || ''),
     links: !isReq && rec.url ? [{t:'도구 쓰기', u: rec.url}] : [],
     ask: (rec.ask && rec.ask.some(v => v)) ? SLOTS.map((k,x) => [k, rec.ask[x] || '(비어 있음)']) : null,
@@ -1304,10 +1275,10 @@ nocam.addEventListener('change', apply);
 
 /* details 의 toggle 은 위로 올라오지 않아, 요약줄 클릭 뒤의 상태를 읽는다 */
 grid.addEventListener('click', e => {
-  const sum = e.target.closest('details.notes > summary, details.std > summary, details.make > summary');
+  const sum = e.target.closest('details.detail > summary, details.make > summary');
   if (!sum) return;
   const box = sum.parentElement;
-  const set = box.classList.contains('std') ? openStd : box.classList.contains('make') ? openMake : openNotes;
+  const set = box.classList.contains('make') ? openMake : openDetail;
   setTimeout(() => {
     if (box.open) set.add(box.dataset.card);
     else set.delete(box.dataset.card);
@@ -1446,7 +1417,7 @@ grid.addEventListener('click', async e => {
     const slBox = grid.querySelector('[data-nslot="' + id + '"]');
     const rec = { by: byBox ? byBox.value.trim() : '', text,
       slot: slBox && slBox.value !== '' ? Number(slBox.value) : null };
-    openNotes.add(id);
+    openDetail.add(id);
     nbtn.disabled = true;
     if (mode === 'server') {
       try {
@@ -1472,7 +1443,7 @@ grid.addEventListener('click', async e => {
   const ndel = e.target.closest('[data-ndel]');
   if (ndel) {
     const [id, noteId] = ndel.dataset.ndel.split(':');
-    openNotes.add(id);
+    openDetail.add(id);
     if (mode === 'server') {
       try {
         await api.delNote(noteId);
@@ -1541,7 +1512,7 @@ grid.addEventListener('click', async e => {
     }
     delete pickState[id];
     stdEditing = null;
-    openStd.add(id);
+    openDetail.add(id);
     render();
     note.textContent = '성취기준을 저장했습니다.';
     return;
