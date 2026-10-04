@@ -39,7 +39,7 @@ const cleanStds = v => Array.isArray(v)
 /* ---- 손질: 보이지 않는 글자를 걷어 내고 길이를 자른다 ---- */
 const CTRL = /[\u0000-\u001F\u007F]/g;
 const isUrl = v => /^https?:\/\/\S+$/i.test(v || '');
-const URLMSG = '주소는 https:// 로 시작해야 합니다. 다른 선생님도 열 수 있어야 합니다.';
+const URLMSG = '주소는 https://로 시작해야 합니다. 다른 선생님도 열 수 있어야 합니다.';
 const clean = (v, n) => String(v == null ? '' : v).replace(CTRL, ' ').trim().slice(0, n);
 /* 의견은 여러 줄로 쓴다. 줄바꿈만 남기고 나머지 보이지 않는 글자는 걷어 낸다. */
 const NL = /[\u0000-\u0009\u000B-\u001F\u007F]/g;
@@ -99,7 +99,7 @@ function validateTool(b) {
   if (!rec.name) return { error: '도구 이름을 채워 주세요.' };
   if (!rec.line) return { error: '한 줄 설명을 채워 주세요.' };
   if (!isUrl(rec.url)) return { error: URLMSG };
-  if (rec.source && !isUrl(rec.source)) return { error: '소스 코드 주소는 https:// 로 시작해야 합니다.' };
+  if (rec.source && !isUrl(rec.source)) return { error: '소스 코드 주소는 https://로 시작해야 합니다.' };
   return { rec };
 }
 
@@ -329,7 +329,7 @@ const server = http.createServer(async (req, res) => {
       return json(res, 404, { error: 'not found' });
     }
     const s = getSpace(m[1]);
-    if (!s) return json(res, 404, { error: '없는 공간입니다.' });
+    if (!s) return json(res, 404, { error: '찾는 조직이 없습니다.' });
     const sub = m[2];
 
     /* 공간 이름과 교육과정은 코드 없이도 — 화면이 코드를 묻기 전에 누구 공간인지 보여 준다 */
@@ -354,7 +354,7 @@ const server = http.createServer(async (req, res) => {
     if (req.method === 'GET' && sub === '/board') return json(res, 200, boardView(s.id));
     /* 둘러보기용 공간 — 보기만. 담당자·운영자만 고칠 수 있다 */
     if (s.access === 'view' && !isAdmin(req, s)) {
-      return json(res, 403, { error: '예시 공간이라 둘러보기만 할 수 있습니다.' });
+      return json(res, 403, { error: '둘러보기 전용이라 글을 남길 수 없습니다.' });
     }
 
     const count = () => db.prepare(`SELECT (SELECT COUNT(*) FROM requests WHERE space = ?)
@@ -363,7 +363,7 @@ const server = http.createServer(async (req, res) => {
     const full = () => count() >= MAX_POSTS
       && (json(res, 409, { error: '저장소가 가득 찼습니다. 담당자에게 알려 주세요.' }), true);
     const busy = () => tooMany(ip)
-      && (json(res, 429, { error: '너무 자주 넣었습니다. 한 시간 뒤에 다시 해 주세요.' }), true);
+      && (json(res, 429, { error: '너무 자주 올렸습니다. 한 시간 뒤에 다시 해 주세요.' }), true);
 
     /* 요청글 넣기 */
     if (req.method === 'POST' && sub === '/requests') {
@@ -454,14 +454,14 @@ const server = http.createServer(async (req, res) => {
       const t = find(m[1], s.id, m[2]);
       if (!t) return json(res, 404, { error: '없는 글입니다.' });
       if (!mayEdit(req, s, t, body)) {
-        return json(res, 403, { error: '넣은 사람이나 담당자만 고칠 수 있습니다. 의견으로 남기면 주인이 반영합니다.' });
+        return json(res, 403, { error: '올린 사람이나 담당자만 고칠 수 있습니다. 의견으로 남기면 올린 사람이 반영합니다.' });
       }
       if (Array.isArray(body.ask)) t.ask = cleanAsk(body.ask);
       if (Array.isArray(body.stds)) t.stds = cleanStds(body.stds);
       if (typeof body.category === 'string') t.category = catOf(body.category);
       if (m[1] === 'tools' && typeof body.source === 'string') {
         const src = clean(body.source, CAPS.url);
-        if (src && !isUrl(src)) return json(res, 400, { error: '소스 코드 주소는 https:// 로 시작해야 합니다.' });
+        if (src && !isUrl(src)) return json(res, 400, { error: '소스 코드 주소는 https://로 시작해야 합니다.' });
         db.prepare('UPDATE tools SET source = ? WHERE id = ?').run(src, t.id);
       }
       db.prepare(`UPDATE ${m[1]} SET ask = ?, stds = ?, category = ? WHERE id = ?`)
@@ -479,7 +479,7 @@ const server = http.createServer(async (req, res) => {
       const body = await readBody(req).catch(() => ({}));
       const t = find(m[1], s.id, m[2]);
       if (!t) return json(res, 404, { error: '이미 지워졌습니다.' });
-      if (!mayEdit(req, s, t, body)) return json(res, 403, { error: '넣은 사람이나 담당자만 지울 수 있습니다.' });
+      if (!mayEdit(req, s, t, body)) return json(res, 403, { error: '올린 사람이나 담당자만 지울 수 있습니다.' });
       db.exec('BEGIN');
       try {
         db.prepare(`DELETE FROM ${m[1]} WHERE id = ?`).run(t.id);
