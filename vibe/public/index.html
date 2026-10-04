@@ -544,7 +544,7 @@ const ITEMS = [
     stds:['9미술01-01','12미술02-04','12체육02-06','2바생01-08','9정통03-04'],
     knobs:'혼자 있으면 피지 않습니다. 크게 휘두르면 흩어지고 천천히 다가가면 피어납니다.',
     links:[
-      {t:'열기', u:'https://woosiq92.github.io/seojin-tools/bloom/'},
+      {t:'도구 쓰기', u:'https://woosiq92.github.io/seojin-tools/bloom/'},
       {t:'수업안', u:'https://claude.ai/code/artifact/478d7b7b-6b9f-4d5c-87c0-9c45c4ce2fba', plain:true}
     ],
     ask:[
@@ -565,7 +565,7 @@ const ITEMS = [
     stds:['4음악02-01','6음악01-04','4음악01-05','4과학01-04'],
     knobs:'교사 설정: 손 인식 민감도 · 음 개수 · 소리 종류(맑은·부드러운·방울)',
     links:[
-      {t:'열기', u:'https://woosiq92.github.io/seojin-tools/hand-sound/'},
+      {t:'도구 쓰기', u:'https://woosiq92.github.io/seojin-tools/hand-sound/'},
       {t:'만든 과정', u:'https://claude.ai/code/artifact/0bc0f539-9922-4fa4-b188-96768d90fb78', plain:true}
     ],
     ask:[
@@ -585,7 +585,7 @@ const ITEMS = [
     cam:false,
     stds:['2건생01-01','4체육02-03','4음악01-05','9정통03-04'],
     knobs:'교사 설정: 떨어지는 속도 · 한 번에 몇 개 · 공 크기 · 음 개수 · 머리 인식 범위 · 떨어지는 위치',
-    links:[{t:'열기', u:'https://woosiq92.github.io/seojin-tools/head-notes/'}],
+    links:[{t:'도구 쓰기', u:'https://woosiq92.github.io/seojin-tools/head-notes/'}],
     ask:[
       ['무엇을','위에서 내려오는 공을 머리로 받으면 소리가 나는 한 화면짜리 웹페이지'],
       ['입력','카메라 영상 속 머리 위치. 카메라가 안 되면 손가락이나 마우스가 머리를 대신한다'],
@@ -604,7 +604,7 @@ const ITEMS = [
     /* 설치 화면 자체가 아니라 이 준비가 받치는 로봇 코딩 수업의 성취기준 */
     stds:['6실과02-03','9정통01-02','9정통02-03','12정통02-03'],
     knobs:'',
-    links:[{t:'열기', u:'https://claude.ai/code/artifact/2285e12e-4409-4f0e-a470-92f0ccea5ee5'}],
+    links:[{t:'도구 쓰기', u:'https://claude.ai/code/artifact/2285e12e-4409-4f0e-a470-92f0ccea5ee5'}],
     ask:null
   },
   {
@@ -614,7 +614,7 @@ const ITEMS = [
     tags:[],
     cam:false,
     knobs:'',
-    links:[{t:'열기', u:'https://claude.ai/code/artifact/61dd6d61-6acc-4870-a350-98085371b515'}],
+    links:[{t:'도구 쓰기', u:'https://claude.ai/code/artifact/61dd6d61-6acc-4870-a350-98085371b515'}],
     ask:null
   },
   {
@@ -624,7 +624,7 @@ const ITEMS = [
     tags:['연수 예시'],
     cam:false,
     knobs:'',
-    links:[{t:'열기', u:'https://claude.ai/code/artifact/3fa9c869-18d7-43e5-8653-0d7d38f38aa2'}],
+    links:[{t:'도구 쓰기', u:'https://claude.ai/code/artifact/3fa9c869-18d7-43e5-8653-0d7d38f38aa2'}],
     ask:null
   }
 ];
@@ -1044,7 +1044,7 @@ function toItem(rec, n){
   return {
     id: rec.id, kind: isReq ? 'request' : 'tool', category: catOf(rec.category), tone: TONES[n % TONES.length], cover: 'link', use: rec.use,
     name: rec.name, line: rec.line, tags, cam: !!rec.cam, knobs: isReq ? '' : (rec.knobs || ''),
-    links: !isReq && rec.url ? [{t:'열기', u: rec.url}] : [],
+    links: !isReq && rec.url ? [{t:'도구 쓰기', u: rec.url}] : [],
     ask: (rec.ask && rec.ask.some(v => v)) ? SLOTS.map((k,x) => [k, rec.ask[x] || '(비어 있음)']) : null,
     state: isReq ? rec.status : 'done', needs: rec.needs || 0,
     notes: notesOf(rec.id, rec.from), from, mine: true, rec,
