@@ -385,36 +385,54 @@ const server = http.createServer(async (req, res) => {
 
     const ID = '([A-Za-z0-9_-]{1,40})';
 
-    /* 만드는 중으로 — 요청글의 상태만 바뀐다 */
+    /* 만들어 볼게요 — 누구나 요청을 집어 든다. 이름을 남기면 '만드는 중 · 이름'으로 보인다 */
     if (req.method === 'POST' && (m = sub.match(new RegExp('^/requests/' + ID + '/making$')))) {
+      if (busy()) return;
       const body = await readBody(req).catch(() => ({}));
       const r = find('requests', s.id, m[1]);
       if (!r) return json(res, 404, { error: '없는 요청입니다.' });
-      if (!mayEdit(req, s, r, body)) return json(res, 403, { error: '넣은 사람이나 담당자만 옮길 수 있습니다.' });
-      if (r.toolId) return json(res, 409, { error: '이미 만들어진 요청입니다.' });
-      db.prepare(`UPDATE requests SET status = 'making' WHERE id = ?`).run(r.id);
+      if (r.toolId) return json(res, 409, { error: '이미 완성된 요청입니다.' });
+      db.prepare(`UPDATE requests SET status = 'making', making_by = ? WHERE id = ?`)
+        .run(clean(body.maker, CAPS.maker), r.id);
       return json(res, 200, { ok: true });
     }
 
-    /* 만들어짐 — 요청에서 도구글을 새로 만들고 서로 잇는다. 요청은 게시판에서 빠진다 */
+    /* 완성해서 올리기 — 누구나. 요청에서 도구글을 새로 만들고 서로 잇는다. 요청은 목록에서 빠진다 */
     if (req.method === 'POST' && (m = sub.match(new RegExp('^/requests/' + ID + '/done$')))) {
+      if (busy()) return;
       const body = await readBody(req).catch(() => ({}));
       const r = find('requests', s.id, m[1]);
       if (!r) return json(res, 404, { error: '없는 요청입니다.' });
-      if (!mayEdit(req, s, r, body)) return json(res, 403, { error: '넣은 사람이나 담당자만 옮길 수 있습니다.' });
-      if (r.toolId) return json(res, 409, { error: '이미 만들어진 요청입니다.' });
+      if (r.toolId) return json(res, 409, { error: '이미 완성된 요청입니다.' });
       const { rec, error } = validateTool({ name: r.name, line: r.line, url: body.url, maker: body.maker,
         use: r.use, cam: r.cam, ask: r.ask, stds: r.stds, category: r.category });
       if (error) return json(res, 400, { error: '주소를 먼저 붙여 주세요. ' + error });
-      /* 도구글의 열쇠는 요청글과 같다 — 넣은 사람이 그대로 주인이다 */
-      Object.assign(rec, { id: newId('t'), token: r.token, from: r.id, at: new Date().toISOString() });
+      /* 도구의 주인은 올린 사람이다. 요청한 사람이 직접 올렸으면 요청과 같은 열쇠, 다른 사람이면 새 열쇠 */
+      const own = !!body.token && !!r.token && body.token === r.token;
+      Object.assign(rec, { id: newId('t'), token: own ? r.token : newToken(), from: r.id, at: new Date().toISOString() });
       db.exec('BEGIN');
       try {
         insertTool(s.id, rec);
         db.prepare('UPDATE requests SET tool_id = ? WHERE id = ?').run(rec.id, r.id);
         db.exec('COMMIT');
       } catch (e) { db.exec('ROLLBACK'); throw e; }
-      return json(res, 200, { ok: true, toolId: rec.id });
+      return json(res, 200, { ok: true, toolId: rec.id, token: own ? undefined : rec.token });
+    }
+
+    /* 요청으로 되돌리기 — 엉뚱한 주소로 닫혔을 때. 요청한 사람이나 담당자만.
+       도구는 도구 모음에 그대로 두고 요청과의 연결만 끊는다 */
+    if (req.method === 'POST' && (m = sub.match(new RegExp('^/requests/' + ID + '/reopen$')))) {
+      const body = await readBody(req).catch(() => ({}));
+      const r = find('requests', s.id, m[1]);
+      if (!r) return json(res, 404, { error: '없는 요청입니다.' });
+      if (!mayEdit(req, s, r, body)) return json(res, 403, { error: '요청한 사람이나 담당자만 되돌릴 수 있습니다.' });
+      db.exec('BEGIN');
+      try {
+        if (r.toolId) db.prepare(`UPDATE tools SET from_req = '' WHERE id = ? AND space = ?`).run(r.toolId, s.id);
+        db.prepare(`UPDATE requests SET tool_id = '', status = 'ask', making_by = '' WHERE id = ?`).run(r.id);
+        db.exec('COMMIT');
+      } catch (e) { db.exec('ROLLBACK'); throw e; }
+      return json(res, 200, { ok: true });
     }
 
     /* 저도 필요해요 — 요청글에만. 다음에 무엇을 만들지 정하는 근거 */

@@ -264,7 +264,15 @@ section.form{padding-top:4px}
 .chipsel{font:500 13px/1.2 "Gothic A1",sans-serif;color:var(--ink2);background:transparent;
   border:1px solid var(--rule);padding:7px 9px;min-width:0;max-width:100%}
 .tag.std{color:var(--blue);border-color:var(--blue)}
-details.std{border-top:1px solid var(--rule);margin-top:2px}
+details.std,details.make{border-top:1px solid var(--rule);margin-top:2px}
+.rowfoot details.make{border-top:1px dotted var(--rule)}
+details.make summary{list-style:none;cursor:pointer;padding:11px 0 2px;
+  font-size:13.5px;color:var(--ink);font-weight:700;display:flex;align-items:center;gap:6px}
+details.make summary::-webkit-details-marker{display:none}
+details.make summary::before{content:"+";color:var(--muted);font:700 15px/1 "Gothic A1",sans-serif;width:13px;text-align:center}
+details.make[open] summary::before{content:"\2212"}
+details.make .move{margin-top:8px}
+details.make .mini{margin:6px 0 0}
 .rowfoot details.std{border-top:1px dotted var(--rule)}
 details.std summary{list-style:none;cursor:pointer;padding:11px 0 2px;
   font-size:13.5px;color:var(--ink2);display:flex;align-items:center;gap:6px}
@@ -350,7 +358,7 @@ footer a{color:var(--ink2)}
   <ol>
     <li><button data-go="tools"><b>찾아서 쓰기</b><span>도구 모음에서 분류별로 둘러보고 바로 엽니다.</span></button></li>
     <li><button data-go="ask"><b>없으면 요청하기</b><span>한 문장만 적으면 됩니다. 비슷한 도구가 있으면 먼저 알려 줍니다.</span></button></li>
-    <li><button data-go="board"><b>AI로 만들기</b><span>요청 카드의 'AI 프롬프트 복사'를 눌러 ChatGPT·Claude 같은 AI에 붙여 넣으면 도구를 만들 수 있습니다.</span></button></li>
+    <li><button data-go="board"><b>AI로 만들기</b><span>누구나 요청 카드의 'AI 프롬프트 복사'로 AI에서 만들고, '내가 만들어 올리기'로 주소를 붙입니다.</span></button></li>
   </ol>
   <button class="x" id="guideclose">안내 닫기</button>
 </section>
@@ -776,7 +784,9 @@ function parts(it){
 
   const stds = it.stds || [];
   /* 겹치는 꼬리표는 뺀다 — 도구 모음의 카드는 모두 완성이라 상태를 안 붙이고, '기타'는 정하지 않았다는 뜻이라 안 붙인다 */
-  p.tags = (st !== 'done' ? `<span class="tag st ${st}">${STATE_LABEL[st]}</span>` : '')
+  /* 누가 만들고 있는지 보이게 — 같은 요청을 두 사람이 만들지 않도록 */
+  const makingBy = st === 'making' && it.rec && it.rec.makingBy ? ' · ' + it.rec.makingBy : '';
+  p.tags = (st !== 'done' ? `<span class="tag st ${st}">${STATE_LABEL[st]}${esc(makingBy)}</span>` : '')
     + (it.category && it.category !== '기타' ? `<span class="tag cat">${esc(it.category)}</span>` : '')
     + stdSubjects(stds).map(t => `<span class="tag std">${esc(t)}</span>`).join('')
     + it.tags.map(t => `<span class="tag">${esc(t)}</span>`).join('')
@@ -849,16 +859,26 @@ function parts(it){
   const btns = [];
   if (it.mine && mode === 'local') btns.push(`<button class="copy" data-send="${it.id}">보낼 글 복사</button>`);
   if (canEdit) btns.push(`<button class="copy warn" data-del="${it.id}">지우기</button>`);
+  /* 엉뚱한 주소로 닫힌 요청을 되살리는 길 — 요청한 사람과 담당자에게만 보인다 */
+  if (!VIEW && it.kind === 'tool' && it.from && (secrets[it.from.id] || adminToken)) {
+    btns.push(`<button class="copy warn" data-reopen="${esc(it.from.id)}">요청으로 되돌리기</button>`);
+  }
   p.own = btns;
 
-  p.move = (canEdit && st !== 'done')
-    ? `<div class="move">${
-        st === 'ask'
-          ? `<button class="copy" data-move="${it.id}" data-to="making">만드는 중으로 옮기기</button>`
-          : `<input class="mvurl" data-url="${it.id}" type="url" placeholder="완성된 도구 주소 (https://)">
-             <input class="mvurl" data-maker="${it.id}" type="text" placeholder="만든 사람 (선택)">
-             <button class="copy" data-move="${it.id}" data-to="done">완성으로 옮기기</button>`
-      }</div>`
+  /* 누구나 요청을 집어 들고 만들어 올린다 — 요청한 사람이 아니어도 된다 */
+  p.move = (!VIEW && it.kind === 'request' && st !== 'done')
+    ? `<details class="make" data-card="${it.id}"${openMake.has(it.id) ? ' open' : ''}>
+        <summary>내가 만들어 올리기</summary>
+        <p class="mini">'AI 프롬프트 복사'로 AI에서 만든 뒤, 주소를 넣고 올리면 도구 모음에 올라갑니다.</p>
+        <div class="move">
+          <input class="mvurl" data-maker="${it.id}" type="text" placeholder="내 이름 (선택)">
+          ${st === 'ask' ? `<button class="copy" data-move="${it.id}" data-to="making">만들어 볼게요</button>` : ''}
+        </div>
+        <div class="move">
+          <input class="mvurl" data-url="${it.id}" type="url" placeholder="완성한 도구 주소 (https://)">
+          <button class="copy" data-move="${it.id}" data-to="done">완성해서 올리기</button>
+        </div>
+      </details>`
     : '';
   return p;
 }
@@ -947,6 +967,7 @@ let openNotes = new Set();        // 다시 그려도 열어 둔 의견 칸은 �
 let editing = null;               // 지금 요청문을 고쳐 쓰는 중인 카드
 let stdEditing = null;            // 지금 성취기준을 고르는 중인 카드
 let openStd = new Set();
+let openMake = new Set();         // 펼쳐 둔 '내가 만들어 올리기'
 
 /* 옛 형식(한 레코드가 state 로 요청·도구를 오가던 것) → 세 가지 글. 서버의 migrate 와 같다 */
 function migrate(old){
@@ -1011,10 +1032,12 @@ const api = {
   },
   addRequest: rec => call('/requests', rec, '올리지 못했습니다'),
   addTool: rec => call('/tools', rec, '올리지 못했습니다'),
-  making: id => call('/requests/' + encodeURIComponent(id) + '/making',
-    {token: secrets[id] || ''}, '옮기지 못했습니다', true),
+  making: (id, maker) => call('/requests/' + encodeURIComponent(id) + '/making',
+    {maker}, '표시하지 못했습니다'),
+  reopen: id => call('/requests/' + encodeURIComponent(id) + '/reopen',
+    {token: secrets[id] || ''}, '되돌리지 못했습니다', true),
   done: (id, url, maker) => call('/requests/' + encodeURIComponent(id) + '/done',
-    {url, maker, token: secrets[id] || ''}, '옮기지 못했습니다', true),
+    {url, maker, token: secrets[id] || ''}, '올리지 못했습니다'),
   need: id => call('/requests/' + encodeURIComponent(id) + '/need', {}, '누르지 못했습니다'),
   addNote: note => call('/notes', note, '남기지 못했습니다'),
   delNote: noteId => call('/notes/' + encodeURIComponent(noteId) + '/delete',
@@ -1041,7 +1064,7 @@ function toItem(rec, n){
   const tags = [];
   if (rec.round) tags.push(rec.round);
   if (isReq ? rec.by : rec.maker) tags.push(isReq ? rec.by : rec.maker);
-  if (!isReq) tags.push(rec.cam ? '카메라 필요' : '카메라 없이도 됨');
+  if (!isReq && rec.cam) tags.push('카메라 필요');   // '없이도 됨'은 고르지 않은 기본값일 수 있어 붙이지 않는다
   if (mode === 'local') tags.push('이 브라우저에만');
   const from = !isReq && rec.from ? db().requests.find(r => r.id === rec.from) : null;
   return {
@@ -1090,7 +1113,7 @@ const TABS = ['tools','board','ask','std'];
 const TAB_HEAD = {
   std: ['성취기준', '성취기준마다 연결된 도구와 요청을 볼 수 있습니다.'],
   ask: ['요청하기', '한 문장만 적으면 됩니다. 자세한 내용은 만드는 사람이 채웁니다.'],
-  board: ['요청 목록', '\'저도 필요해요\'가 많은 요청부터 보입니다. 완성된 요청은 도구 모음으로 옮겨집니다.'],
+  board: ['요청 목록', '누구나 요청을 골라 만들어 올릴 수 있습니다. \'저도 필요해요\'가 많은 요청부터 보입니다.'],
   tools: ['도구 모음', '바로 쓸 수 있는 도구를 분류별로 모았습니다.']
 };
 /* 넣는 곳은 한 벌뿐이고, 보이는 판 아래에 붙어 갈래에 맞게 옷을 갈아입는다 */
@@ -1282,10 +1305,10 @@ nocam.addEventListener('change', apply);
 
 /* details 의 toggle 은 위로 올라오지 않아, 요약줄 클릭 뒤의 상태를 읽는다 */
 grid.addEventListener('click', e => {
-  const sum = e.target.closest('details.notes > summary, details.std > summary');
+  const sum = e.target.closest('details.notes > summary, details.std > summary, details.make > summary');
   if (!sum) return;
   const box = sum.parentElement;
-  const set = box.classList.contains('std') ? openStd : openNotes;
+  const set = box.classList.contains('std') ? openStd : box.classList.contains('make') ? openMake : openNotes;
   setTimeout(() => {
     if (box.open) set.add(box.dataset.card);
     else set.delete(box.dataset.card);
@@ -1366,7 +1389,7 @@ grid.addEventListener('click', async e => {
     return;
   }
 
-  /* 요청글 옮기기 — 만드는 중은 상태만, 만들어짐은 도구글을 새로 만든다 */
+  /* 만들어 볼게요는 상태와 이름만, 완성해서 올리기는 도구글을 새로 만든다 — 누구나 */
   const move = e.target.closest('[data-move]');
   if (move) {
     const id = move.dataset.move, to = move.dataset.to;
@@ -1374,27 +1397,28 @@ grid.addEventListener('click', async e => {
     const mk = grid.querySelector('.mvurl[data-maker="' + id + '"]');
     const url = box ? box.value.trim() : '', maker = mk ? mk.value.trim() : '';
     if (to === 'done' && !/^https?:\/\//.test(url)) {
-      note.textContent = '완성으로 옮기려면 https://로 시작하는 도구 주소를 넣어 주세요.';
+      note.textContent = 'https://로 시작하는 도구 주소를 넣어 주세요.';
       if (box) box.focus();
       return;
     }
-    move.textContent = '옮기는 중';
+    move.textContent = to === 'done' ? '올리는 중' : '표시하는 중';
     if (mode === 'server') {
       try {
         if (to === 'done') {
           const d = await api.done(id, url, maker);
-          /* 도구글의 열쇠는 요청글과 같다 — 넣은 사람이 그대로 주인이다 */
-          if (secrets[id]) { secrets[d.toolId] = secrets[id]; save(SECRETS, secrets); }
-        } else await api.making(id);
+          /* 도구의 주인은 올린 사람 — 남이 올렸으면 새 열쇠를, 요청한 본인이면 요청 열쇠를 그대로 */
+          const key = d.token || secrets[id];
+          if (key) { secrets[d.toolId] = key; save(SECRETS, secrets); }
+        } else await api.making(id, maker);
         remote = await api.load();
       } catch (err) {
-        move.textContent = to === 'done' ? '완성으로 옮기기' : '만드는 중으로 옮기기';
-        note.textContent = '옮기지 못했습니다. ' + err.message;
+        move.textContent = to === 'done' ? '완성해서 올리기' : '만들어 볼게요';
+        note.textContent = (to === 'done' ? '올리지 못했습니다. ' : '표시하지 못했습니다. ') + err.message;
         return;
       }
     } else {
       const r = local.requests.find(x => x.id === id);
-      if (r && to === 'making') r.status = 'making';
+      if (r && to === 'making') { r.status = 'making'; r.makingBy = maker; }
       if (r && to === 'done') {
         const tool = {id: newId('t'), name: r.name, line: r.line, url, maker, knobs: '', category: r.category,
           use: r.use, cam: r.cam, ask: (r.ask || []).slice(), stds: (r.stds || []).slice(),
@@ -1406,9 +1430,9 @@ grid.addEventListener('click', async e => {
     }
     render();
     if (to === 'done') {
-      note.textContent = '완성으로 옮겼습니다. 도구 모음에 새 카드가 생겼습니다.';
-      setTab('tools', true);
-    } else note.textContent = '\'만드는 중\'으로 옮겼습니다.';
+      setTab('tools', true);   // 탭을 옮기면 안내 줄을 비우니, 안내는 옮긴 뒤에 쓴다
+      note.textContent = '올렸습니다. 도구 모음에 새 카드가 생겼습니다.';
+    } else note.textContent = '\'만드는 중\'으로 표시했습니다. 다른 사람도 볼 수 있습니다.';
     return;
   }
 
@@ -1559,6 +1583,33 @@ grid.addEventListener('click', async e => {
     editing = null;
     render();
     note.textContent = '요청문을 고쳤습니다.';
+    return;
+  }
+
+  /* 요청으로 되돌리기 — 두 번 눌러야 실행(지우기와 같은 방식) */
+  const rop = e.target.closest('[data-reopen]');
+  if (rop) {
+    if (rop.dataset.armed !== '1') {
+      rop.dataset.armed = '1';
+      rop.textContent = '정말 되돌릴까요';
+      setTimeout(() => { if (rop.dataset.armed === '1') { rop.dataset.armed = '0'; rop.textContent = '요청으로 되돌리기'; } }, 4000);
+      return;
+    }
+    const rid = rop.dataset.reopen;
+    if (mode === 'server') {
+      try { await api.reopen(rid); remote = await api.load(); }
+      catch (err) { note.textContent = '되돌리지 못했습니다. ' + err.message; return; }
+    } else {
+      const r = local.requests.find(x => x.id === rid);
+      if (r) {
+        local.tools.forEach(t => { if (t.id === r.toolId) t.from = ''; });
+        Object.assign(r, {toolId: '', status: 'ask', makingBy: ''});
+        saveLocal();
+      }
+    }
+    render();
+    setTab('board', true);
+    note.textContent = '요청 목록으로 되돌렸습니다. 도구 카드는 도구 모음에 그대로 남습니다.';
     return;
   }
 

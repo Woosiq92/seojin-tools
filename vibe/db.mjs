@@ -51,6 +51,10 @@ for (const t of ['requests', 'tools']) {
     db.exec(`ALTER TABLE ${t} ADD COLUMN category TEXT NOT NULL DEFAULT '기타'`);
   }
 }
+/* 누가 만들고 있는지 — 누구나 요청을 집어 들 수 있어서, 같은 걸 두 사람이 만들지 않게 이름을 남긴다 */
+if (!db.prepare('PRAGMA table_info(requests)').all().some(c => c.name === 'making_by')) {
+  db.exec(`ALTER TABLE requests ADD COLUMN making_by TEXT NOT NULL DEFAULT ''`);
+}
 /* 이름으로 찾기 — 띄어쓰기와 대소문자를 무시하고, 앞뒤를 줄여 쳐도("서진학교" → "서울서진학교") 찾는다 */
 export const normName = v => String(v || '').replace(/\s+/g, '').toLowerCase();
 export function findSpaces(q) {
@@ -84,7 +88,7 @@ export const newId = pre => pre + Date.now().toString(36) + crypto.randomBytes(2
 const arr = v => { try { const x = JSON.parse(v || '[]'); return Array.isArray(x) ? x : []; } catch { return []; } };
 export const rowToRequest = r => ({ id: r.id, name: r.name, line: r.line, by: r.by, round: r.round,
   use: r.use, cam: !!r.cam, status: r.status, ask: arr(r.ask), stds: arr(r.stds), needs: r.needs || 0,
-  toolId: r.tool_id || '', category: catOf(r.category), token: r.token, at: r.at });
+  toolId: r.tool_id || '', category: catOf(r.category), makingBy: r.making_by || '', token: r.token, at: r.at });
 export const rowToTool = r => ({ id: r.id, name: r.name, line: r.line, url: r.url, maker: r.maker,
   knobs: r.knobs, use: r.use, cam: !!r.cam, ask: arr(r.ask), stds: arr(r.stds), from: r.from_req || '',
   category: catOf(r.category), token: r.token, at: r.at });
