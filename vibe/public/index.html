@@ -289,6 +289,11 @@ section.make .mini{margin:0}
 .dtabs button[aria-selected="true"]{border-bottom-color:var(--ink);color:var(--ink);font-weight:700}
 .dbody{display:flex;flex-direction:column;gap:10px;min-height:120px}
 .dbody .slots{margin-top:2px}
+/* 도구 제작 — 만드는 순서 */
+.makeflow{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:10px;counter-reset:m}
+.makeflow li{counter-increment:m;background:var(--sheet);border:1px solid var(--rule);padding:14px 16px;display:flex;flex-direction:column;gap:4px}
+.makeflow b::before{content:counter(m) ". ";color:var(--green)}
+.makeflow span{font-size:13.5px;color:var(--ink2)}
 .dstatus{margin:-4px 0 0;color:var(--green)}
 .dstatus:empty{display:none}
 .dfoot{display:flex;flex-wrap:wrap;gap:8px;border-top:1px solid var(--rule);padding-top:14px;margin-top:auto}
@@ -361,6 +366,8 @@ footer a{color:var(--ink2)}
 <nav class="side" id="side" aria-label="메뉴">
   <button class="navi" data-tab="tools" aria-current="false">
     <span>도구 모음<small>찾아서 바로 쓰기</small></span><span class="cnt" id="c-tools"></span></button>
+  <button class="navi" data-tab="make" aria-current="false">
+    <span>도구 제작<small>만들어 올리기</small></span></button>
   <button class="navi" data-tab="board" aria-current="false">
     <span>요청 목록<small id="sub-board">요청과 의견</small></span><span class="cnt" id="c-board"></span></button>
   <button class="navi" data-tab="std" aria-current="false" id="nav-std">
@@ -382,7 +389,7 @@ footer a{color:var(--ink2)}
 
 <div class="panehead" id="panehead">
   <div class="panetop"><h2 id="paneTitle"></h2>
-    <button class="btn" id="goupload" hidden>만든 도구 올리기</button></div>
+</div>
   <p id="paneDesc"></p>
   <p class="mini" id="status" role="status"></p></div>
 
@@ -401,6 +408,15 @@ footer a{color:var(--ink2)}
 
 <section class="tabpane" data-pane="board">
   <div class="rows" id="grid-board"></div>
+</section>
+
+<section class="tabpane" data-pane="make" hidden>
+  <ol class="makeflow">
+    <li><b>만들 것 정하기</b><span>요청 목록에서 골라도 되고, 직접 정해도 됩니다.</span></li>
+    <li><b>AI로 만들기</b><span>요청 상세의 '프롬프트 복사하기'로 시작하면 쉽습니다. HTML 파일 한 장으로 만들어 달라고 하세요.</span></li>
+    <li><b>공개 주소 받기</b><span>GitHub Pages나 Claude 아티팩트 공유 링크처럼 다른 선생님도 열 수 있는 주소가 있어야 합니다.</span></li>
+    <li><b>아래에서 올리기</b><span>요청을 보고 만들었다면 그 요청 상세의 '완성해서 올리기'로 올려야 요청과 이어집니다.</span></li>
+  </ol>
 </section>
 
 <section class="tabpane" data-pane="tools" hidden>
@@ -1130,22 +1146,22 @@ const note = {
 };
 
 /* ---- 갈래 ---- */
-const TABS = ['tools','board','ask','std'];
+const TABS = ['tools','make','board','ask','std'];
 const TAB_HEAD = {
   std: ['성취기준', '성취기준마다 연결된 도구와 요청을 볼 수 있습니다.'],
   ask: ['요청하기', '한 문장만 적으면 됩니다. 자세한 내용은 만드는 사람이 채웁니다.'],
   board: ['요청 목록', '누구나 요청을 골라 만들어 올릴 수 있습니다. \'저도 필요해요\'가 많은 요청부터 보입니다.'],
-  tools: ['도구 모음', '바로 쓸 수 있는 도구를 분류별로 모았습니다.']
+  tools: ['도구 모음', '바로 쓸 수 있는 도구를 분류별로 모았습니다.'],
+  make: ['도구 제작', 'AI로 만든 도구의 주소를 올리면 도구 모음에 올라갑니다.']
 };
 /* 넣는 곳은 한 벌뿐이고, 보이는 판 아래에 붙어 갈래에 맞게 옷을 갈아입는다 */
 const TAB_FORM = {
   ask: ['요청 올리기', ''],
-  tools: ['도구 올리기', '완성된 도구의 주소를 넣으면 도구 모음에 올라갑니다.']
+  make: ['도구 올리기', '완성된 도구의 주소를 넣으면 도구 모음에 올라갑니다.']
 };
 /* 카드 거르개는 목록을 보는 갈래에만 */
 const TAB_BAR = {board: 1, tools: 1};
 let tab = 'tools';
-let toolForm = false;             // 도구 모음에서 넣기 폼을 펼쳤는가
 /* 처음 보이는 갈래 — 쓸 도구가 있으면 도구 모음, 없으면 요청 목록, 그것도 없으면 요청하기. 빈 판부터 보이지 않게 */
 function firstTab(){
   const list = all();
@@ -1155,7 +1171,7 @@ function firstTab(){
    처음 열 때·뒤로가기로 돌아올 때·올린 뒤 목록으로 넘어갈 때는 기록을 덮어쓴다(빈 폼으로 되돌아가지 않게) */
 function setTab(t, push){
   if (detail) { detail = null; detailPushed = false; renderDetail(); }   // 탭을 옮기면 상세는 닫는다
-  if (!TABS.includes(t) || (t === 'std' && !STD_ON) || (t === 'ask' && VIEW)) t = firstTab();
+  if (!TABS.includes(t) || (t === 'std' && !STD_ON) || ((t === 'ask' || t === 'make') && VIEW)) t = firstTab();
   const moved = t !== tab;
   tab = t;
   document.querySelectorAll('.navi').forEach(b =>
@@ -1166,18 +1182,16 @@ function setTab(t, push){
   document.getElementById('paneDesc').textContent = head[1];
   const fh = TAB_FORM[t];
   /* 요청 목록에는 넣는 곳 대신 요청하기로 가는 단추, 요청하기에는 거르개가 없다 */
-  if (t !== 'tools') toolForm = false;
   document.getElementById('barwrap').hidden = !TAB_BAR[t];
   document.getElementById('cats').hidden = t !== 'tools';
-  /* 도구 넣기 폼은 드물게 쓰니 「만든 도구 올리기」를 눌러야 펼친다 */
-  document.getElementById('add').hidden = VIEW || !fh || (t === 'tools' && !toolForm);
-  document.getElementById('goupload').hidden = VIEW || t !== 'tools' || toolForm;
+  /* 도구 올리기 폼은 도구 제작 탭에, 요청 폼은 요청하기 탭에 */
+  document.getElementById('add').hidden = VIEW || !fh;
   if (fh) {
     document.getElementById('addTitle').textContent = fh[0];
     document.getElementById('addTitle').hidden = t === 'ask';   // 위에 '요청하기' 제목이 이미 있다
     document.getElementById('addSubText').textContent = fh[1];
     /* 요청하기 폼은 요청글(한 문장 + 여섯 칸), 도구 넣기 폼은 도구글(주소·분류·대상·설정·성취기준)을 만든다 */
-    const isTool = t === 'tools';
+    const isTool = t === 'make';
     /* 요청하기는 한 문장(i-wish)으로 받는다. 이름·한 줄 칸은 도구 넣기에서만 */
     document.getElementById('f-wish').hidden = isTool;
     document.getElementById('f-name').hidden = document.getElementById('f-line').hidden = !isTool;
@@ -1228,7 +1242,7 @@ function render(){
   gridTools.innerHTML = tools.length
     ? byCat.map(([c, l]) => `<section class="catsec" data-cat="${esc(c)}"><h3>${esc(c)}<small>${l.length}</small></h3>
         <div class="grid">${l.map(cardHTML).join('')}</div></section>`).join('')
-    : `<p class="empty wide">아직 도구가 없습니다. 만든 도구가 있으면 '만든 도구 올리기'를 눌러 주세요.</p>`;
+    : `<p class="empty wide">아직 도구가 없습니다. 만든 도구가 있으면 '도구 제작' 탭에서 올려 주세요.</p>`;
   if (cat !== 'all' && !byCat.some(([c]) => c === cat)) cat = 'all';
   document.getElementById('cats').innerHTML = '<span class="catlab">분류</span>' + [['all', '전체', tools.length]].concat(byCat.map(([c, l]) => [c, c, l.length]))
     .map(([v, t, n]) => `<button class="chip" data-cat="${esc(v)}" aria-pressed="${v === cat}">${esc(t)} ${n}</button>`).join('');
@@ -1827,7 +1841,7 @@ document.addEventListener('input', e => {
 /* 폼 하나에서 지금 갈래에 맞는 글 하나를 만든다 */
 function formPost(f){
   const common = {name: f.name, line: f.line, use: f.use, cam: f.cam, ask: f.ask, stds: f.stds, category: f.category};
-  return tab === 'tools'
+  return tab === 'make'
     ? ['tools', Object.assign(common, {url: f.url, maker: f.maker, knobs: f.knobs, source: f.source})]
     : ['requests', {name: shortName(f.wish), line: f.wish, ask: f.ask}];
 }
@@ -1880,13 +1894,12 @@ saveBtn.addEventListener('click', async () => {
       emptyForm();
       render();
       const msg = '올렸습니다. 다른 사람도 바로 볼 수 있습니다.';
-      if (kind === 'requests') { setTab('board'); showCard(res.id, msg); return; }
-      note.textContent = msg;
+      setTab(kind === 'requests' ? 'board' : 'tools'); showCard(res.id, msg); return;
     } catch (err) {
       note.textContent = '올리지 못했습니다. ' + err.message + ' 잠시 뒤에 다시 눌러 주세요.';
     } finally {
       saveBtn.disabled = false;
-      saveBtn.textContent = tab === 'tools' ? '도구 올리기' : '요청 올리기';
+      saveBtn.textContent = tab === 'make' ? '도구 올리기' : '요청 올리기';
     }
     grid.scrollIntoView({behavior:'smooth', block:'start'});
     return;
@@ -1902,9 +1915,7 @@ saveBtn.addEventListener('click', async () => {
   const msg = ok
     ? '올렸습니다. 이 브라우저에만 저장되니 상세 화면의 \'보낼 글 복사\'를 눌러 담당자에게 보내 주세요.'
     : '이 브라우저에 저장하지 못했습니다. 상세 화면의 \'보낼 글 복사\'를 지금 눌러 주세요.';
-  if (kind === 'requests') { setTab('board'); showCard(rec.id, msg); return; }
-  note.textContent = msg;
-  grid.scrollIntoView({behavior:'smooth', block:'start'});
+  setTab(kind === 'requests' ? 'board' : 'tools'); showCard(rec.id, msg);
 });
 
 document.getElementById('clear').addEventListener('click', () => {
@@ -1972,6 +1983,7 @@ async function boot(){
       /* 예시 공간이면 쓰는 곳(요청하기·폼·필요해요·의견 쓰기·옮기기)을 모두 걷어 낸다 */
       VIEW = space.access === 'view';
       document.querySelector('.navi[data-tab="ask"]').hidden = VIEW;
+      document.querySelector('.navi[data-tab="make"]').hidden = VIEW;
       if (space.curriculum === 'none') {
         /* 교육과정을 쓰지 않는 공간 — 성취기준 갈래·거르개·넣는 칸을 걷어 낸다 */
         STD_ON = false;
@@ -2018,12 +2030,6 @@ document.getElementById('guide').addEventListener('click', e => {
 document.getElementById('guideclose').addEventListener('click', () => {
   document.getElementById('guide').hidden = true;
   save(GUIDE, true);
-});
-document.getElementById('goupload').addEventListener('click', () => {
-  toolForm = true;
-  setTab('tools');
-  document.getElementById('add').scrollIntoView({behavior:'smooth', block:'start'});
-  F.name.focus({preventScroll: true});
 });
 function showGate(msg){
   document.getElementById('shell').hidden = true;
