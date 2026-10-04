@@ -73,8 +73,9 @@ function validateRequest(b) {
     needs: 0,
     toolId: ''
   };
-  if (!rec.name) return { error: '이름을 채워 주세요.' };
-  if (!rec.line) return { error: '한 줄 설명을 채워 주세요.' };
+  /* 요청은 한 문장(line)이면 된다. 이름이 없으면 그 문장 앞부분으로 */
+  if (!rec.line) return { error: '무엇이 있으면 좋겠는지 한 문장만 적어 주세요.' };
+  if (!rec.name) rec.name = rec.line.length <= 24 ? rec.line : rec.line.slice(0, 24) + '…';
   return { rec };
 }
 
