@@ -358,7 +358,7 @@ footer a{color:var(--ink2)}
   <ol>
     <li><button data-go="tools"><b>찾아서 쓰기</b><span>도구 모음에서 분류별로 둘러보고 바로 엽니다.</span></button></li>
     <li><button data-go="ask"><b>없으면 요청하기</b><span>한 문장만 적으면 됩니다. 비슷한 도구가 있으면 먼저 알려 줍니다.</span></button></li>
-    <li><button data-go="board"><b>AI로 만들기</b><span>누구나 요청 카드의 'AI 프롬프트 복사'로 AI에서 만들고, '내가 만들어 올리기'로 주소를 붙입니다.</span></button></li>
+    <li><button data-go="board"><b>AI로 만들기</b><span>누구나 요청 카드의 '프롬프트 복사하기'로 AI에서 만들고, '내가 만들어 올리기'로 주소를 붙입니다.</span></button></li>
   </ol>
   <button class="x" id="guideclose">안내 닫기</button>
 </section>
@@ -816,8 +816,7 @@ function parts(it){
         `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join('')}</dl>`
     : `<p class="empty">아직 적힌 내용이 없습니다. 비어 있으면 한 줄 설명만으로 프롬프트를 만듭니다.</p>`;
   /* 프롬프트 복사는 접힌 상자 안이 아니라 카드 겉에 둔다 — 안내의 'AI로 만들기'가 바로 이 단추다 */
-  p.prompt = `<button class="copy prompt" data-copy="${it.id}">${
-    it.kind === 'request' ? 'AI 프롬프트 복사' : '고쳐 만들기 프롬프트 복사'}</button>`;
+  p.prompt = `<button class="copy prompt" data-copy="${it.id}">프롬프트 복사하기</button>`;
   const askEdit = editing === it.id
     ? `<div class="askedit"><label class="slotlab">분류</label>
        <select class="chipsel" data-acat="1">${CATEGORIES.map(c =>
@@ -869,7 +868,7 @@ function parts(it){
   p.move = (!VIEW && it.kind === 'request' && st !== 'done')
     ? `<details class="make" data-card="${it.id}"${openMake.has(it.id) ? ' open' : ''}>
         <summary>내가 만들어 올리기</summary>
-        <p class="mini">'AI 프롬프트 복사'로 AI에서 만든 뒤, 주소를 넣고 올리면 도구 모음에 올라갑니다.</p>
+        <p class="mini">'프롬프트 복사하기'로 AI에서 만든 뒤, 주소를 넣고 올리면 도구 모음에 올라갑니다.</p>
         <div class="move">
           <input class="mvurl" data-maker="${it.id}" type="text" placeholder="내 이름 (선택)">
           ${st === 'ask' ? `<button class="copy" data-move="${it.id}" data-to="making">만들어 볼게요</button>` : ''}
