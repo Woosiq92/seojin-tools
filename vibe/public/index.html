@@ -287,6 +287,9 @@ details.detail[open] > summary{margin-bottom:6px}
 details.detail .tags{margin:4px 0 6px}
 .clamp{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 a.btn.use{align-self:flex-start;margin-top:4px}
+.copybox{grid-column:1/-1;margin:8px 0 4px}
+.copybox textarea{width:100%;box-sizing:border-box;min-height:140px;font:12.5px/1.5 ui-monospace,Menlo,monospace;
+  background:var(--paper);border:1px solid var(--coral);color:var(--ink);padding:8px;resize:vertical}
 .rowfoot details.std{border-top:1px dotted var(--rule)}
 details.std summary{list-style:none;cursor:pointer;padding:11px 0 2px;
   font-size:13.5px;color:var(--ink2);display:flex;align-items:center;gap:6px}
@@ -1291,11 +1294,38 @@ function flash(btn, msg){
   btn.textContent = msg;
   setTimeout(() => { btn.textContent = was; }, 1800);
 }
+/* 클립보드가 막힌 곳(학교 PC 보안 설정, 앱 속 브라우저, http 로 연 화면)을 위해 두 겹으로 받친다.
+   1) 예전 방식(execCommand)으로 한 번 더  2) 그래도 안 되면 글을 단추 아래 펼쳐 전체 선택해 둔다 */
+function copyOld(text){
+  const ta = document.createElement('textarea');
+  ta.value = text; ta.setAttribute('readonly', '');
+  ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0';
+  document.body.appendChild(ta); ta.select();
+  let done = false;
+  try { done = document.execCommand('copy'); } catch (e) { done = false; }
+  ta.remove();
+  return done;
+}
+function showCopyBox(text, btn){
+  const host = btn.closest('.rowbtns, .rowside, .actions') || btn.parentElement;
+  let box = host.nextElementSibling;
+  if (!box || !box.classList.contains('copybox')) {
+    box = document.createElement('div');
+    box.className = 'copybox';
+    box.innerHTML = '<p class="mini warn">자동 복사가 막혀 있습니다. 아래 글이 선택되어 있으니 Ctrl+C(맥은 ⌘+C)로 복사해 주세요.</p><textarea readonly></textarea>';
+    host.after(box);
+  }
+  const ta = box.querySelector('textarea');
+  ta.value = text; ta.focus(); ta.select();
+}
 function toClipboard(text, btn, ok){
-  /* 안전 문맥이 아니면 navigator.clipboard 자체가 없다(LAN http·file 로 열었을 때) */
-  if (!navigator.clipboard) { flash(btn, '복사가 안 됩니다. 글을 직접 선택해 주세요'); return; }
-  navigator.clipboard.writeText(text).then(() => flash(btn, ok))
-    .catch(() => flash(btn, '복사가 안 됩니다. 글을 직접 선택해 주세요'));
+  const fail = () => {
+    if (copyOld(text)) { flash(btn, ok); return; }
+    flash(btn, '직접 복사해 주세요');
+    showCopyBox(text, btn);
+  };
+  if (!navigator.clipboard) { fail(); return; }
+  navigator.clipboard.writeText(text).then(() => flash(btn, ok)).catch(fail);
 }
 function sendText(rec){
   const lines = [
