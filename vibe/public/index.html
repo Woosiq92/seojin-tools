@@ -36,27 +36,30 @@ body{margin:0;padding:44px 24px 72px;background:var(--paper);color:var(--ink);
 .wrap{max-width:1120px;margin:0 auto;display:flex;flex-direction:column;gap:28px}
 /* 감싸개에 기본 재정의가 없어 hidden 이 display 에 진다 — 한 줄로 못 박는다 */
 [hidden]{display:none!important}
-.shell{display:grid;grid-template-columns:186px 1fr;gap:28px;align-items:start}
-.side{display:flex;flex-direction:column;gap:2px;position:sticky;top:22px}
-.navi{display:flex;justify-content:space-between;align-items:center;gap:8px;width:100%;
-  font:500 14px/1.35 "Gothic A1",sans-serif;background:transparent;border:0;
-  border-left:2px solid transparent;color:var(--ink2);padding:11px 13px;cursor:pointer;text-align:left}
-.navi:hover{background:var(--sheet)}
-.navi[aria-current="true"]{border-left-color:var(--ink);color:var(--ink);font-weight:700;background:var(--sheet)}
-.navi small{display:block;font-size:11.5px;color:var(--muted);font-weight:400;margin-top:2px}
+.shell{display:flex;flex-direction:column;gap:22px}
+/* 위쪽 가로 메뉴 — 보러 가는 곳은 왼쪽 탭, 하는 일(요청하기)은 오른쪽 끝 단추. 스크롤해도 위에 붙는다 */
+.side{display:flex;align-items:flex-end;gap:2px;position:sticky;top:0;z-index:5;background:var(--paper);
+  border-bottom:1px solid var(--rule);margin:0 -24px;padding:6px 24px 0;overflow-x:auto;scrollbar-width:none}
+.side::-webkit-scrollbar{display:none}
+.navi{display:inline-flex;align-items:baseline;gap:7px;white-space:nowrap;
+  font:500 15px/1.3 "Gothic A1",sans-serif;background:transparent;border:0;
+  border-bottom:2px solid transparent;color:var(--ink2);padding:12px 14px 11px;cursor:pointer}
+.navi:hover{color:var(--ink)}
+.navi[aria-current="true"]{border-bottom-color:var(--ink);color:var(--ink);font-weight:700}
+.navi small{display:none}
+.navi[data-tab="ask"]{margin:0 0 7px auto;align-self:center;background:var(--ink);color:var(--paper);
+  font-weight:700;padding:9px 16px;border:0}
+.navi[data-tab="ask"]:hover{opacity:.88;color:var(--paper)}
+.navi[data-tab="ask"][aria-current="true"]{outline:2px solid var(--ink);outline-offset:2px}
 .cnt{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums;flex:0 0 auto}
 .pane{min-width:0;display:flex;flex-direction:column;gap:22px}
 .panehead{display:flex;flex-direction:column;gap:6px}
 .panehead h2{font-family:"Gowun Batang",serif;font-weight:700;font-size:24px;margin:0}
 .panehead p{margin:0;font-size:14px;color:var(--ink2);max-width:42em}
 .empty.wide{grid-column:1/-1;padding:26px 0}
-@media (max-width:780px){
-  .shell{grid-template-columns:1fr;gap:14px}
-  .side{flex-direction:row;overflow-x:auto;position:static;
-    border-bottom:1px solid var(--rule);padding-bottom:2px;gap:0}
-  .navi{border-left:0;border-bottom:2px solid transparent;white-space:nowrap;padding:10px 12px;width:auto}
-  .navi[aria-current="true"]{border-bottom-color:var(--ink);background:transparent}
-  .navi small{display:none}
+@media (max-width:560px){
+  .navi{padding:11px 10px 10px;font-size:14px}
+  .navi[data-tab="ask"]{padding:8px 12px}
 }
 
 header{display:flex;flex-direction:column;gap:10px}
@@ -321,7 +324,7 @@ footer a{color:var(--ink2)}
 
 <section class="gate" id="gate" hidden>
   <h2>초대가 필요한 곳입니다</h2>
-  <p class="sub">담당자에게 받은 초대 링크를 누르면 바로 열립니다. 링크 끝 <code>k=</code> 뒤의 여덟 글자를 여기에 넣어도 됩니다. 한 번 들어오면 이 브라우저가 기억합니다.</p>
+  <p class="sub">담당자에게 받은 초대 링크로 들어오세요. 초대 코드 8자리를 아래에 직접 넣어도 됩니다. 한 번 들어오면 이 브라우저에서는 다시 묻지 않습니다.</p>
   <form class="gaterow" id="gateform">
     <input type="text" id="gatecode" autocomplete="off" autocapitalize="characters" aria-label="초대 코드" placeholder="예: K7QM2XPA">
     <button class="btn go">들어가기</button>
@@ -330,15 +333,15 @@ footer a{color:var(--ink2)}
 </section>
 
 <div class="shell" id="shell">
-<nav class="side" id="side" aria-label="저장소 갈래">
+<nav class="side" id="side" aria-label="메뉴">
   <button class="navi" data-tab="tools" aria-current="false">
     <span>도구 모음<small>찾아서 바로 쓰기</small></span><span class="cnt" id="c-tools"></span></button>
   <button class="navi" data-tab="board" aria-current="false">
     <span>요청 목록<small id="sub-board">요청과 의견</small></span><span class="cnt" id="c-board"></span></button>
-  <button class="navi" data-tab="ask" aria-current="false">
-    <span>요청하기<small>없으면 적어 두기</small></span></button>
   <button class="navi" data-tab="std" aria-current="false" id="nav-std">
     <span>성취기준<small id="curname">특수교육 기본 교육과정</small></span><span class="cnt" id="c-std"></span></button>
+  <button class="navi" data-tab="ask" aria-current="false">
+    <span>요청하기<small>없으면 적어 두기</small></span></button>
 </nav>
 
 <main class="pane" id="panes">
@@ -347,15 +350,14 @@ footer a{color:var(--ink2)}
 <section class="guide" id="guide" hidden>
   <ol>
     <li><button data-go="tools"><b>찾아서 쓰기</b><span>도구 모음에서 분류별로 둘러보고 바로 엽니다.</span></button></li>
-    <li><button data-go="ask"><b>없으면 요청하기</b><span>한 문장이면 됩니다. 비슷한 것이 있으면 먼저 알려 줍니다.</span></button></li>
-    <li><button data-go="board"><b>요청문으로 만들기</b><span>누구든 「AI로 만들기」로 프롬프트를 받아 AI와 함께 만들고 주소를 붙입니다.</span></button></li>
+    <li><button data-go="ask"><b>없으면 요청하기</b><span>한 문장만 적으면 됩니다. 비슷한 도구가 있으면 먼저 알려 줍니다.</span></button></li>
+    <li><button data-go="board"><b>AI로 만들기</b><span>요청 카드에서 프롬프트를 복사해 AI에 붙여 넣으면 도구를 만들 수 있습니다.</span></button></li>
   </ol>
   <button class="x" id="guideclose">안내 닫기</button>
 </section>
 
 <div class="panehead" id="panehead">
   <div class="panetop"><h2 id="paneTitle"></h2>
-    <a class="btn go" id="goask" href="#ask" hidden>요청하기</a>
     <button class="btn" id="goupload" hidden>만든 도구 올리기</button></div>
   <p id="paneDesc"></p>
   <p class="mini" id="status" role="status"></p></div>
@@ -396,19 +398,19 @@ footer a{color:var(--ink2)}
 
 <section class="add" id="add">
   <h2 id="addTitle">요청 넣기</h2>
-  <p class="sub"><span id="addSubText">아직 없는 것을 말해도 됩니다.</span>
+  <p class="sub"><span id="addSubText"></span>
     <b id="modeline">저장소를 여는 중입니다.</b></p>
 
   <!-- 쓰는 순서대로: 무엇인지(이름·한 줄) → 비슷한 것이 이미 있는지 → 분류·어디에 → 누가·언제 → 성취기준 -->
   <div class="fields">
     <!-- 요청하기에서는 이 한 칸이면 끝이다. 이름은 이 문장에서 짧게 만든다 -->
-    <div class="f wide wish" id="f-wish"><label for="i-wish">무엇이 있으면 좋겠어요?</label>
-      <textarea id="i-wish" rows="2" placeholder="예: 급식 메뉴를 그림으로 보고 고르는 화면이 있으면 좋겠어요"></textarea></div>
+    <div class="f wide wish" id="f-wish"><label for="i-wish">어떤 도구가 필요한가요?</label>
+      <textarea id="i-wish" rows="2" placeholder="예: 급식 메뉴를 그림으로 보고 고르는 화면이 있으면 좋겠습니다"></textarea></div>
     <div class="f" id="f-name"><label for="i-name">이름 <i>*</i></label>
       <input type="text" id="i-name" placeholder="예: 오늘 급식 고르기"></div>
     <div class="f" id="f-url"><label for="i-url">주소 <i>*</i></label>
       <input type="url" id="i-url" placeholder="https:// 로 시작하는 주소"></div>
-    <div class="f wide" id="f-line"><label for="i-line">한 줄로 무엇을 하는 것인가요 <i>*</i></label>
+    <div class="f wide" id="f-line"><label for="i-line">한 줄 설명 <i>*</i></label>
       <input type="text" id="i-line" placeholder="예: 그림 두 개 중 하나를 눌러 오늘 먹을 것을 고릅니다"></div>
     <div class="f wide similar" id="similar" hidden></div>
     <div class="f opt"><label for="i-cat">분류</label>
@@ -419,20 +421,20 @@ footer a{color:var(--ink2)}
         <label><input type="radio" name="use" value="teacher"> 교사 준비</label>
         <label><input type="checkbox" id="i-cam"> 카메라가 있어야 함</label>
       </div></div>
-    <div class="f opt"><label for="i-maker" id="makerlab">말한 사람</label>
+    <div class="f opt"><label for="i-maker" id="makerlab">요청한 사람</label>
       <input type="text" id="i-maker" placeholder="예: 초등 3학년 김 선생님"></div>
-    <div class="f opt" id="f-round"><label for="i-round">어느 날 나온 이야기인가요</label>
+    <div class="f opt" id="f-round"><label for="i-round">언제 나온 요청인가요</label>
       <input type="text" id="i-round" placeholder="예: 9월 16일 교학공"></div>
-    <div class="f wide" id="f-knobs"><label for="i-knobs">교사 설정으로 뺀 것</label>
+    <div class="f wide" id="f-knobs"><label for="i-knobs">교사가 바꿀 수 있는 설정</label>
       <input type="text" id="i-knobs" placeholder="예: 속도 · 글자 크기 · 소리 켜기"></div>
     <div class="f wide opt" id="f-std"><label id="curform">성취기준 (특수교육 기본 교육과정, 여섯 개까지)</label>
       <div class="stdpick" data-pk="form"></div></div>
   </div>
 
-  <button type="button" class="btn" id="askmore">더 적기 — 안 적어도 됩니다</button>
+  <button type="button" class="btn" id="askmore">자세히 적기 (선택)</button>
 
   <details class="more opt">
-    <summary>요청문 여섯 칸 — 채울수록 AI가 그대로 만듭니다</summary>
+    <summary>요청문 여섯 칸 (자세할수록 AI가 정확하게 만듭니다)</summary>
     <div class="fields" style="margin-top:14px">
       <div class="f"><label for="a0">무엇을</label><textarea id="a0"></textarea></div>
       <div class="f"><label for="a1">들어오는 것</label><textarea id="a1"></textarea></div>
@@ -444,16 +446,16 @@ footer a{color:var(--ink2)}
   </details>
 
   <!-- 드문 경우라 맨 아래 — 대부분은 '있으면 좋겠다'로 올린다 -->
-  <div class="f wide opt" id="statepick" style="margin-top:16px"><label>지금 어디쯤인가요</label>
+  <div class="f wide opt" id="statepick" style="margin-top:16px"><label>진행 상황</label>
     <div class="pick">
-      <label><input type="radio" name="state" value="ask" checked> 요청 — 있으면 좋겠다</label>
+      <label><input type="radio" name="state" value="ask" checked> 요청 (있으면 좋겠다)</label>
       <label><input type="radio" name="state" value="making"> 이미 만드는 중</label>
     </div></div>
 
   <div class="actions">
-    <button class="btn go" id="save">카드 만들기</button>
+    <button class="btn go" id="save">올리기</button>
     <button class="btn" id="clear">비우기</button>
-    <span class="note" id="formnote">쓰는 동안 자동으로 임시 저장됩니다. 창을 닫아도 남습니다.</span>
+    <span class="note" id="formnote">쓰는 내용은 이 브라우저에 임시 저장됩니다.</span>
   </div>
 </section>
 
@@ -461,8 +463,8 @@ footer a{color:var(--ink2)}
 </div>
 
 <footer>
-  <span>수업에 정식으로 채택하려면 학교운영위원회 심의가 앞에 옵니다(초·중등교육법 29조의2).
-    저장소에 올려 두는 것과 학급에 도입하는 것은 다른 단계입니다.</span>
+  <span>학습지원 소프트웨어로 정식 선정하려면 학교운영위원회 심의를 거쳐야 합니다(초·중등교육법 제29조의2).
+    여기에 올리는 것만으로 학급 도입이 되지는 않습니다.</span>
   <span id="devnote">서버 위에서 열면 선생님이 넣은 카드가 바로 모두에게 보입니다. 서버 없이 열면 그 브라우저에만 남습니다.
     기본 카드 여섯 개는 <code>~/seojin/저장소.html</code> 의 <code>ITEMS</code> 에 있습니다.
     담당자가 바뀌면 주소 끝에 <code>#admin</code> 을 붙여 열쇠를 넣고 「전체 내려받기」로 자료를 통째로 옮깁니다.
@@ -707,7 +709,7 @@ function stdLine(r){
     esc(r[1] + ' ' + r[2] + (r[3] ? ' · ' + r[3] : ''))}</small>`;
 }
 function pickText(key){
-  if (key === 'form') { const r = readForm(); return [r.name, r.line, r.knobs].concat(r.ask).join(' '); }
+  if (key === 'form') { const r = readForm(); return [r.wish, r.name, r.line, r.knobs].concat(r.ask).join(' '); }
   const it = all().find(i => i.id === key);
   return it ? [it.name, it.line, it.knobs].concat((it.rec && it.rec.ask) || []).join(' ') : '';
 }
@@ -736,8 +738,8 @@ function fillPick(box){
     const rest = (s.subj || s.grade) ? ROWS.filter(r => inScope(r, s.subj, s.grade) && !sug.includes(r)) : [];
     list = sug.concat(rest);
     hint = sug.length
-      ? '위쪽 ' + sug.length + '개는 이름·설명과 글자가 겹치는 것입니다. 참고만 하고 맞는 것을 골라 주세요.'
-      : (rest.length ? '' : '이름과 한 줄 설명을 쓰면 글자가 겹치는 성취기준을 보여 줍니다. 과목·학년군을 고르거나 낱말로 찾아도 됩니다.');
+      ? '위쪽 ' + sug.length + '개는 적은 내용과 낱말이 비슷한 성취기준입니다. 맞는 것만 골라 주세요.'
+      : (rest.length ? '' : '내용을 적으면 낱말이 비슷한 성취기준을 보여 줍니다. 과목·학년군을 고르거나 낱말로 찾아도 됩니다.');
   }
   box.querySelector('.stdhint').textContent = hint;
   box.querySelector('.stdres').innerHTML = list.slice(0, 60).map(r =>
@@ -787,7 +789,7 @@ function parts(it){
   p.tags = `<span class="tag st ${st}">${STATE_LABEL[st]}</span><span class="tag cat">${esc(it.category || '기타')}</span>`
     + stdSubjects(stds).map(t => `<span class="tag std">${esc(t)}</span>`).join('')
     + it.tags.map(t => `<span class="tag">${esc(t)}</span>`).join('')
-    + (it.from ? `<span class="tag" title="${esc(it.from.name)}">게시판 요청에서 나옴</span>` : '');
+    + (it.from ? `<span class="tag" title="${esc(it.from.name)}">요청에서 만들어짐</span>` : '');
 
   const stdEdit = stdEditing === it.id;
   p.stds = STD_ON && (stds.length || canEdit)
@@ -796,9 +798,9 @@ function parts(it){
         ${stdEdit
           ? `<div class="stdpick" data-pk="${it.id}"></div>
              <div class="rowbtns"><button class="copy" data-stdsave="${it.id}">저장</button>
-               <button class="copy" data-stdcancel="1">그만</button></div>`
+               <button class="copy" data-stdcancel="1">취소</button></div>`
           : (stds.length ? `<ul class="stdlist">${stds.map(c => `<li>${stdLine(STD_BY.get(c))}</li>`).join('')}</ul>`
-              : `<p class="empty">어느 성취기준에 쓰는지 붙여 두면 성취기준 갈래에서 찾아집니다.</p>`)
+              : `<p class="empty">성취기준을 붙이면 성취기준 탭에서 이 카드를 찾을 수 있습니다.</p>`)
             + (canEdit ? `<button class="copy" data-stdedit="${it.id}">성취기준 고르기</button>` : '')}
       </details>`
     : '';
@@ -807,26 +809,25 @@ function parts(it){
     ? `<div class="links">${it.links.map(l =>
         `<a href="${esc(l.u)}"${l.plain ? ' class="plain"' : ''}>${esc(l.t)}</a>`).join('')}</div>`
     : (st !== 'done'
-        ? `<p class="nolink">아직 만들어지지 않았습니다. 요청문 여섯 칸을 채워 두면 다음 사람이 그대로 만들 수 있습니다.</p>`
+        ? `<p class="nolink">아직 만들어지지 않은 요청입니다.</p>`
         : '');
 
   const askInner = it.ask
     ? `<dl class="slots">${it.ask.map(([k,v]) =>
         `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join('')}</dl>
-       <button class="copy" data-copy="${it.id}">${it.kind === 'request' ? 'AI로 만들기 — 프롬프트 복사' : '다시 만들기 — 프롬프트 복사'}</button>`
-    : `<p class="empty">아직 적혀 있지 않습니다. 여섯 칸이 채워져야 다음 사람이
-        이 요청 그대로 만들 수 있습니다.</p>
-       <button class="copy" data-copy="${it.id}">이름과 한 줄만으로 프롬프트 복사</button>`;
+       <button class="copy" data-copy="${it.id}">${it.kind === 'request' ? 'AI 프롬프트 복사' : '고쳐 만들기 프롬프트 복사'}</button>`
+    : `<p class="empty">아직 적힌 내용이 없습니다.</p>
+       <button class="copy" data-copy="${it.id}">한 줄 설명으로 프롬프트 복사</button>`;
   const askEdit = editing === it.id
     ? `<div class="askedit"><label class="slotlab">분류</label>
        <select class="chipsel" data-acat="1">${CATEGORIES.map(c =>
          `<option${c === (it.category || '기타') ? ' selected' : ''}>${esc(c)}</option>`).join('')}</select>${SLOTS.map((k,i) =>
         `<label class="slotlab">${esc(k)}</label><textarea data-ae="${i}">${esc(rawAsk[i] || '')}</textarea>`).join('')}
-       ${notes.length ? `<p class="mini">반영한 의견에 표시해 두면 무엇이 반영됐는지 남습니다.</p>`
+       ${notes.length ? `<p class="mini">반영한 의견에 표시해 두세요.</p>`
          + notes.map(n => `<label class="applied"><input type="checkbox" data-ap="${n.id}"${
-             n.applied ? ' checked' : ''}> ${esc((n.by || '익명') + ' — ' + n.text.slice(0, 40))}</label>`).join('') : ''}
+             n.applied ? ' checked' : ''}> ${esc((n.by || '익명') + ': ' + n.text.slice(0, 40))}</label>`).join('') : ''}
        <div class="rowbtns"><button class="copy" data-asksave="${it.id}">저장</button>
-         <button class="copy" data-askcancel="1">그만</button></div></div>`
+         <button class="copy" data-askcancel="1">취소</button></div></div>`
     : (canEdit ? `<button class="copy" data-askedit="${it.id}">고쳐 쓰기</button>` : '');
   p.ask = `<details class="ask"${editing === it.id ? ' open' : ''}>
       <summary>요청문 여섯 칸</summary>${askInner}${askEdit}</details>`;
@@ -839,13 +840,13 @@ function parts(it){
           ${n.applied ? '<span class="tag st done">반영됨</span>' : ''}
           ${canDelNote(n) ? `<button class="x" data-ndel="${it.id}:${n.id}">지우기</button>` : ''}
         </div><p class="ntext">${esc(n.text)}</p></li>`).join('')}</ul>`
-    : `<p class="empty">아직 의견이 없습니다. 어느 칸이 비어 있는지 짚어 주면 요청이 다듬어집니다.</p>`;
+    : `<p class="empty">아직 의견이 없습니다.</p>`;
   const noteForm = `<div class="noteform">
-      <div class="nrow"><input type="text" data-nby="${it.id}" placeholder="이름 (안 써도 됩니다)">
+      <div class="nrow"><input type="text" data-nby="${it.id}" placeholder="이름 (선택)">
       <select data-nslot="${it.id}"><option value="">그냥 의견</option>${
         SLOTS.map((k,i) => `<option value="${i}">${esc(k)}</option>`).join('')}</select></div>
-      <textarea data-ntext="${it.id}" placeholder="이 요청을 어떻게 다듬으면 좋을까요"></textarea>
-      <p class="mini warn">학생 이름과 건강·장애 정보는 적지 않습니다. 학년과 반까지만.</p>
+      <textarea data-ntext="${it.id}" placeholder="더할 내용이나 고칠 점을 적어 주세요"></textarea>
+      <p class="mini warn">학생 이름, 건강·장애 정보는 적지 마세요. 학년·반까지만 적어 주세요.</p>
       <button class="copy" data-note="${it.id}">의견 남기기</button></div>`;
   p.notesBox = `<details class="notes" data-card="${it.id}"${openNotes.has(it.id) ? ' open' : ''}>
       <summary>의견${notes.length ? ' ' + notes.length : ''}</summary>${noteList}${VIEW ? '' : noteForm}</details>`;
@@ -863,10 +864,10 @@ function parts(it){
   p.move = (canEdit && st !== 'done')
     ? `<div class="move">${
         st === 'ask'
-          ? `<button class="copy" data-move="${it.id}" data-to="making">만드는 중으로</button>`
-          : `<input class="mvurl" data-url="${it.id}" type="url" placeholder="만든 것의 https:// 주소">
-             <input class="mvurl" data-maker="${it.id}" type="text" placeholder="만든 사람 (안 써도 됩니다)">
-             <button class="copy" data-move="${it.id}" data-to="done">만들어짐으로</button>`
+          ? `<button class="copy" data-move="${it.id}" data-to="making">만드는 중으로 옮기기</button>`
+          : `<input class="mvurl" data-url="${it.id}" type="url" placeholder="완성된 도구 주소 (https://)">
+             <input class="mvurl" data-maker="${it.id}" type="text" placeholder="만든 사람 (선택)">
+             <button class="copy" data-move="${it.id}" data-to="done">완성으로 옮기기</button>`
       }</div>`
     : '';
   return p;
@@ -928,7 +929,7 @@ const CATEGORIES = ['수업 활동','게임·놀이','표현·미디어아트','
 const catOf = v => CATEGORIES.includes(v) ? v : '기타';
 const NEEDED = 'seojin-shelf-needed';                       // 내가 이미 누른 카드
 const NOTEKEYS = 'seojin-shelf-notekeys';                   // 내가 쓴 의견의 열쇠
-const STATE_LABEL = {ask:'요청', making:'만드는 중', done:'만들어짐'};
+const STATE_LABEL = {ask:'요청', making:'만드는 중', done:'완성'};
 const RANK = {ask:0, making:1, done:2};
 
 function load(k, fallback){
@@ -990,8 +991,8 @@ if (linkCode) {
   history.replaceState(null, '', location.pathname + location.hash);
 }
 let spaceCode = load(CODEKEY, '');
-let space = null;
-let VIEW = false;                 // 둘러보기용 예시 공간 — 보기만                // {name, lede, curriculum, builtin}
+let space = null;                 // {name, lede, curriculum, builtin}
+let VIEW = false;                 // 둘러보기용 예시 공간 — 보기만
 const hdr = extra => Object.assign({'X-Space-Code': spaceCode || ''}, extra || {});
 
 async function call(path, body, fail, admin){
@@ -1095,21 +1096,21 @@ const note = {
 /* ---- 갈래 ---- */
 const TABS = ['tools','board','ask','std'];
 const TAB_HEAD = {
-  std: ['성취기준', '특수교육 기본 교육과정의 성취기준입니다. 카드에 붙인 성취기준이 여기로 모여, 성취기준마다 쓸 수 있는 도구와 올라온 요청이 보입니다.'],
-  ask: ['요청하기', '한 문장이면 됩니다. 나머지는 만드는 사람이 채웁니다.'],
-  board: ['요청 목록', '필요해요가 많은 요청이 위에 있습니다. 만들어지면 도구 모음으로 옮겨 갑니다.'],
+  std: ['성취기준', '성취기준마다 연결된 도구와 요청을 볼 수 있습니다.'],
+  ask: ['요청하기', '한 문장만 적으면 됩니다. 자세한 내용은 만드는 사람이 채웁니다.'],
+  board: ['요청 목록', '\'저도 필요해요\'가 많은 요청부터 보입니다. 완성된 요청은 도구 모음으로 옮겨집니다.'],
   tools: ['도구 모음', '바로 쓸 수 있는 도구를 분류별로 모았습니다.']
 };
 /* 넣는 곳은 한 벌뿐이고, 보이는 판 아래에 붙어 갈래에 맞게 옷을 갈아입는다 */
 const TAB_FORM = {
   ask: ['요청 넣기', ''],
-  tools: ['도구 넣기', '이미 만든 것의 주소를 붙이면 도구 모음에 바로 놓입니다.']
+  tools: ['도구 넣기', '완성된 도구의 주소를 넣으면 도구 모음에 올라갑니다.']
 };
 /* 카드 거르개는 목록을 보는 갈래에만 */
 const TAB_BAR = {board: 1, tools: 1};
 let tab = 'tools';
 let toolForm = false;             // 도구 모음에서 넣기 폼을 펼쳤는가
-let askMore = false;              // 요청하기에서 「더 적기」를 눌렀는가
+let askMore = false;              // 요청하기에서 「자세히 적기」를 눌렀는가
 /* 처음 보이는 갈래 — 쓸 도구가 있으면 도구 모음, 없으면 요청 목록, 그것도 없으면 요청하기. 빈 판부터 보이지 않게 */
 function firstTab(){
   const list = all();
@@ -1131,7 +1132,6 @@ function setTab(t){
   document.getElementById('cats').hidden = t !== 'tools';
   /* 도구 넣기 폼은 드물게 쓰니 「만든 도구 올리기」를 눌러야 펼친다 */
   document.getElementById('add').hidden = VIEW || !fh || (t === 'tools' && !toolForm);
-  document.getElementById('goask').hidden = VIEW || t !== 'board';
   document.getElementById('goupload').hidden = VIEW || t !== 'tools' || toolForm;
   if (fh) {
     document.getElementById('addTitle').textContent = fh[0];
@@ -1148,7 +1148,7 @@ function setTab(t){
     document.getElementById('statepick').hidden = isTool;
     document.getElementById('f-round').hidden = isTool;
     document.getElementById('f-url').hidden = document.getElementById('f-knobs').hidden = !isTool;
-    document.getElementById('makerlab').textContent = isTool ? '만든 사람' : '말한 사람';
+    document.getElementById('makerlab').textContent = isTool ? '만든 사람' : '요청한 사람';
   }
   if (location.hash !== '#admin') history.replaceState(null, '', '#' + t);
   document.getElementById('status').textContent = '';
@@ -1170,13 +1170,13 @@ function render(){
   const board = list.filter(i => i.kind === 'request');
   const tools = list.filter(i => i.kind === 'tool');
   gridBoard.innerHTML = board.length ? board.map(rowHTML).join('')
-    : `<p class="empty wide">아직 올라온 요청이 없습니다. 「요청하기」에서 만들고 싶은 것을 적어 주세요.</p>`;
+    : `<p class="empty wide">아직 요청이 없습니다. 위의 '요청하기'를 눌러 적어 주세요.</p>`;
   /* 도구 모음 — 분류마다 한 묶음. 비어 있는 분류는 내걸지 않는다 */
   const byCat = CATEGORIES.map(c => [c, tools.filter(i => i.category === c)]).filter(([, l]) => l.length);
   gridTools.innerHTML = tools.length
     ? byCat.map(([c, l]) => `<section class="catsec" data-cat="${esc(c)}"><h3>${esc(c)}<small>${l.length}</small></h3>
         <div class="grid">${l.map(cardHTML).join('')}</div></section>`).join('')
-    : `<p class="empty wide">아직 올라온 도구가 없습니다. 이미 만든 것이 있으면 아래에서 주소와 함께 넣어 주세요.</p>`;
+    : `<p class="empty wide">아직 도구가 없습니다. 만든 도구가 있으면 '만든 도구 올리기'를 눌러 주세요.</p>`;
   if (cat !== 'all' && !byCat.some(([c]) => c === cat)) cat = 'all';
   document.getElementById('cats').innerHTML = '<span class="catlab">분류</span>' + [['all', '전체', tools.length]].concat(byCat.map(([c, l]) => [c, c, l.length]))
     .map(([v, t, n]) => `<button class="chip" data-cat="${esc(v)}" aria-pressed="${v === cat}">${esc(t)} ${n}</button>`).join('');
@@ -1211,7 +1211,7 @@ function fillCurriculum(){
   document.getElementById('stdsrc').textContent = '출처: ' + CUR_SRC + ' · 성취기준 ' + ROWS.length + '개';
   document.getElementById('curname').textContent = CUR_NAME;
   document.getElementById('curform').textContent = '성취기준 (' + CUR_NAME + ', 여섯 개까지)';
-  TAB_HEAD.std[1] = CUR_NAME + '의 성취기준입니다. 카드에 붙인 성취기준이 여기로 모여, 성취기준마다 쓸 수 있는 도구와 올라온 요청이 보입니다.';
+  TAB_HEAD.std[1] = CUR_NAME + ' 성취기준마다 연결된 도구와 요청을 볼 수 있습니다.';
 }
 fillCurriculum();
 function renderStd(list){
@@ -1311,11 +1311,11 @@ function sendText(rec){
     document.getElementById('title').textContent + '에 넣어 주세요', '',
     '이름: ' + rec.name,
     '분류: ' + catOf(rec.category),
-    '지금 어디쯤: ' + STATE_LABEL[rec.status || 'done'],
+    '진행 상황: ' + STATE_LABEL[rec.status || 'done'],
     '나온 날: ' + (rec.round || '(적지 않음)'),
     '한 줄: ' + rec.line,
     '주소: ' + (rec.url || '(아직 없음)'),
-    (rec.status ? '말한 사람: ' + (rec.by || '(적지 않음)') : '만든 사람: ' + (rec.maker || '(적지 않음)')),
+    (rec.status ? '요청한 사람: ' + (rec.by || '(적지 않음)') : '만든 사람: ' + (rec.maker || '(적지 않음)')),
     '어디에: ' + (rec.use === 'student' ? '학생과 함께' : '교사 준비'),
     '카메라: ' + (rec.cam ? '있어야 함' : '없어도 됨'),
     '교사 설정: ' + (rec.knobs || '(적지 않음)')
@@ -1336,7 +1336,7 @@ grid.addEventListener('click', async e => {
   const copy = e.target.closest('.copy[data-copy]');
   if (copy) {
     const it = all().find(i => i.id === copy.dataset.copy);
-    toClipboard(promptText(it), copy, '복사했습니다. 쓰는 AI에 붙여 넣으세요');
+    toClipboard(promptText(it), copy, '복사했습니다. ChatGPT·Claude 같은 AI에 붙여 넣으세요');
     return;
   }
   const send = e.target.closest('[data-send]');
@@ -1376,7 +1376,7 @@ grid.addEventListener('click', async e => {
     const mk = grid.querySelector('.mvurl[data-maker="' + id + '"]');
     const url = box ? box.value.trim() : '', maker = mk ? mk.value.trim() : '';
     if (to === 'done' && !/^https?:\/\//.test(url)) {
-      note.textContent = '만들어짐으로 옮기려면 https:// 로 시작하는 주소가 있어야 합니다.';
+      note.textContent = '완성으로 옮기려면 https://로 시작하는 도구 주소를 넣어 주세요.';
       if (box) box.focus();
       return;
     }
@@ -1390,7 +1390,7 @@ grid.addEventListener('click', async e => {
         } else await api.making(id);
         remote = await api.load();
       } catch (err) {
-        move.textContent = to === 'done' ? '만들어짐으로' : '만드는 중으로';
+        move.textContent = to === 'done' ? '완성으로 옮기기' : '만드는 중으로 옮기기';
         note.textContent = '옮기지 못했습니다. ' + err.message;
         return;
       }
@@ -1408,9 +1408,9 @@ grid.addEventListener('click', async e => {
     }
     render();
     if (to === 'done') {
-      note.textContent = '만들어졌습니다. 요청은 게시판에서 빠지고 학습 도구에 새 카드가 놓였습니다.';
+      note.textContent = '완성으로 옮겼습니다. 도구 모음에 새 카드가 생겼습니다.';
       setTab('tools');
-    } else note.textContent = '「만드는 중」 으로 옮겼습니다.';
+    } else note.textContent = '\'만드는 중\'으로 옮겼습니다.';
     return;
   }
 
@@ -1680,7 +1680,7 @@ function renderSimilar(){
     return [n, it];
   }).filter(([n]) => n >= 2 && n / q.size >= 0.2).sort((a, b) => b[0] - a[0]).slice(0, 3).map(a => a[1]);
   box.hidden = !hits.length;
-  box.innerHTML = hits.length ? `<p class="mini">비슷한 것이 이미 있어요. 올리기 전에 먼저 열어 보세요.</p>
+  box.innerHTML = hits.length ? `<p class="mini">비슷한 도구나 요청이 이미 있습니다. 올리기 전에 확인해 보세요.</p>
     <div class="linked">${hits.map(it => `<button type="button" class="jump ${it.state}" data-jump="${esc(it.id)}">${
       esc(it.name)}<small>${it.kind === 'tool' ? '도구' : '요청 · ' + STATE_LABEL[it.state]}</small></button>`).join('')}</div>` : '';
 }
@@ -1738,7 +1738,7 @@ saveBtn.addEventListener('click', async () => {
   const [kind, rec] = formPost(readForm());
   const missing = [];
   if (kind === 'requests' && !rec.line) {
-    note.textContent = '무엇이 있으면 좋겠는지 한 문장만 적어 주세요.';
+    note.textContent = '필요한 도구를 한 문장으로 적어 주세요.';
     F.wish.focus();
     return;
   }
@@ -1770,7 +1770,7 @@ saveBtn.addEventListener('click', async () => {
       save(DRAFT, null);
       emptyForm();
       render();
-      const msg = '올렸습니다. 이제 이 공간의 선생님 모두에게 보입니다.';
+      const msg = '올렸습니다. 이 공간에 들어오는 다른 사람도 볼 수 있습니다.';
       if (kind === 'requests') { setTab('board'); showCard(res.id, msg); return; }
       note.textContent = msg;
     } catch (err) {
@@ -1791,8 +1791,8 @@ saveBtn.addEventListener('click', async () => {
   emptyForm();
   render();
   const msg = ok
-    ? '카드를 만들었습니다. 이 브라우저에만 남으니, 카드의 「보낼 글 복사」를 눌러 담당자에게 보내 주세요.'
-    : '카드를 만들었지만 이 브라우저에 저장되지 않았습니다. 「보낼 글 복사」를 지금 눌러 두세요.';
+    ? '올렸습니다. 이 브라우저에만 저장되니 카드의 \'보낼 글 복사\'를 눌러 담당자에게 보내 주세요.'
+    : '이 브라우저에 저장하지 못했습니다. 카드의 \'보낼 글 복사\'를 지금 눌러 주세요.';
   if (kind === 'requests') { setTab('board'); showCard(rec.id, msg); return; }
   note.textContent = msg;
   grid.scrollIntoView({behavior:'smooth', block:'start'});
@@ -1858,7 +1858,7 @@ async function boot(){
       document.title = space.name + ' ' + BRAND;
       document.getElementById('title').textContent = document.title;
       document.getElementById('lede').textContent = space.lede
-        || '선생님들이 만들고 싶은 것과 만든 것이 여기에 남습니다.';
+        || '선생님들이 필요한 도구를 요청하고, 만든 도구를 함께 씁니다.';
       document.getElementById('devnote').hidden = true;
       /* 예시 공간이면 쓰는 곳(요청하기·폼·필요해요·의견 쓰기·옮기기)을 모두 걷어 낸다 */
       VIEW = space.access === 'view';
@@ -1891,8 +1891,8 @@ function start(){
   const line = document.getElementById('modeline');
   if (line) {
     line.textContent = mode === 'server'
-      ? '넣는 즉시 저장소에 올라가 이 공간의 선생님 모두에게 보입니다.'
-      : '지금은 저장소 서버 없이 열려 있어서, 넣은 카드는 이 브라우저에만 남습니다. 카드의 「보낼 글 복사」로 보내 주세요.';
+      ? '올리면 이 공간에 들어오는 다른 사람도 볼 수 있습니다.'
+      : '서버 없이 열려 있어 올린 카드는 이 브라우저에만 저장됩니다. 카드의 \'보낼 글 복사\'로 담당자에게 보내 주세요.';
   }
   adminRow();
   render();

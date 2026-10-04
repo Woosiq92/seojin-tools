@@ -75,7 +75,7 @@ function validateRequest(b) {
     toolId: ''
   };
   /* 요청은 한 문장(line)이면 된다. 이름이 없으면 그 문장 앞부분으로 */
-  if (!rec.line) return { error: '무엇이 있으면 좋겠는지 한 문장만 적어 주세요.' };
+  if (!rec.line) return { error: '필요한 도구를 한 문장으로 적어 주세요.' };
   if (!rec.name) rec.name = rec.line.length <= 24 ? rec.line : rec.line.slice(0, 24) + '…';
   return { rec };
 }
@@ -180,7 +180,7 @@ li a{display:flex;justify-content:space-between;gap:12px;padding:12px 14px;backg
 color:var(--ink);text-decoration:none}li a:hover{border-color:var(--ink)}li small{color:var(--mut)}
 #msg{margin:14px 0 0;font-size:14px;color:var(--warn)}</style></head>
 <body><main><h1>${BRAND}</h1>
-<p>선생님들이 만들고 싶은 것과 만든 것을 함께 모아 두는 곳입니다.</p>
+<p>선생님들이 필요한 도구를 요청하고, 만든 도구를 함께 쓰는 곳입니다.</p>
 <form id="f"><input id="q" placeholder="조직 이름을 입력하세요 (예: 서울서진학교)" aria-label="조직 이름" autocomplete="off" autofocus>
 <button>들어가기</button></form><ul id="list"></ul><p id="msg"></p>
 <script>
@@ -196,7 +196,7 @@ async function find(enter){
   if (enter && ss.length === 1) return go(ss[0]);
   list.innerHTML = ss.map(s => '<li><a href="/s/' + s.id + '/">' + esc(s.name)
     + (s.invite ? '<small>초대 링크가 있어야 합니다</small>' : s.view ? '<small>둘러보기만</small>' : '') + '</a></li>').join('');
-  if (enter && !ss.length) msg.textContent = r.error || '아직 없는 이름입니다. 띄어쓰기를 빼고 다시 쳐 보거나, 담당자에게 정확한 이름을 물어봐 주세요.';
+  if (enter && !ss.length) msg.textContent = r.error || '찾는 조직이 없습니다. 이름을 다시 확인해 주세요.';
 }
 let t; q.addEventListener('input', () => { clearTimeout(t); t = setTimeout(() => find(false), 250); });
 document.getElementById('f').addEventListener('submit', e => { e.preventDefault(); find(true); });
@@ -248,7 +248,12 @@ function seedSpaces() {
   let list;
   try { list = JSON.parse(fs.readFileSync(path.join(ROOT, 'spaces.json'), 'utf8')); } catch { return; }
   (Array.isArray(list) ? list : []).forEach(x => {
-    if (!/^[a-z0-9][a-z0-9-]{1,39}$/.test(x.id || '') || !x.name || getSpace(x.id)) return;
+    if (!/^[a-z0-9][a-z0-9-]{1,39}$/.test(x.id || '') || !x.name) return;
+    /* 이미 있으면 이름과 소개 문구만 적어 둔 대로 맞춘다(코드·자료는 그대로) */
+    if (getSpace(x.id)) {
+      db.prepare('UPDATE spaces SET name = ?, lede = ? WHERE id = ?').run(x.name, x.lede || '', x.id);
+      return;
+    }
     const code = newCode(), admin = newToken();
     db.prepare(`INSERT INTO spaces (id, name, lede, curriculum, builtin, code_hash, admin_hash, at, access)
       VALUES (?,?,?,?,?,?,?,?,?)`).run(x.id, x.name, x.lede || '', CURRICULA.includes(x.curriculum) ? x.curriculum : 'common',
