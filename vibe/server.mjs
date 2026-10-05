@@ -195,27 +195,55 @@ const mayEdit = (req, s, rec, body) =>
   (!!body && !!rec.token && typeof body.token === 'string' && sameText(body.token, rec.token)) || isAdmin(req, s);
 
 /* ---- 정적 ---- */
+/* 메인 페이지 — 무엇을 하는 곳인지 보여 주고, 학교 이름을 치면 그 학교 공간으로 들어간다 */
 const LANDING = `<!doctype html><html lang="ko"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1"><title>${BRAND}</title>
-<meta name="description" content="선생님들이 필요한 도구를 요청하고, 만든 도구를 함께 쓰는 곳입니다.">
-<meta property="og:title" content="${BRAND}"><meta property="og:description" content="선생님들이 필요한 도구를 요청하고, 만든 도구를 함께 쓰는 곳입니다.">
+<meta name="description" content="선생님들이 필요한 수업 도구를 요청하고, AI로 만든 도구를 학교 안에서 함께 씁니다.">
+<meta property="og:title" content="${BRAND}"><meta property="og:description" content="선생님들이 필요한 수업 도구를 요청하고, AI로 만든 도구를 학교 안에서 함께 씁니다.">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%232F6F78'/%3E%3Cpath d='M25 22l-10 10 10 10M39 22l10 10-10 10M35 18l-6 28' fill='none' stroke='%23fff' stroke-width='5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
-<style>:root{--bg:#EFECE6;--ink:#1F2226;--mut:#7C838B;--rule:#D5D1C8;--sheet:#FAF8F4;--warn:#B8435A}
-@media (prefers-color-scheme:dark){:root{--bg:#14171A;--ink:#EFEDE6;--mut:#8E949A;--rule:#333940;--sheet:#1D2125;--warn:#F492A2}}
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@700&family=Gothic+A1:wght@400;500;700&display=swap">
+<style>:root{--bg:#EFECE6;--sheet:#FAF8F4;--tint:#E7E3DA;--ink:#1F2226;--ink2:#454B52;--mut:#5C636A;--rule:#D5D1C8;--green:#4A7A55;--blue:#30687A;--warn:#B33F57}
+@media (prefers-color-scheme:dark){:root{--bg:#14171A;--sheet:#1D2125;--tint:#232830;--ink:#EFEDE6;--ink2:#C6C9CC;--mut:#8E949A;--rule:#333940;--green:#8FBE8F;--blue:#6FAFC2;--warn:#F492A2}}
 *{box-sizing:border-box}
-body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.65 -apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",sans-serif;
-word-break:keep-all;padding:64px 16px}main{max-width:520px;margin:0 auto}h1{font-size:28px;margin:0 0 8px}
-p{color:var(--mut);margin:0 0 24px}form{display:flex;gap:8px;flex-wrap:wrap}
-input{flex:1 1 220px;min-width:0;font:inherit;padding:11px 13px;border:1px solid var(--rule);background:var(--sheet);color:var(--ink)}
-button{font:inherit;font-weight:700;padding:11px 18px;border:0;background:var(--ink);color:var(--bg);cursor:pointer}
-ul{list-style:none;margin:16px 0 0;padding:0;display:flex;flex-direction:column;gap:6px}
-li a{display:flex;justify-content:space-between;gap:12px;padding:12px 14px;background:var(--sheet);border:1px solid var(--rule);
-color:var(--ink);text-decoration:none}li a:hover{border-color:var(--ink)}li small{color:var(--mut)}
-#msg{margin:14px 0 0;font-size:14px;color:var(--warn)}</style></head>
-<body><main><h1>${BRAND}</h1>
-<p>선생님들이 필요한 도구를 요청하고, 만든 도구를 함께 쓰는 곳입니다.</p>
-<form id="f"><input id="q" placeholder="조직 이름을 입력하세요 (예: 서울서진학교)" aria-label="조직 이름" autocomplete="off" autofocus>
-<button>들어가기</button></form><ul id="list"></ul><p id="msg"></p>
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.65 "Gothic A1",-apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",sans-serif;word-break:keep-all}
+main{max-width:860px;margin:0 auto;padding:40px 24px 64px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:15px;color:var(--ink2)}
+.brand img{width:28px;height:28px}
+.hero{padding:56px 0 34px}
+h1{font-family:"Gowun Batang",serif;font-size:clamp(28px,5vw,40px);line-height:1.3;margin:0 0 12px;text-wrap:balance}
+.lede{margin:0 0 26px;color:var(--ink2);font-size:16.5px;max-width:34em}
+form{display:flex;gap:8px;flex-wrap:wrap;max-width:560px}
+input{flex:1 1 240px;min-width:0;font:inherit;font-size:17px;padding:13px 15px;border:1px solid var(--rule);background:var(--sheet);color:var(--ink)}
+input:focus-visible,button:focus-visible,a:focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+button{font:inherit;font-weight:700;padding:13px 22px;border:0;background:var(--ink);color:var(--bg);cursor:pointer}
+#list{list-style:none;margin:12px 0 0;padding:0;display:flex;flex-direction:column;gap:6px;max-width:560px}
+#list a{display:flex;justify-content:space-between;gap:12px;padding:12px 14px;background:var(--sheet);border:1px solid var(--rule);color:var(--ink);text-decoration:none}
+#list a:hover{border-color:var(--ink)}#list small{color:var(--mut)}
+#msg{margin:14px 0 0;font-size:14.5px;color:var(--warn);max-width:560px}#msg a{color:var(--ink);font-weight:700}
+.demo{display:inline-block;margin-top:18px;font-size:14.5px;color:var(--ink2)}
+.steps{list-style:none;margin:30px 0 0;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:12px;counter-reset:s}
+.steps li{counter-increment:s;background:var(--sheet);border:1px solid var(--rule);padding:18px 18px 16px}
+.steps b{display:block;font-size:16px;margin-bottom:4px}.steps b::before{content:counter(s) ". ";color:var(--green)}
+.steps span{font-size:14.5px;color:var(--ink2)}
+footer{margin-top:40px;padding-top:16px;border-top:1px solid var(--rule);font-size:13.5px;color:var(--mut)}
+@media (max-width:560px){main{padding:28px 16px 48px}.hero{padding:36px 0 26px}}</style></head>
+<body><main>
+<div class="brand"><img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='14' fill='%232F6F78'/%3E%3Cpath d='M25 22l-10 10 10 10M39 22l10 10-10 10M35 18l-6 28' fill='none' stroke='%23fff' stroke-width='5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E" alt="">${BRAND}</div>
+<section class="hero">
+<h1>필요한 수업 도구를 요청하고,<br>만든 도구를 함께 씁니다</h1>
+<p class="lede">학교마다 공간이 따로 있습니다. 가입이나 설치 없이 학교 이름만 입력하면 들어갑니다.</p>
+<form id="f"><input id="q" placeholder="학교 이름을 입력하세요 (예: 서울서진학교)" aria-label="학교 이름" autocomplete="off" autofocus>
+<button>들어가기</button></form>
+<ul id="list"></ul><p id="msg" role="status"></p>
+<a class="demo" href="/s/demo/">예시 학교 둘러보기 →</a>
+</section>
+<ol class="steps">
+<li><b>찾아서 쓰기</b><span>다른 선생님들이 만든 수업 도구를 분류별로 찾아 바로 엽니다.</span></li>
+<li><b>요청하기</b><span>필요한 도구를 한 문장으로 적어 두면, 누구든 보고 만들 수 있습니다.</span></li>
+<li><b>만들어 올리기</b><span>요청의 프롬프트로 AI에서 만든 뒤 주소를 올리면 모두가 씁니다.</span></li>
+</ol>
+<footer>학생 이름이나 학습 기록은 받지 않습니다.</footer>
 <script>
 const q = document.getElementById('q'), list = document.getElementById('list'), msg = document.getElementById('msg');
 const go = s => { location.href = '/s/' + s.id + '/'; };
@@ -223,13 +251,14 @@ const esc = t => String(t).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':
 async function find(enter){
   const v = q.value.trim();
   msg.textContent = '';
-  if (v.replace(/\\s+/g, '').length < 2) { list.innerHTML = ''; return; }
+  if (v.replace(/\\s+/g, '').length < 2) { list.innerHTML = ''; if (enter) msg.textContent = '학교 이름을 두 글자 이상 입력해 주세요.'; return; }
   const r = await fetch('/api/find?q=' + encodeURIComponent(v)).then(r => r.json()).catch(() => ({spaces: []}));
-  const ss = r.spaces || [];
+  const ss = (r.spaces || []).filter(s => s.id !== 'demo');
   if (enter && ss.length === 1) return go(ss[0]);
   list.innerHTML = ss.map(s => '<li><a href="/s/' + s.id + '/">' + esc(s.name)
     + (s.invite ? '<small>초대 링크가 있어야 합니다</small>' : s.view ? '<small>둘러보기만</small>' : '') + '</a></li>').join('');
-  if (enter && !ss.length) msg.textContent = r.error || '찾는 조직이 없습니다. 이름을 다시 확인해 주세요.';
+  if (enter && !ss.length) msg.innerHTML = r.error ? esc(r.error)
+    : '아직 등록되지 않은 학교입니다. 이름을 다시 확인하거나 <a href="/s/demo/">예시 학교</a>를 둘러보세요.';
 }
 let t; q.addEventListener('input', () => { clearTimeout(t); t = setTimeout(() => find(false), 250); });
 document.getElementById('f').addEventListener('submit', e => { e.preventDefault(); find(true); });
@@ -320,8 +349,8 @@ const NOT_FOUND = (msg) => `<!doctype html><html lang="ko"><head><meta charset="
 body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.65 -apple-system,BlinkMacSystemFont,"Apple SD Gothic Neo",sans-serif;
 word-break:keep-all;padding:64px 16px}main{max-width:520px;margin:0 auto}h1{font-size:24px;margin:0 0 8px}
 p{color:var(--mut);margin:0 0 24px}a{display:inline-block;font-weight:700;padding:11px 18px;background:var(--ink);color:var(--bg);text-decoration:none}</style></head>
-<body><main><h1>${msg}</h1><p>주소를 다시 확인하거나, 조직 이름으로 찾아 들어가 주세요.</p>
-<a href="${SPACES_HOME}">조직 찾기</a></main></body></html>`;
+<body><main><h1>${msg}</h1><p>주소를 다시 확인하거나, 학교 이름으로 찾아 들어가 주세요.</p>
+<a href="${SPACES_HOME}">학교 찾기</a></main></body></html>`;
 const sendNotFound = (res, msg) => {
   res.writeHead(404, { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-cache' });
   res.end(NOT_FOUND(msg));
@@ -352,7 +381,7 @@ const server = http.createServer(async (req, res) => {
     if ((req.method === 'GET' || req.method === 'HEAD') && (m = p.match(/^\/s\/([^/]+)(\/.*)?$/))) {
       let id;
       try { id = decodeURIComponent(m[1]).toLowerCase(); } catch { id = ''; }
-      if (!/^[a-z0-9-]{2,40}$/.test(id) || !getSpace(id)) return sendNotFound(res, '찾는 조직이 없습니다');
+      if (!/^[a-z0-9-]{2,40}$/.test(id) || !getSpace(id)) return sendNotFound(res, '찾는 학교가 없습니다');
       if (p !== '/s/' + id + '/') {
         const q = new URL(req.url, 'http://x').search;
         res.writeHead(301, { Location: '/s/' + id + '/' + q }); return res.end();
@@ -378,7 +407,7 @@ const server = http.createServer(async (req, res) => {
       return json(res, 404, { error: 'not found' });
     }
     const s = getSpace(m[1]);
-    if (!s) return json(res, 404, { error: '찾는 조직이 없습니다.' });
+    if (!s) return json(res, 404, { error: '찾는 학교가 없습니다.' });
     const sub = m[2];
 
     /* 공간 이름과 교육과정은 코드 없이도 — 화면이 코드를 묻기 전에 누구 공간인지 보여 준다 */
