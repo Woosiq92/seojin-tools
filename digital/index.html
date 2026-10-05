@@ -242,7 +242,7 @@ body.adv #detail h3.adv,body.adv #detail p.adv{display:block}
         </div>
       </div>
       <div class="foot">
-        <button id="helpopen" class="ghost"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.3a2.5 2.5 0 1 1 3.3 2.4c-.6.2-.9.7-.9 1.3v.5M12 17h.01"/></svg>처음 쓰시나요? 사용법 보기</button>
+        <button id="helpopen" class="ghost"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.3a2.5 2.5 0 1 1 3.3 2.4c-.6.2-.9.7-.9 1.3v.5M12 17h.01"/></svg>사용 가이드</button>
         <button id="more" class="ghost"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>설정 · 소리 · 횟수</button>
         <p class="note">학생 이름이나 기록은 저장하지 않습니다. 고른 설정만 이 컴퓨터의 브라우저에 남습니다.</p>
       </div>
@@ -259,7 +259,7 @@ body.adv #detail h3.adv,body.adv #detail p.adv{display:block}
 
   <div id="help" hidden>
     <div class="card">
-      <h2>이 화면은 이렇게 씁니다</h2>
+      <h2>사용 가이드</h2>
       <p class="sub">선생님이 전자칠판에 띄우고, 학생이 나와서 화면을 만지는 프로그램입니다.</p>
       <ul>
         <li><i>1</i><b>수준과 기기를 고르고, 단계를 누르면 바로 시작합니다</b><span>처음이면 초급 1단계부터 하세요. 학년이 아니라 학생이 할 수 있는 정도로 고릅니다.</span></li>
@@ -1045,7 +1045,7 @@ $('#more').addEventListener('click', () => { refresh(); $('#detail').hidden = fa
 $('#less').addEventListener('click', () => { $('#detail').hidden = true; renderHome(); });
 $('#start').addEventListener('click', begin);
 
-// 처음 열었을 때 한 번, 그리고 「사용법 보기」를 누를 때
+// 처음 열었을 때 한 번, 그리고 「사용 가이드」를 누를 때
 function showHelp() { $('#help').hidden = false; }
 function hideHelp() {
   $('#help').hidden = true;
