@@ -290,6 +290,11 @@ function seedSpaces() {
     /* 이미 있으면 이름과 소개 문구만 적어 둔 대로 맞춘다(코드·자료는 그대로) */
     if (getSpace(x.id)) {
       db.prepare('UPDATE spaces SET name = ?, lede = ? WHERE id = ?').run(x.name, x.lede || '', x.id);
+      /* 적어 둔 견본 요청이 없어졌으면, 예전에 심어 둔 견본(아이디 '<공간>-r<번호>')도 지운다 */
+      const keep = new Set((Array.isArray(x.requests) ? x.requests : []).map((_, i) => x.id + '-r' + i));
+      db.prepare('SELECT id FROM requests WHERE space = ?').all(x.id)
+        .filter(r => new RegExp('^' + x.id + '-r\\d+$').test(r.id) && !keep.has(r.id))
+        .forEach(r => { db.prepare('DELETE FROM notes WHERE on_id = ?').run(r.id); db.prepare('DELETE FROM requests WHERE id = ?').run(r.id); });
       return;
     }
     const code = newCode(), admin = newToken();

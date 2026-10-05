@@ -510,7 +510,7 @@ footer a{color:var(--ink2)}
 
 <footer>
   <span id="devnote">서버 위에서 열면 선생님이 넣은 카드가 바로 모두에게 보입니다. 서버 없이 열면 그 브라우저에만 남습니다.
-    기본 카드 여섯 개는 <code>~/seojin/저장소.html</code> 의 <code>ITEMS</code> 에 있습니다.
+    기본 카드는 <code>~/seojin/저장소.html</code> 의 <code>ITEMS</code> 에 있습니다.
     담당자가 바뀌면 주소 끝에 <code>#admin</code> 을 붙여 열쇠를 넣고 '전체 내려받기'로 자료를 통째로 옮깁니다.
     서버 없이 열었을 때는 파일 대신 글로 복사됩니다.
     · <a href="file:///Users/woosik/seojin/index.html">서진학교 허브</a></span>
@@ -598,33 +598,13 @@ const ITEMS = [
   {
     id:'dash', category:'수업', tone:'gold', use:'teacher',
     name:'Dash 설치 스테이션',
-    line:'수업 전에 로봇을 순서대로 세팅하는 화면입니다. 어디까지 했는지가 남습니다.',
+    line:'안드로이드 태블릿에 Dash 앱을 까는 QR 코드와 설치 뒤 점검 순서, 태블릿·로봇 짝짓기 표를 한 장에 모았습니다.',
     tags:[],
     cam:false,
     /* 설치 화면 자체가 아니라 이 준비가 받치는 로봇 코딩 수업의 성취기준 */
     stds:['6실과02-03','9정통01-02','9정통02-03','12정통02-03'],
     knobs:'',
     links:[{t:'도구 쓰기', u:'https://claude.ai/code/artifact/2285e12e-4409-4f0e-a470-92f0ccea5ee5'}],
-    ask:null
-  },
-  {
-    id:'record', category:'학급 운영', tone:'blue', use:'teacher',
-    name:'현장 기록지',
-    line:'수업 중에 본 것을 그 자리에서 적는 관찰 기록 양식입니다.',
-    tags:[],
-    cam:false,
-    knobs:'',
-    links:[{t:'도구 쓰기', u:'https://claude.ai/code/artifact/61dd6d61-6acc-4870-a350-98085371b515'}],
-    ask:null
-  },
-  {
-    id:'roll', category:'학급 운영', tone:'coral', use:'teacher',
-    name:'오늘 출석부',
-    line:'연수에서 만든 예시 화면입니다. 한 시간이면 이만한 것이 나온다는 본보기로 씁니다.',
-    tags:['연수 예시'],
-    cam:false,
-    knobs:'',
-    links:[{t:'도구 쓰기', u:'https://claude.ai/code/artifact/3fa9c869-18d7-43e5-8653-0d7d38f38aa2'}],
     ask:null
   }
 ];
@@ -1141,7 +1121,7 @@ function toItem(rec, n){
 }
 
 /* 게시판에는 아직 안 만들어진 요청글만. 요청이 위로, 같은 상태면 여럿이 필요하다고 한 것이 위로.
-   학습 도구는 새로 넣은 것이 위로, 기본 카드 여섯 개는 아래에 둔다. */
+   학습 도구는 새로 넣은 것이 위로, 기본 카드는 아래에 둔다. */
 function all(){
   const d = db();
   const reqs = d.requests.filter(r => !r.toolId).sort((a, b) =>
@@ -1149,7 +1129,7 @@ function all(){
     || ((b.needs || 0) - (a.needs || 0))
     || String(b.at || '').localeCompare(String(a.at || '')));
   const tools = d.tools.slice().sort((a, b) => String(b.at || '').localeCompare(String(a.at || '')));
-  /* 기본 카드 여섯 개는 서진학교 것 — 서버 없이 열었거나 builtin 으로 만든 공간에만 보인다 */
+  /* 기본 카드는 서진학교 것 — 서버 없이 열었거나 builtin 으로 만든 공간에만 보인다 */
   const builtin = mode !== 'server' || (space && space.builtin);
   return reqs.concat(tools).map(toItem).concat(builtin
     ? ITEMS.map(i => Object.assign({kind: 'tool'}, i, {stds: (i.stds || []).filter(c => STD_BY.has(c))})) : []);
@@ -1189,6 +1169,7 @@ const TAB_FORM = {
 /* 카드 거르개는 목록을 보는 갈래에만 */
 const TAB_BAR = {board: 1, tools: 1};
 let tab = 'tools';
+let guideOn = false;              // 처음 온 사람 안내 — 찾아서 쓰는 흐름이라 도구 모음 탭에서만 보인다
 /* 처음 보이는 갈래 — 쓸 도구가 있으면 도구 모음, 없으면 요청 목록, 그것도 없으면 요청하기. 빈 판부터 보이지 않게 */
 function firstTab(){
   const list = all();
@@ -1210,6 +1191,7 @@ function setTab(t, push){
   const fh = TAB_FORM[t];
   /* 요청 목록에는 넣는 곳 대신 요청하기로 가는 단추, 요청하기에는 거르개가 없다 */
   document.getElementById('barwrap').hidden = !TAB_BAR[t];
+  document.getElementById('guide').hidden = !(guideOn && t === 'tools');
   document.getElementById('cats').hidden = t !== 'tools';
   /* 도구 올리기 폼은 도구 제작 탭에, 요청 폼은 요청하기 탭에 */
   document.getElementById('add').hidden = VIEW || !fh;
@@ -2078,7 +2060,8 @@ function start(){
   const m = h.match(/^(tool|req)\/(.+)$/);   // 공유한 상세 링크로 들어왔다
   if (m) { setTab(m[1] === 'req' ? 'board' : 'tools'); openDetail(m[1], decodeURIComponent(m[2]), false); }
   else setTab(h === 'admin' || !h ? firstTab() : h);
-  if (!VIEW && !load(GUIDE, false)) document.getElementById('guide').hidden = false;   // 예시 학교는 요청하기가 없어 안내를 띄우지 않는다
+  guideOn = !VIEW && !load(GUIDE, false);   // 예시 학교는 요청하기가 없어 안내를 띄우지 않는다
+  document.getElementById('guide').hidden = !(guideOn && tab === 'tools');
 }
 const GUIDE = 'seojin-shelf-guide-seen';
 document.getElementById('guide').addEventListener('click', e => {
@@ -2086,6 +2069,7 @@ document.getElementById('guide').addEventListener('click', e => {
   if (b) setTab(b.dataset.go, true);
 });
 document.getElementById('guideclose').addEventListener('click', () => {
+  guideOn = false;
   document.getElementById('guide').hidden = true;
   save(GUIDE, true);
 });

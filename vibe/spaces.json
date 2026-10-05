@@ -13,28 +13,6 @@
     "curriculum": "special",
     "builtin": true,
     "access": "view",
-    "lede": "둘러보기용 예시 학교입니다. 글은 남길 수 없습니다.",
-    "requests": [
-      {
-        "line": "급식 메뉴를 그림으로 보고 오늘 먹을 것을 고르는 화면이 있으면 좋겠어요",
-        "category": "수업",
-        "needs": 7,
-        "name": "급식 고르기"
-      },
-      {
-        "line": "발표 순서를 공평하게 뽑아 주는 큰 화면 뽑기가 필요해요",
-        "category": "수업",
-        "needs": 5,
-        "use": "teacher",
-        "name": "발표 순서 뽑기"
-      },
-      {
-        "line": "낱말 카드를 뒤집어 같은 그림을 찾는 놀이가 있으면 좋겠어요",
-        "category": "수업",
-        "needs": 3,
-        "status": "making",
-        "name": "낱말 카드 짝 찾기"
-      }
-    ]
+    "lede": "둘러보기용 예시 학교입니다. 글은 남길 수 없습니다."
   }
 ]
