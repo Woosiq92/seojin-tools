@@ -64,8 +64,11 @@ body{margin:0;padding:44px 24px 72px;background:var(--paper);color:var(--ink);
 .panehead p{margin:0;font-size:14px;color:var(--ink2);max-width:42em}
 .empty.wide{grid-column:1/-1;padding:26px 0}
 @media (max-width:560px){
-  .navi{padding:11px 10px 10px;font-size:14px}
-  .navi[data-tab="ask"]{padding:8px 12px}
+  /* 휴대폰 — 메뉴 다섯 개가 한 줄에 들어가게. 개수는 각 탭 안에서 보인다 */
+  .side{margin:0 -16px;padding:4px 16px 0;gap:0}
+  .navi{padding:10px 6px 9px;font-size:13px}
+  .navi .cnt{display:none}
+  .navi[data-tab="ask"]{padding:7px 9px;font-size:12.5px}
 }
 
 header{display:flex;flex-direction:column;gap:10px}
