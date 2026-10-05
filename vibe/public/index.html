@@ -764,7 +764,7 @@ function parts(it){
 
   p.links = it.links.length
     ? `<div class="links">${it.links.map(l =>
-        `<a href="${esc(l.u)}"${l.plain ? ' class="plain"' : ''}>${esc(l.t)}</a>`).join('')}</div>`
+        `<a href="${esc(l.u)}"${l.plain ? ' class="plain"' : ''} target="_blank" rel="noopener">${esc(l.t)}</a>`).join('')}</div>`
     : '';
 
   const askInner = it.ask
@@ -853,6 +853,7 @@ const catIcon = c => `<span class="caticon" title="${esc(c)}" aria-hidden="true"
 /* 요청 이름이 문장 앞부분을 자른 것이면 문장 하나만 제목으로 */
 const reqTitle = it => it.line.startsWith(it.name.replace(/…$/, ''));
 
+/* 도구·소스·수업안 같은 바깥 링크는 새 탭으로 — 전체 화면 도구에는 돌아오는 단추가 없어서, 저장소 탭을 남겨 둔다 */
 /* 도구 모음 — 카드는 모두 같은 크기. 알아보고 바로 쓰는 데 필요한 것만 겉에 두고, 누르면 상세 패널이 열린다 */
 function cardHTML(it){
   const first = it.links[0], n = (it.notes || []).length;
@@ -862,7 +863,7 @@ function cardHTML(it){
       <div class="cardhead">${catIcon(it.category)}<h3 title="${esc(it.name)}">${esc(it.name)}</h3></div>
       <p class="clamp">${esc(it.line)}</p>
       <div class="cardfoot">
-        ${first ? `<a class="btn go use" href="${esc(first.u)}">${esc(first.t)}</a>` : '<span></span>'}
+        ${first ? `<a class="btn go use" href="${esc(first.u)}" target="_blank" rel="noopener">${esc(first.t)}</a>` : '<span></span>'}
         <span class="more">${n ? '의견 ' + n + ' · ' : ''}자세히 ›</span>
       </div>
     </div></article>`;
@@ -893,7 +894,7 @@ function detailHTML(it){
   if (!tabs.some(t => t[0] === dtab)) dtab = tabs[0][0];
   const body = {
     about: (it.knobs ? `<p class="knobs"><b>${esc(it.knobs)}</b></p>` : '')
-      + (more.length ? `<div class="links">${more.map(l => `<a href="${esc(l.u)}" class="plain">${esc(l.t)}</a>`).join('')}</div>` : '')
+      + (more.length ? `<div class="links">${more.map(l => `<a href="${esc(l.u)}" class="plain" target="_blank" rel="noopener">${esc(l.t)}</a>`).join('')}</div>` : '')
       + (it.from ? `<p class="mini">요청에서 만들어진 도구입니다: ${esc(it.from.line)}</p>` : '')
       + (!it.knobs && !more.length && !it.from ? '<p class="empty">더 적힌 소개가 없습니다.</p>' : ''),
     ask: p.ask, std: p.stds, notes: p.notesBox
@@ -907,8 +908,8 @@ function detailHTML(it){
     <div class="tags">${p.tags}</div>
     <div class="dact">
       ${isReq ? p.prompt.replace('copy prompt', 'btn go') + p.need
-        : (first ? `<a class="btn go" href="${esc(first.u)}">${esc(first.t)}</a>` : '') + p.prompt
-          + (it.source ? `<a class="btn" href="${esc(it.source)}">소스 보기</a>` : '')}
+        : (first ? `<a class="btn go" href="${esc(first.u)}" target="_blank" rel="noopener">${esc(first.t)}</a>` : '') + p.prompt
+          + (it.source ? `<a class="btn" href="${esc(it.source)}" target="_blank" rel="noopener">소스 보기</a>` : '')}
     </div>
     <p class="mini dstatus" id="dstatus" role="status"></p>
     ${p.move}
