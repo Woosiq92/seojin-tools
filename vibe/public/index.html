@@ -72,6 +72,9 @@ body{margin:0;padding:44px 24px 72px;background:var(--paper);color:var(--ink);
 }
 
 header{display:flex;flex-direction:column;gap:10px}
+/* 돌아가는 곳(서진학교는 수업 자료실) — 제목 바로 위에 작게 */
+.homelink{align-self:flex-start;font-size:14px;color:var(--ink2);text-decoration:none;padding:4px 0}
+.homelink:hover{color:var(--ink);text-decoration:underline}
 h1{font-family:"Gowun Batang",serif;font-weight:700;font-size:36px;line-height:1.25;
   margin:0;letter-spacing:-.01em;text-wrap:balance}
 .lede{margin:0;max-width:34em;color:var(--ink2);font-size:15px}
@@ -362,6 +365,7 @@ footer a{color:var(--ink2)}
 
 <div class="wrap">
 <header>
+  <a class="homelink" id="homelink" href="/" hidden>← 수업 자료실</a>
   <h1 id="title">서진학교 바이브 코딩 저장소</h1>
   <p class="lede" id="lede">화요일 교학공에서 나온 이야기가 여기에 남습니다.</p>
 </header>
@@ -2012,6 +2016,10 @@ async function boot(){
       document.getElementById('lede').textContent = space.lede
         || '선생님들이 필요한 도구를 요청하고, 만든 도구를 함께 씁니다.';
       document.getElementById('devnote').hidden = true;   // 서버 없이 열 때의 안내라 공간에는 맞지 않는다
+      if (space.home) {
+        const hl = document.getElementById('homelink');
+        hl.href = space.home.url; hl.textContent = '← ' + space.home.label; hl.hidden = false;
+      }
       /* 예시 공간이면 쓰는 곳(요청하기·폼·필요해요·의견 쓰기·옮기기)을 모두 걷어 낸다 */
       VIEW = space.access === 'view';
       document.querySelector('.navi[data-tab="ask"]').hidden = VIEW;

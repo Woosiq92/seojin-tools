@@ -5,7 +5,11 @@
     "curriculum": "special",
     "builtin": true,
     "access": "open",
-    "lede": "화요일 교학공에서 나온 요청과 만든 도구를 모아 둡니다."
+    "lede": "화요일 교학공에서 나온 요청과 만든 도구를 모아 둡니다.",
+    "home": {
+      "label": "수업 자료실",
+      "url": "/"
+    }
   },
   {
     "id": "demo",

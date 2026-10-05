@@ -311,10 +311,13 @@ function serveStatic(req, res, p) {
 
 /* 저장소에 적어 둔 공간(spaces.json)이 없으면 켜질 때 만든다 — 서버에 들어가지 않고 push 만으로 공간을 연다.
    코드와 열쇠는 로그에 한 번 찍힌다. 담당자 일은 운영자 열쇠(OPERATOR_TOKEN)로도 된다 */
+/* 학교마다 '돌아가는 곳'(예: 서진학교 → 수업 자료실) — spaces.json 의 home 을 기억해 둔다 */
+const HOMES = new Map();
 function seedSpaces() {
   let list;
   try { list = JSON.parse(fs.readFileSync(path.join(ROOT, 'spaces.json'), 'utf8')); } catch { return; }
   (Array.isArray(list) ? list : []).forEach(x => {
+    if (x && x.id && x.home && x.home.label && /^(\/|https:\/\/)/.test(x.home.url || '')) HOMES.set(x.id, x.home);
     if (!/^[a-z0-9][a-z0-9-]{1,39}$/.test(x.id || '') || !x.name) return;
     /* 이미 있으면 이름과 소개 문구만 적어 둔 대로 맞춘다(코드·자료는 그대로) */
     if (getSpace(x.id)) {
@@ -413,7 +416,8 @@ const server = http.createServer(async (req, res) => {
     /* 공간 이름과 교육과정은 코드 없이도 — 화면이 코드를 묻기 전에 누구 공간인지 보여 준다 */
     if (req.method === 'GET' && sub === '/info') {
       return json(res, 200, { id: s.id, name: s.name, lede: s.lede, curriculum: s.curriculum, builtin: !!s.builtin,
-        access: s.access, ephemeral: EPHEMERAL });
+        access: s.access, ephemeral: EPHEMERAL,
+        home: HOMES.get(s.id) || { label: '학교 찾기', url: SPACES_HOME } });
     }
     /* 통째로 내려받기 — 담당자가 바뀌어도 자료를 옮길 수 있게 */
     if (req.method === 'GET' && sub === '/export') {
