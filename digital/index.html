@@ -1307,10 +1307,12 @@ addEventListener('keydown', e => { if (e.key === 'Escape' && !$('#player').hidde
 
 // 기능(활동)마다 가이드 영상 한 편. 프로그램 옆 「영상」 폴더에서 찾는다
 const HAS_VIDEO = new Set(['tap0', 'tap1', 'pick', 'drag', 'move', 'hover', 'hold', 'swipe', 'dbl', 'rclick',
-  'pinch', 'seq', 'scroll', 'key0', 'key2', 'syl', 'word', 'chat', 'key-Space', 'key-Enter', 'key-Backspace']);
+  'pinch', 'seq', 'scroll', 'key0', 'key2', 'syl', 'word', 'chat', 'key-Space', 'key-Enter', 'key-Backspace',
+  'traffic', 'secret', 'stop', 'mood', 'piece', 'manner', 'net-open', 'net-fav', 'net-back', 'net-search']);
 const videoOf = set => {
   const a = set.act;
-  const code = a === 'key1' ? 'key-' + (set.key1 || 'Space') : a;
+  const code = a === 'key1' ? 'key-' + (set.key1 || 'Space')
+    : a === 'net' ? 'net-' + (set.step === 'all' ? 'open' : set.step) : a;
   return HAS_VIDEO.has(code) ? code : '';
 };
 function showVideo(code, name) {
