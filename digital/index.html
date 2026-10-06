@@ -91,6 +91,29 @@ body.hc #guide{border-width:.6vmin}
   color:var(--text);font-size:3.6vmin;cursor:pointer}
 #sayagain:hover{border-color:var(--accent);color:var(--accent)}
 #guide{position:fixed;top:4.4vmin;left:50%;transform:translateX(-50%);max-width:calc(100vw - 360px);padding:1vmin 3vmin;border-radius:999px;background:var(--side);border:.4vmin solid var(--accent);font-size:3.4vmin;font-weight:700;line-height:1.3;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;pointer-events:none;z-index:2}
+/* 고르기 카드 · 기기 화면 · 말풍선 활동 */
+#card{position:absolute;left:50%;top:9vh;transform:translateX(-50%);width:min(78vmin,760px);padding:3vmin 4vmin;border-radius:3vmin;
+  background:var(--side);border:.5vmin solid var(--line);text-align:center;pointer-events:none}
+#card .pic{font-size:11vmin;line-height:1.1}
+#card p{margin:1vmin 0 0;font-size:4.2vmin;font-weight:700}
+#card.go{border-color:var(--go)} #card.stop{border-color:#CC3B2B}
+#picks{position:absolute;left:50%;bottom:8vh;transform:translateX(-50%);display:flex;gap:3vmin;justify-content:center;flex-wrap:wrap;width:min(92vmin,900px)}
+#picks button{flex:1 1 30vmin;min-height:16vmin;padding:2vmin 3vmin;border:.5vmin solid var(--line);border-radius:3vmin;background:var(--side);
+  font-family:var(--display);font-size:4vmin;color:var(--text);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:1vmin}
+#picks button .em{font-size:7vmin;line-height:1}
+#picks button.go{border-color:var(--go);color:#14633C} #picks button.stop{border-color:#CC3B2B;color:#A32B1F}
+#picks button.done{background:var(--sunk);opacity:.5}
+#device{position:absolute;inset:8vh 6vmin 4vh;border:1vmin solid var(--text);border-radius:3vmin;background:var(--sunk);overflow:hidden;display:flex;flex-direction:column}
+#device .apps{flex:1;display:grid;grid-template-columns:repeat(3,1fr);gap:3vmin;padding:4vmin;align-content:center;justify-items:center}
+#device .app{display:flex;flex-direction:column;align-items:center;gap:1vmin;border:0;background:none;cursor:pointer;font-family:var(--display);font-size:2.8vmin;color:var(--text)}
+#device .app span{display:grid;place-items:center;width:14vmin;height:14vmin;border-radius:3vmin;background:var(--side);border:.4vmin solid var(--line);font-size:7vmin}
+#device .bar{display:flex;gap:1.6vmin;align-items:center;padding:1.6vmin;background:var(--side);border-bottom:.4vmin solid var(--line)}
+#device .bar button{width:9vmin;height:9vmin;border-radius:2vmin;border:.4vmin solid var(--line);background:var(--sunk);font-size:4vmin;cursor:pointer}
+#device .addr{flex:1;min-width:0;padding:1.4vmin 2.4vmin;border-radius:99px;background:var(--sunk);font-size:2.8vmin;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#device .favs{display:flex;gap:1.6vmin;flex-wrap:wrap;padding:1.6vmin;background:var(--side);border-bottom:.4vmin solid var(--line)}
+#device .favs button{padding:1.4vmin 2.6vmin;border-radius:2vmin;border:.4vmin solid var(--line);background:var(--sunk);font-family:var(--display);font-size:3vmin;cursor:pointer}
+#device .page{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2vmin;text-align:center;padding:3vmin;font-size:3.4vmin}
+#device .page .big{font-size:12vmin;line-height:1}
 #dots{position:fixed;top:1.2vmin;left:50%;transform:translateX(-50%);display:flex;gap:.8vmin;pointer-events:none;z-index:2}
 #dots i{width:2vmin;height:2vmin;border-radius:50%;background:var(--sunk);border:.25vmin solid var(--line);transition:background .3s}
 #dots i.on{background:var(--go);border-color:var(--go)}
@@ -123,11 +146,11 @@ body.hc #guide{border-width:.6vmin}
 .seg{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:6px;border-radius:16px;background:var(--sunk)}
 .seg button{min-height:52px;border:0;border-radius:11px;background:none;font-size:19px;font-weight:700;color:var(--muted);cursor:pointer}
 .seg button[aria-pressed="true"]{background:var(--accent);color:#fff}
-.devs{display:grid;gap:10px}
-.devs button{display:grid;grid-template-columns:44px 1fr;align-items:center;gap:2px 14px;padding:14px 16px;border:2px solid var(--line);border-radius:16px;background:var(--card);text-align:left;cursor:pointer}
-.devs svg{grid-row:span 2;width:44px;height:44px;color:var(--muted)}
-.devs b{font-size:20px}
-.devs span{font-size:14px;color:var(--muted)}
+.devs{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
+.devs button{display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 8px;border:2px solid var(--line);border-radius:16px;background:var(--card);text-align:center;cursor:pointer}
+.devs svg{width:34px;height:34px;color:var(--muted)}
+.devs b{font-size:17px}
+.devs span{display:none}
 .devs button[aria-pressed="true"]{border-color:var(--accent)}
 .devs button[aria-pressed="true"] svg{color:var(--accent)}
 .side .foot{margin-top:auto;display:flex;flex-direction:column;gap:12px}
@@ -263,6 +286,9 @@ body.adv #detail h3.adv,body.adv #detail p.adv{display:block}
           <button data-dev="touch"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11V5.5a1.5 1.5 0 0 1 3 0V11m0-1.5a1.5 1.5 0 0 1 3 0V11m0-.5a1.5 1.5 0 0 1 3 0V15a6 6 0 0 1-6 6h-.6a6 6 0 0 1-4.7-2.3L4 15.6a1.6 1.6 0 0 1 2.4-2.1L9 16"/></svg><b>터치스크린</b><span>손가락으로 누르고 끌기</span></button>
           <button data-dev="mouse"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><rect x="6" y="3" width="12" height="18" rx="6"/><path d="M12 3v6M6.5 9h11"/></svg><b>마우스</b><span>포인터 옮기기 · 클릭 · 휠</span></button>
           <button data-dev="key"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><rect x="2.5" y="6" width="19" height="12" rx="2"/><path d="M6 10h.01M9 10h.01M12 10h.01M15 10h.01M18 10h.01M8 14h8"/></svg><b>키보드</b><span>키 누르기 · 글자와 낱말 치기</span></button>
+          <button data-dev="net"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 2.5 15 0 18M12 3C9.5 5.6 9.5 18 12 21"/></svg><b>인터넷</b><span>켜기 · 즐겨찾기 · 뒤로 · 찾아보기</span></button>
+          <button data-dev="safe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v6c0 4.4-3 7.6-7 9-4-1.4-7-4.6-7-9V6z"/><path d="M12 8.5v4M12 16h.01"/></svg><b>안전</b><span>눌러도 될까요 · 비밀 지키기</span></button>
+          <button data-dev="talk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-8 8H7l-4 2 1.4-4.2A8 8 0 1 1 21 12z"/><path d="M8.5 11h.01M12 11h.01M15.5 11h.01"/></svg><b>메신저</b><span>기분 보내기 · 고운 말 고르기</span></button>
         </div>
       </div>
       <div class="foot">
@@ -324,7 +350,7 @@ body.adv #detail h3.adv,body.adv #detail p.adv{display:block}
         <div class="grp adv" data-for="key2 syl word chat"><span class="lab">자판 그림 표시</span>
           <div class="chips" data-opt="hint"><button data-val="on">누를 키 표시</button><button data-val="off">표시 없음</button></div>
         </div>
-        <p class="note adv" data-for="tap0 move swipe key0 key1">이 활동은 따로 조절할 것이 없습니다.</p>
+        <p class="note adv" data-for="tap0 move swipe key0 key1 traffic secret stop net mood piece manner safemix talkmix">이 활동은 따로 조절할 것이 없습니다.</p>
         <h3 class="adv">진행</h3>
         <div class="grp"><span class="lab">몇 번 하고 끝낼까</span>
           <div class="chips" data-opt="goal"><button data-val="5">5번</button><button data-val="10">10번</button><button data-val="20">20번</button><button data-val="off">끝없이</button></div>
@@ -381,11 +407,14 @@ const VOL = {low:.25, mid:.55, high:.9};
 // ---------- 단계: 학교급 × 기기 × 5 ----------
 // 단계는 활동과 활동 조건만 정한다. 소리·효과·속도·높이·횟수는 교사가 고른 대로 둔다
 const GRADE = {elem:'초급', mid:'중급', high:'고급'};
-const DEV = {touch:'터치스크린', mouse:'마우스', key:'키보드'};
+const DEV = {touch:'터치스크린', mouse:'마우스', key:'키보드', net:'인터넷', safe:'안전', talk:'메신저'};
 const TIP = {
   touch:'손가락으로 화면을 직접 만집니다.',
   mouse:'마우스 단계는 손가락 터치에 반응하지 않습니다. 마우스로만 할 수 있습니다.',
-  key:'실제 키보드로 합니다. 한/영 상태와 상관없이 자판 위치로 판단합니다.'
+  key:'실제 키보드로 합니다. 화면 자판을 손으로 눌러도 됩니다.',
+  net:'인터넷을 켜고, 즐겨찾기로 가고, 뒤로 돌아오고, 찾아보는 연습입니다.',
+  safe:'눌러도 되는 것과 누르지 않을 것을 가립니다. 비밀로 지킬 것도 익힙니다.',
+  talk:'친구에게 기분과 마음을 전하고, 고운 말을 고르는 연습입니다.'
 };
 const L = (name, desc, set) => ({name, desc, set});
 const LEVELS = {
@@ -460,7 +489,35 @@ const LEVELS = {
     ]
   }
 };
-const BASE = {size:'L', count:'3', key1:'Space', pool:'con', hint:'on', dirs:'2', words:'one', enter:'off'};
+// 인터넷·안전·메신저는 수준에 따라 보기 수와 도움말만 달라진다
+const EXTRA = g => {
+  const easy = g === 'elem', hard = g === 'high';
+  return {
+    net:[
+      L('인터넷 켜기', '여러 앱 가운데 인터넷(🌐)을 찾아 누릅니다.', {act:'net', step:'open', size:easy ? 'L' : 'M'}),
+      L('즐겨찾기로 가기', '자주 가는 곳을 모아 둔 즐겨찾기에서 알려 준 곳을 누릅니다.', {act:'net', step:'fav'}),
+      L('뒤로 가기', '다른 쪽으로 갔다가 ← 뒤로 단추로 돌아옵니다.', {act:'net', step:'back'}),
+      L('찾아보기', '찾을 말을 치고 돋보기를 눌러 찾습니다.', {act:'net', step:'search'}),
+      L('처음부터 끝까지', '인터넷 켜기부터 찾아보기까지 차례로 해 봅니다.', {act:'net', step:'all'})
+    ],
+    safe:[
+      L('눌러도 될까요 · 쉬운 것', '카드를 보고 「괜찮아요」와 「누르지 않아요」를 고릅니다.', {act:'traffic', pool2:'easy'}),
+      L('눌러도 될까요 · 섞어서', '안전한 것과 위험한 것이 섞여 나옵니다.', {act:'traffic', pool2:'all'}),
+      L('비밀 상자', '알려 줘도 되는 것과 비밀로 지킬 것을 가립니다.', {act:'secret'}),
+      L('이상하면 멈춰요', '이상한 창이 뜨면 멈추고, 화면을 덮고, 선생님께 말합니다.', {act:'stop'}),
+      L('섞어서 해 보기', '위의 것들이 섞여 나옵니다.', {act:'safemix'})
+    ],
+    talk:[
+      L('기분 보내기', '친구에게 지금 기분을 골라 보냅니다.', {act:'mood'}),
+      L('인사 보내기', '「안녕」 같은 짧은 인사를 골라 보냅니다.', {act:'piece', count:easy ? '2' : '3'}),
+      L('마음 전하기', '고마워 · 미안해 같은 말을 골라 보냅니다.', {act:'piece', count:hard ? '4' : '3'}),
+      L('고운 말 고르기', '친구 말에 어떻게 답할지 두 가지 가운데 고릅니다.', {act:'manner'}),
+      L('섞어서 해 보기', '기분 · 인사 · 고운 말이 섞여 나옵니다.', {act:'talkmix'})
+    ]
+  };
+};
+const BASE = {size:'L', count:'3', key1:'Space', pool:'con', hint:'on', dirs:'2', words:'one', enter:'off', step:'open', pool2:'all'};
+for (const g of Object.keys(LEVELS)) Object.assign(LEVELS[g], EXTRA(g));
 const DEF = {grade:'elem', dev:'touch', lv:1, act:'tap0', ...BASE, zone:'all', sound:'on', vol:'mid', calm:'off', voice:'on', big:'off', hc:'off', gap:'short', delay:'mid', goal:'10'};
 let S = {...DEF};
 try { Object.assign(S, JSON.parse(localStorage.getItem('sonkkeut-settings') || '{}')); } catch (e) {}
@@ -495,6 +552,14 @@ function guideText() {
     case 'syl': return '자음과 모음을 눌러 글자를 만들어요';
     case 'word': return S.enter === 'on' ? '낱말을 치고 엔터로 보내요' : S.words === 'two' ? '띄어 쓰며 따라 쳐요' : '낱말을 따라 쳐요';
     case 'chat': return '답을 따라 치고 엔터로 보내요';
+    case 'traffic': case 'safemix': return '눌러도 되는지 골라요';
+    case 'secret': return '알려 줘도 되는지 골라요';
+    case 'stop': return '멈춰요 · 화면을 덮어요 · 선생님께 말해요';
+    case 'net': return {open:'인터넷(🌐)을 찾아 눌러요', fav:'노란 표시가 된 즐겨찾기를 눌러요',
+      back:'← 뒤로 단추를 눌러요', search:'돋보기를 눌러 찾아요', all:'인터넷을 켜고 차례로 해 봐요'}[S.step];
+    case 'mood': return '지금 기분을 골라 보내요';
+    case 'piece': case 'talkmix': return '보낼 말을 골라요';
+    case 'manner': return '친구에게 할 고운 말을 골라요';
   }
   return '';
 }
@@ -537,6 +602,48 @@ const WORDS = {
   two:['우유 주세요','기차 타요','바다 가요','포도 주세요','두부 사요','나비 보기']
 };
 const SYL_V = 'ㅏㅓㅗㅜㅡㅣ';
+// 안전: 눌러도 되는 것과 누르지 않는 것
+const SAFE_CARDS = [
+  {ok:1, pic:'📚', t:'선생님이 알려 준 공부 누리집'},
+  {ok:1, pic:'🔙', t:'뒤로 가기 단추'},
+  {ok:1, pic:'🏠', t:'처음으로 단추'},
+  {ok:1, pic:'▶️', t:'다음 쪽으로 가는 단추'},
+  {ok:0, pic:'🎁', t:'번쩍이는 「무료 선물」 광고'},
+  {ok:0, pic:'👤', t:'모르는 사람이 보낸 친구 신청'},
+  {ok:0, pic:'💰', t:'「돈을 드려요」 라는 메시지'},
+  {ok:0, pic:'⚠️', t:'「지금 누르세요」 무서운 경고 창'}
+];
+// 안전: 알려 줘도 되는 것과 비밀로 지킬 것
+const SECRET_CARDS = [
+  {ok:1, pic:'🎨', t:'내가 좋아하는 색'},
+  {ok:1, pic:'🍎', t:'내가 좋아하는 음식'},
+  {ok:1, pic:'🐶', t:'내가 좋아하는 동물'},
+  {ok:0, pic:'🔑', t:'비밀번호'},
+  {ok:0, pic:'🏠', t:'우리 집 주소'},
+  {ok:0, pic:'📞', t:'우리 집 전화번호'}
+];
+const POPUPS = [
+  {pic:'👾', t:'「휴대폰이 고장났어요!」 창이 떴어요'},
+  {pic:'🎰', t:'「축하합니다! 1등 당첨」 창이 떴어요'},
+  {pic:'😱', t:'무서운 그림이 갑자기 나왔어요'}
+];
+const STOP_STEPS = [{em:'✋', t:'멈춰요'}, {em:'🙈', t:'화면을 덮어요'}, {em:'🙋', t:'선생님께 말해요'}];
+// 인터넷 마을
+const NET_APPS = [{k:'photo', em:'📷', t:'사진'}, {k:'music', em:'🎵', t:'음악'}, {k:'web', em:'🌐', t:'인터넷'},
+  {k:'draw', em:'🎨', t:'그림'}, {k:'clock', em:'⏰', t:'시계'}, {k:'cal', em:'📅', t:'달력'}];
+const NET_FAVS = ['학교 누리집', '동요 모음', '그림 사전'];
+// 메신저
+const MOODS = [{em:'😊', t:'기뻐요', re:'나도 기뻐!'}, {em:'😢', t:'슬퍼요', re:'괜찮아? 힘내!'},
+  {em:'😠', t:'화나요', re:'무슨 일 있었어?'}, {em:'😴', t:'졸려요', re:'나도 졸려'}, {em:'😮', t:'놀랐어요', re:'우와, 무슨 일이야?'}];
+const PIECES = [{em:'👋', t:'안녕', re:'안녕! 반가워'}, {em:'🙏', t:'고마워', re:'천만에!'},
+  {em:'🤝', t:'같이 놀자', re:'좋아! 같이 놀자'}, {em:'🙇', t:'미안해', re:'괜찮아, 친구야'}];
+const MANNERS = [
+  {them:'나 그림 그렸어! 🎨', good:'우와, 멋지다!', bad:'못생겼어'},
+  {them:'나 넘어졌어 😢', good:'괜찮아? 다치지 않았어?', bad:'하하, 웃겨'},
+  {them:'오늘 내 생일이야! 🎂', good:'생일 축하해!', bad:'그래서 뭐?'},
+  {them:'같이 놀래?', good:'응, 좋아! 같이 놀자', bad:'싫어, 저리 가'},
+  {them:'숙제 다 했어!', good:'우와, 잘했다!', bad:'나는 너보다 빨라'}
+];
 // 상황별 채팅. 답은 받침까지 쓰되 쌍자음·겹모음이 없는 말만 쓴다(자판에서 시프트 없이 칠 수 있다)
 const CHATS = [
   {tag:'인사',       them:'안녕?',              me:'안녕하세요'},
@@ -718,14 +825,49 @@ function typebox() {
 
 function clearStage() {
   document.body.classList.remove('chatting');
-  stage.querySelectorAll('.target,.goal,#sample,#bigchar,#kb,#done,#typebox,#arrow,#chat,#kbnote').forEach(e => e.remove());
+  stage.querySelectorAll('.target,.goal,#sample,#bigchar,#kb,#done,#typebox,#arrow,#chat,#kbnote,#card,#picks,#device').forEach(e => e.remove());
   cur = {};
 }
 
+// ---------- 고르기·기기 화면 도우미 ----------
+function showCard(pic, text, cls) {
+  const c = document.createElement('div'); c.id = 'card'; if (cls) c.className = cls;
+  c.innerHTML = `<div class="pic">${pic}</div><p>${text}</p>`;
+  stage.appendChild(c); return c;
+}
+function showPicks(items) {            // [{em, t, ok, cls}]
+  const box = document.createElement('div'); box.id = 'picks';
+  box.innerHTML = items.map((o, i) =>
+    `<button data-i="${i}"${o.ok ? ' data-ok="1"' : ''}${o.cls ? ` class="${o.cls}"` : ''}>` +
+    `${o.em ? `<span class="em">${o.em}</span>` : ''}${o.t}</button>`).join('');
+  stage.appendChild(box); return box;
+}
+const device = () => {
+  const d = document.createElement('div'); d.id = 'device'; stage.appendChild(d); return d;
+};
+function netHome(d, hl) {
+  d.innerHTML = `<div class="apps">${NET_APPS.map(a =>
+    `<button class="app" data-app="${a.k}"><span>${a.em}</span>${a.t}</button>`).join('')}</div>`;
+  if (hl) d.querySelector(`[data-app="${hl}"] span`).style.outline = '.8vmin solid var(--hl)';
+}
+function netBrowser(d, {favs = true, page = '', hl = '', search = false} = {}) {
+  d.innerHTML = `<div class="bar"><button data-go="back">←</button><button data-go="home">🏠</button>` +
+    `<span class="addr">${search ? '찾을 말을 치고 돋보기를 눌러요' : '학교 누리집'}</span>` +
+    (search ? '<button data-go="search">🔍</button>' : '') + `</div>` +
+    (favs ? `<div class="favs">${NET_FAVS.map((f, i) => `<button data-fav="${i}">⭐ ${f}</button>`).join('')}</div>` : '') +
+    `<div class="page">${page || '<span class="big">🏫</span><span>학교 누리집에 왔어요</span>'}</div>`;
+  if (hl) d.querySelector(hl)?.style.setProperty('outline', '.8vmin solid var(--hl)');
+}
+const pickOneNot = (list, prev) => shuffle(list.filter(x => x !== prev))[0] || list[0];
+
 // ---------- 문제 내기 ----------
+const MIX = {safemix:['traffic', 'secret', 'stop'], talkmix:['mood', 'piece', 'manner']};
 function spawn() {
   clearStage(); busy = false;
-  const a = S.act, top = ZONE_TOP[S.zone];
+  let a = S.act;
+  if (MIX[a]) { const list = MIX[a]; a = list[(spawn.mix = (spawn.mix || 0) + 1) % list.length]; }
+  cur.act = a;
+  const top = ZONE_TOP[S.zone];
   if (a === 'tap1' || a === 'hover' || a === 'dbl' || a === 'rclick') {
     oneTarget(top);
   } else if (a === 'hold') {
@@ -793,6 +935,53 @@ function spawn() {
     stage.appendChild(big);
     stage.appendChild(keyboardPic(S.pool === 'num' ? ROWS.num : ROWS.letters, S.hint === 'on' ? cur.code : ''));
     kbNote();
+  } else if (a === 'traffic') {
+    const pool = S.pool2 === 'easy' ? SAFE_CARDS.filter((c, i) => i % 2 === 0) : SAFE_CARDS;
+    const c = pickOneNot(pool, spawn.prevCard); spawn.prevCard = c; cur.card = c;
+    showCard(c.pic, c.t);
+    showPicks([{em:'🟢', t:'괜찮아요', ok:c.ok ? 1 : 0, cls:'go'}, {em:'🔴', t:'누르지 않아요', ok:c.ok ? 0 : 1, cls:'stop'}]);
+  } else if (a === 'secret') {
+    const c = pickOneNot(SECRET_CARDS, spawn.prevCard); spawn.prevCard = c; cur.card = c;
+    showCard(c.pic, c.t);
+    showPicks([{em:'🙂', t:'알려 줘도 돼요', ok:c.ok ? 1 : 0, cls:'go'}, {em:'🔒', t:'비밀로 지켜요', ok:c.ok ? 0 : 1, cls:'stop'}]);
+  } else if (a === 'stop') {
+    const c = pickOneNot(POPUPS, spawn.prevCard); spawn.prevCard = c; cur.card = c;
+    showCard(c.pic, c.t, 'stop');
+    cur.n = 0;
+    const box = showPicks(shuffle(STOP_STEPS.map((x, i) => ({em:x.em, t:x.t, i}))));
+    [...box.querySelectorAll('button')].forEach(b => {
+      const step = STOP_STEPS.findIndex(x => b.textContent.includes(x.t));
+      b.dataset.step = step;
+    });
+  } else if (a === 'net') {
+    if (spawn.keepN != null) { cur.n = spawn.keepN; spawn.keepN = null; }
+    const step = S.step === 'all' ? ['open', 'fav', 'back', 'search'][cur.n || 0] : S.step;
+    cur.step = step;
+    const d = device();
+    if (step === 'open') netHome(d, 'web');
+    else if (step === 'fav') { cur.fav = Math.random() * NET_FAVS.length | 0; netBrowser(d, {hl:`[data-fav="${cur.fav}"]`}); }
+    else if (step === 'back') netBrowser(d, {page:'<span class="big">🎵</span><span>동요 모음에 왔어요</span>', hl:'[data-go="back"]'});
+    else netBrowser(d, {search:true, favs:false, page:'<span class="big">🔍</span><span>찾을 말을 치고 돋보기를 눌러요</span>', hl:'[data-go="search"]'});
+  } else if (a === 'mood') {
+    const box = document.createElement('div'); box.id = 'chat';
+    box.innerHTML = '<span class="who">친구</span><div class="bub them">오늘 기분이 어때?</div>';
+    stage.appendChild(box);
+    showPicks(shuffle([...MOODS]).slice(0, 5).map(m => ({em:m.em, t:m.t, ok:1, re:m.re})));
+    cur.moods = MOODS;
+  } else if (a === 'piece') {
+    const n = Math.min(+S.count || 3, PIECES.length);
+    const list = shuffle([...PIECES]).slice(0, n);
+    cur.want = pickOneNot(list, spawn.prevPiece); spawn.prevPiece = cur.want;
+    const box = document.createElement('div'); box.id = 'chat';
+    box.innerHTML = `<span class="who">친구에게</span><div class="ask">${cur.want.em} ${cur.want.t}<small>이 말을 골라 보내요</small></div>`;
+    stage.appendChild(box);
+    showPicks(list.map(x => ({em:x.em, t:x.t, ok:x === cur.want ? 1 : 0})));
+  } else if (a === 'manner') {
+    const m = pickOneNot(MANNERS, spawn.prevManner); spawn.prevManner = m; cur.manner = m;
+    const box = document.createElement('div'); box.id = 'chat';
+    box.innerHTML = `<span class="who">친구</span><div class="bub them">${m.them}</div>`;
+    stage.appendChild(box);
+    showPicks(shuffle([{t:m.good, ok:1}, {t:m.bad, ok:0}]));
   } else if (a === 'chat') {
     const c = shuffle(CHATS.filter(x => x !== spawn.prevChat))[0];
     spawn.prevChat = c;
@@ -836,6 +1025,57 @@ function drawTyping() {
   if (!$('#kbnote')) kbNote();
 }
 
+// 고르기 카드를 눌렀을 때. 틀리면 아무 일도 없다
+function handlePick(b) {
+  if (busy) return;
+  const a = cur.act;
+  if (a === 'stop') {                                 // 멈춰요 → 덮어요 → 선생님께, 차례대로
+    if (+b.dataset.step !== cur.n) return;
+    b.classList.add('done');
+    cur.n++; tick();
+    if (cur.n === STOP_STEPS.length) { win(b); }
+    return;
+  }
+  if (a === 'mood') {                                 // 어떤 기분을 골라도 맞다
+    const m = MOODS.find(x => b.textContent.includes(x.t));
+    reply(m ? m.re : '그렇구나!');
+    win(b); return;
+  }
+  if (a === 'piece') {
+    if (!b.dataset.ok) return;
+    reply(cur.want.re); win(b); return;
+  }
+  if (!b.dataset.ok) return;                          // traffic · secret · manner
+  if (a === 'manner') reply('고마워! 😊');
+  win(b);
+}
+function reply(text) {                                // 친구 답장을 말풍선으로
+  const box = $('#chat'); if (!box) return;
+  box.querySelector('.ask')?.remove();
+  box.insertAdjacentHTML('beforeend', `<div class="bub me">${text}</div>`);
+}
+function win(el) {
+  if (!gate()) return;
+  busy = true;
+  success(...center(el)); next();
+}
+// 인터넷 마을: 눌러야 할 것을 누르면 다음 칸으로
+function handleDevice(b) {
+  if (busy) return;
+  const step = cur.step, d = $('#device');
+  const okApp = step === 'open' && b.dataset.app === 'web';
+  const okFav = step === 'fav' && +b.dataset.fav === cur.fav;
+  const okBack = step === 'back' && b.dataset.go === 'back';
+  const okSearch = step === 'search' && b.dataset.go === 'search';
+  if (!(okApp || okFav || okBack || okSearch)) return;
+  if (okApp) netBrowser(d, {});
+  if (okFav) netBrowser(d, {page:`<span class="big">⭐</span><span>${NET_FAVS[cur.fav]}에 왔어요</span>`});
+  if (okBack) netBrowser(d, {});
+  if (okSearch) netBrowser(d, {search:true, favs:false, page:'<span class="big">🖼️</span><span>찾은 그림이 나왔어요</span>'});
+  if (S.step === 'all' && (cur.n || 0) < 3) { cur.n = (cur.n || 0) + 1; busy = true; setTimeout(() => { busy = false; spawn.keepN = cur.n; spawn(); }, 900); return; }
+  win(b);
+}
+
 // ---------- 터치·마우스 ----------
 const mouseOnly = () => S.dev === 'mouse';
 const pointers = new Map();
@@ -855,6 +1095,10 @@ stage.addEventListener('pointerdown', e => {
   if (a === 'tap0') { if (e.button === 0 && gate()) success(e.clientX, e.clientY, blip); return; }
   if (busy) return;
   if (a === 'pinch' && pointers.size === 2) { cur.d0 = spread(); cur.s0 = cur.scale; return; }
+  const pick = e.target.closest('#picks button');    // 고르기 카드
+  if (pick) { handlePick(pick); return; }
+  const dev = e.target.closest('#device button');    // 인터넷 마을 화면
+  if (dev) { handleDevice(dev); return; }
   const t = e.target.closest('.target');
   if (!t) return;                                    // 빗나가면 아무 일도 없다
   if (a === 'rclick') { if (e.button === 2 && gate()) popAndWin(t); return; }
@@ -1016,9 +1260,12 @@ addEventListener('keydown', e => {
 addEventListener('keydown', e => { if (e.key === 'Escape' && !$('#player').hidden) hideVideo(); });
 
 // 기능(활동)마다 가이드 영상 한 편. 프로그램 옆 「영상」 폴더에서 찾는다
+const HAS_VIDEO = new Set(['tap0', 'tap1', 'pick', 'drag', 'move', 'hover', 'hold', 'swipe', 'dbl', 'rclick',
+  'pinch', 'seq', 'scroll', 'key0', 'key2', 'syl', 'word', 'chat', 'key-Space', 'key-Enter', 'key-Backspace']);
 const videoOf = set => {
   const a = set.act;
-  return a === 'key1' ? 'key-' + (set.key1 || 'Space') : a;
+  const code = a === 'key1' ? 'key-' + (set.key1 || 'Space') : a;
+  return HAS_VIDEO.has(code) ? code : '';
 };
 function showVideo(code, name) {
   const v = $('#vidplay'), miss = $('#vidmiss');
@@ -1048,7 +1295,8 @@ function renderHome() {
   $('#lvls').innerHTML = LEVELS[S.grade][S.dev].map((l, i) => {
     const n = i + 1, now = n === playedLv;
     const first = !S.played && n === 1;          // 아직 한 번도 안 해 봤으면 1단계를 가리킨다
-    const vid = `<button class="vid" data-vid="${videoOf(l.set)}" data-vidname="${l.name}" aria-label="${l.name} 가이드 영상 보기">` +
+    const code = videoOf(l.set);
+    const vid = !code ? '' : `<button class="vid" data-vid="${code}" data-vidname="${l.name}" aria-label="${l.name} 가이드 영상 보기">` +
       '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><rect x="2.5" y="5" width="19" height="14" rx="3"/><path d="M10 9.5v5l4.5-2.5z" fill="currentColor"/></svg>가이드 영상</button>';
     const go = `<button class="go${now ? ' now' : ''}" data-lv="${n}"><em>${n}</em><b>${l.name}${now ? '<i class="tag now">지금 단계</i>' : ''}${n === nextLv ? '<i class="tag next">다음 단계</i>' : ''}${first ? '<i class="tag next">여기부터</i>' : ''}</b><span>${l.desc}</span>` +
       '<svg class="play" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13l10.5-6.5z"/></svg></button>';
