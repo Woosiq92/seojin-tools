@@ -415,8 +415,8 @@ footer a{color:var(--ink2)}
 
 <div class="bar" id="barwrap">
   <button class="chip" data-f="all" aria-pressed="true">전체</button>
-  <button class="chip" data-f="student" aria-pressed="false">학생과 함께</button>
-  <button class="chip" data-f="teacher" aria-pressed="false">교사 준비</button>
+  <button class="chip" data-f="student" aria-pressed="false">학생용</button>
+  <button class="chip" data-f="teacher" aria-pressed="false">교사용</button>
   <select id="subj" class="chipsel" aria-label="교과로 거르기"><option value="">모든 교과</option></select>
   <span class="spacer"></span>
   <label><input type="checkbox" id="nocam"> 카메라 없이 되는 것만</label>
@@ -474,23 +474,30 @@ footer a{color:var(--ink2)}
     <div class="f wide" id="f-line"><label for="i-line">한 줄 설명 <i>*</i></label>
       <input type="text" id="i-line" placeholder="예: 그림 두 개 중 하나를 눌러 오늘 먹을 것을 고릅니다"></div>
     <div class="f wide similar" id="similar" hidden></div>
-    <div class="f toolonly"><label for="i-cat">분류</label>
+  </div>
+
+  <!-- 도구 올리기는 이름·주소·한 줄이면 끝이다. 나머지는 펼쳐서 적고 싶을 때만 -->
+  <details class="more toolonly">
+    <summary>더 적기 (선택) · 분류, 누가 쓰나요, 만든 사람, 소스 코드, 설정, 성취기준</summary>
+    <div class="fields" style="margin-top:14px">
+    <div class="f"><label for="i-cat">분류</label>
       <select id="i-cat" class="chipsel"></select></div>
-    <div class="f toolonly"><label>어디에 쓰나요</label>
+    <div class="f"><label>누가 쓰나요</label>
       <div class="pick">
-        <label><input type="radio" name="use" value="student" checked> 학생과 함께</label>
-        <label><input type="radio" name="use" value="teacher"> 교사 준비</label>
+        <label><input type="radio" name="use" value="student" checked> 학생용 (학생이 화면을 만짐)</label>
+        <label><input type="radio" name="use" value="teacher"> 교사용 (교사만 씀)</label>
         <label><input type="checkbox" id="i-cam"> 카메라가 있어야 함</label>
       </div></div>
-    <div class="f toolonly"><label for="i-maker">만든 사람</label>
+    <div class="f"><label for="i-maker">만든 사람</label>
       <input type="text" id="i-maker" placeholder="예: 초등 3학년 김 선생님"></div>
-    <div class="f wide toolonly" id="f-src"><label for="i-src">소스 코드 주소 (GitHub 등, 선택)</label>
+    <div class="f wide" id="f-src"><label for="i-src">소스 코드 주소 (GitHub 등)</label>
       <input type="url" id="i-src" placeholder="https://github.com/…"></div>
     <div class="f wide" id="f-knobs"><label for="i-knobs">교사가 바꿀 수 있는 설정</label>
       <input type="text" id="i-knobs" placeholder="예: 속도 · 글자 크기 · 소리 켜기"></div>
-    <div class="f wide toolonly" id="f-std"><label id="curform">성취기준 (특수교육 기본 교육과정, 여섯 개까지)</label>
+    <div class="f wide" id="f-std"><label id="curform">성취기준 (특수교육 기본 교육과정, 여섯 개까지)</label>
       <div class="stdpick" data-pk="form"></div></div>
-  </div>
+    </div>
+  </details>
 
   <!-- 요청하기에서는 이 상자 제목이 곧 '자세히 적기' 단추다. 눌러서 펼치고 다시 눌러 접는다 -->
   <details class="more askonly">
@@ -1424,7 +1431,7 @@ function sendText(rec){
     '한 줄: ' + rec.line,
     '주소: ' + (rec.url || '(아직 없음)'),
     (rec.status ? '요청한 사람: ' + (rec.by || '(적지 않음)') : '만든 사람: ' + (rec.maker || '(적지 않음)')),
-    '어디에: ' + (rec.use === 'student' ? '학생과 함께' : '교사 준비'),
+    '누가 쓰나요: ' + (rec.use === 'student' ? '학생용' : '교사용'),
     '카메라: ' + (rec.cam ? '있어야 함' : '없어도 됨'),
     '교사 설정: ' + (rec.knobs || '(적지 않음)')
   ];
