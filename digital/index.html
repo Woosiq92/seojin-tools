@@ -9,6 +9,7 @@
 <style>
 :root{--bg:#EEF4F0;--side:#FFFFFF;--card:#FFFFFF;--sunk:#E3ECE7;--line:#CCDAD3;--text:#1D2A30;--muted:#55656C;--dim:#7A8A90;
   --accent:#E36E24;--accent-soft:#FBE7D8;--ink:#FFFFFF;--blue:#2E74BF;--go:#1F8C55;--hl:#F2B517;
+  --c-touch:#E36E24;--c-mouse:#2E74BF;--c-key:#8054C0;--c-net:#12837F;--c-safe:#CC3B2B;--c-talk:#B97D08;
   --display:'Jua','Apple SD Gothic Neo','Malgun Gothic',sans-serif}
 *{box-sizing:border-box}
 html,body{margin:0;height:100%;overflow:hidden;overscroll-behavior:none}
@@ -90,7 +91,7 @@ body.hc #guide{border-width:.6vmin}
   min-width:44px;min-height:44px;border:2px solid var(--line);border-radius:50%;background:var(--side);
   color:var(--text);font-size:3.6vmin;cursor:pointer}
 #sayagain:hover{border-color:var(--accent);color:var(--accent)}
-#guide{position:fixed;top:4.4vmin;left:50%;transform:translateX(-50%);max-width:calc(100vw - 360px);padding:1vmin 3vmin;border-radius:999px;background:var(--side);border:.4vmin solid var(--accent);font-size:3.4vmin;font-weight:700;line-height:1.3;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;pointer-events:none;z-index:2}
+#guide{position:fixed;top:4.4vmin;left:50%;transform:translateX(-50%);max-width:calc(100vw - 360px);padding:1vmin 3vmin;border-radius:999px;background:var(--side);border:.4vmin solid var(--cc,var(--accent));font-size:3.4vmin;font-weight:700;line-height:1.3;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;pointer-events:none;z-index:2}
 /* 고르기 카드 · 기기 화면 · 말풍선 활동 */
 #card{position:absolute;left:50%;top:9vh;transform:translateX(-50%);width:min(78vmin,760px);padding:3vmin 4vmin;border-radius:3vmin;
   background:var(--side);border:.5vmin solid var(--line);text-align:center;pointer-events:none}
@@ -114,11 +115,18 @@ body.hc #guide{border-width:.6vmin}
 #device .favs button{padding:1.4vmin 2.6vmin;border-radius:2vmin;border:.4vmin solid var(--line);background:var(--sunk);font-family:var(--display);font-size:3vmin;cursor:pointer}
 #device .page{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2vmin;text-align:center;padding:3vmin;font-size:3.4vmin}
 #device .page .big{font-size:12vmin;line-height:1}
+.glow{animation:glowpulse .8s ease 3;outline:.8vmin solid var(--hl)!important;outline-offset:.6vmin}
+@keyframes glowpulse{50%{outline-color:transparent}}
+#done .again{pointer-events:auto;margin-top:2vmin;padding:2.4vmin 6vmin;border:0;border-radius:3vmin;background:var(--cc,var(--accent));
+  color:#fff;font-family:var(--display);font-size:5vmin;cursor:pointer}
+#fsback{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);z-index:12;display:flex;align-items:center;gap:12px;
+  padding:12px 20px;border-radius:999px;background:var(--side);border:2px solid var(--accent);font-size:16px;box-shadow:0 10px 24px -16px rgba(29,42,48,.6)}
+#fsback button{padding:9px 16px;border:0;border-radius:10px;background:var(--accent);color:#fff;font-weight:700;cursor:pointer}
 #dots{position:fixed;top:1.2vmin;left:50%;transform:translateX(-50%);display:flex;gap:.8vmin;pointer-events:none;z-index:2}
 #dots i{width:2vmin;height:2vmin;border-radius:50%;background:var(--sunk);border:.25vmin solid var(--line);transition:background .3s}
 #dots i.on{background:var(--go);border-color:var(--go)}
 #done{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:4vmin;pointer-events:none;animation:fade .6s ease-out}
-#done b{font-size:30vmin;font-weight:800;line-height:1;color:var(--accent)}
+#done b{font-size:30vmin;font-weight:800;line-height:1;color:var(--cc,var(--accent))}
 #done span{font-size:3vmin;color:var(--muted);white-space:nowrap}
 @keyframes fade{from{opacity:0}}
 
@@ -126,6 +134,11 @@ body.hc #guide{border-width:.6vmin}
 #gear .fill{position:absolute;inset:0;border-radius:50%;background:rgba(227,110,36,.35);transform:scale(0)}
 #gear.holding .fill{transform:scale(1);transition:transform 1s linear}
 #gear svg{position:relative;width:26px;height:26px}
+@media (max-width:900px){
+  #guide{top:13vmin;max-width:calc(100vw - 40px)}
+  #sayagain{top:12.6vmin;left:12px}
+  #where small{display:none}
+}
 #where{position:fixed;top:calc(env(safe-area-inset-top,0px) + 20px);left:78px;font-size:15px;line-height:1.35;color:var(--muted);pointer-events:none;z-index:10}
 #where small{display:block;font-size:12.5px;color:var(--dim)}
 
@@ -147,19 +160,21 @@ body.hc #guide{border-width:.6vmin}
 .seg button{min-height:52px;border:0;border-radius:11px;background:none;font-size:19px;font-weight:700;color:var(--muted);cursor:pointer}
 .seg button[aria-pressed="true"]{background:var(--accent);color:#fff}
 .devs{display:grid;grid-template-columns:repeat(2,1fr);gap:8px}
-.devs button{display:flex;flex-direction:column;align-items:center;gap:6px;padding:12px 8px;border:2px solid var(--line);border-radius:16px;background:var(--card);text-align:center;cursor:pointer}
-.devs svg{width:34px;height:34px;color:var(--muted)}
+.devs button{display:flex;flex-direction:column;align-items:center;gap:4px;padding:0 0 10px;border:2px solid var(--line);border-radius:18px;background:var(--card);text-align:center;cursor:pointer;overflow:hidden}
+.devs button .em{display:grid;place-items:center;width:100%;height:38px;background:var(--cc);color:#fff;font-size:21px}
+.devs button[aria-pressed="true"]{border-color:var(--cc);box-shadow:0 6px 16px -10px var(--cc)}
+.devs svg{display:none}
 .devs b{font-size:17px}
 .devs span{display:none}
-.devs button[aria-pressed="true"]{border-color:var(--accent)}
-.devs button[aria-pressed="true"] svg{color:var(--accent)}
+
+
 .side .foot{margin-top:auto;display:flex;flex-direction:column;gap:12px}
 .foot .ghost{align-self:flex-start;display:flex;align-items:center;gap:8px;padding:12px 18px;border:1.5px solid var(--line);border-radius:12px;background:none;font-size:16px;color:var(--text);cursor:pointer}
 .ghost svg{width:20px;height:20px}
 .note{margin:0;font-size:13px;line-height:1.55;color:var(--dim)}
 
 .main{padding:36px 40px;display:flex;flex-direction:column;gap:18px;min-width:0}
-.main h2{margin:0;font-size:28px}
+.main h2{margin:0;font-size:28px;color:var(--cc,var(--text))}
 .main h2 small{margin-left:10px;font-size:16px;font-weight:600;color:var(--muted)}
 #devtip{margin:6px 0 0;font-size:15px;color:var(--muted)}
 .lvlist{display:grid;gap:10px}
@@ -178,17 +193,17 @@ body.hc #guide{border-width:.6vmin}
 #player .close{margin-left:auto;padding:10px 18px;border:1.5px solid var(--line);border-radius:12px;background:none;font-size:15px;cursor:pointer}
 #player .miss{padding:18px 20px;border:1.5px dashed var(--line);border-radius:14px;color:var(--muted);font-size:15px}
 .lvlist button{display:grid;grid-template-columns:auto 1fr auto;align-items:center;gap:0 18px;padding:14px 20px;border:2px solid var(--line);border-radius:18px;background:var(--card);text-align:left;cursor:pointer}
-.lvlist .go:hover{border-color:var(--accent)}
-.lvlist em{grid-row:span 2;display:grid;place-items:center;width:48px;height:48px;border-radius:50%;background:var(--sunk);font-style:normal;font-size:22px;font-weight:800;color:var(--muted)}
+.lvlist .go:hover{border-color:var(--cc,var(--accent))}
+.lvlist em{grid-row:span 2;display:grid;place-items:center;width:48px;height:48px;border-radius:50%;background:var(--cc,var(--sunk));font-style:normal;font-size:22px;font-weight:800;color:#fff}
 .lvlist b{font-size:21px}
 .lvlist span{grid-column:2;font-size:15px;line-height:1.45;color:var(--muted)}
-.lvlist .play{grid-column:3;grid-row:1/span 2;width:40px;height:40px;color:var(--dim)}
+.lvlist .play{grid-column:3;grid-row:1/span 2;width:40px;height:40px;color:var(--cc,var(--dim))}
 .lvlist .tag{margin-left:10px;padding:3px 10px;border-radius:999px;font-size:13px;font-style:normal;font-weight:700;vertical-align:3px}
-.lvlist .tag.now{background:var(--accent-soft);color:#8A3A10}
+.lvlist .tag.now{background:var(--cc,var(--accent));color:#fff}
 .lvlist .tag.next{background:#E0ECF8;color:#1C4F86}
-.lvlist button.now{border-color:var(--accent)}
-.lvlist button.now em{background:var(--accent);color:#fff}
-.lvlist button.now .play{color:var(--accent)}
+.lvlist button.now{border-color:var(--cc,var(--accent));box-shadow:0 8px 18px -14px var(--cc)}
+.lvlist button.now em{background:var(--cc,var(--accent));color:#fff}
+.lvlist button.now .play{color:var(--cc,var(--accent))}
 
 #starttip{position:fixed;top:4.4vmin;left:50%;transform:translateX(-50%);
   z-index:11;display:flex;gap:18px;align-items:center;padding:12px 24px;border-radius:999px;box-shadow:0 8px 22px -14px rgba(29,42,48,.5);
@@ -206,6 +221,8 @@ body.hc #guide{border-width:.6vmin}
 #stamps .slots i{display:grid;place-items:center;width:42px;height:42px;border-radius:50%;border:2px dashed var(--line);font-style:normal;font-size:19px;color:var(--dim)}
 #stamps .slots i.on{border:2px solid var(--go);background:#E4F2EA;color:#14633C}
 #stamps .cnt{margin-left:auto;font-size:14px;color:var(--muted)}
+#nextkid{padding:9px 15px;border:1.5px solid var(--line);border-radius:10px;background:var(--side);font-size:14px;cursor:pointer}
+#nextkid:hover{border-color:var(--accent);color:var(--accent)}
 #done .mark{display:grid;place-items:center;width:28vmin;height:28vmin;border-radius:50%;border:1vmin solid var(--go);
   color:#14633C;font-family:var(--display);font-size:4vmin;line-height:1.2;text-align:center;transform:rotate(-12deg);
   animation:stampin .5s cubic-bezier(.2,1.6,.4,1)}
@@ -273,8 +290,28 @@ body.adv #detail h3.adv,body.adv #detail p.adv{display:block}
   .main{padding:24px 16px}
   .lab{width:100%}.sub{margin-left:0}
 }
-@media (max-height:800px) and (min-width:861px){
-  .side{gap:18px;padding:26px 26px}
+@media (max-width:980px) and (min-width:861px){
+  .home{grid-template-columns:minmax(260px,320px) 1fr}
+  .main{padding:22px 20px}
+  .lvlist button{padding:10px 14px}
+  .lvlist b{font-size:18px}
+  .lvlist span{font-size:14px}
+  .lvlist .vid{width:96px;font-size:12px}
+}
+@media (max-width:860px){
+  .home{grid-template-columns:1fr}
+  .side{padding:18px 14px;gap:14px}
+  .side .foot{margin-top:0;flex-direction:row;flex-wrap:wrap}
+  .devs{grid-template-columns:repeat(3,1fr)}
+  .main{padding:18px 14px;gap:12px}
+  .lvlist .vid{width:84px;font-size:12px}
+  .lvlist b{font-size:18px}
+  #stamps{flex-wrap:wrap}
+}
+@media (max-height:900px) and (min-width:861px){
+  .devs button .em{height:30px;font-size:18px}
+  .devs b{font-size:15px}
+  .side{gap:14px;padding:20px 22px}
   .side h1{font-size:21px}
   .side .emblem{height:38px}
   .devs button{padding:10px 14px}
@@ -283,6 +320,10 @@ body.adv #detail h3.adv,body.adv #detail p.adv{display:block}
   .lvlist button{padding:10px 18px}
   .lvlist em{width:42px;height:42px;font-size:20px}
   .lvlist b{font-size:19px}
+  .lvlist span{font-size:14px}
+  .lvlist .vid{width:100px;font-size:12.5px}
+  #stamps{padding:10px 14px}
+  #stamps .slots i{width:36px;height:36px;font-size:17px}
 }
 </style>
 </head>
@@ -292,6 +333,7 @@ body.adv #detail h3.adv,body.adv #detail p.adv{display:block}
 <div id="where" hidden></div>
 <div id="guide" hidden></div>
 <button id="sayagain" aria-label="안내 다시 듣기" hidden>🔊</button>
+<div id="fsback" hidden>전체 화면이 꺼졌어요 <button id="fsgo">다시 켜기</button></div>
 
 <button id="gear" aria-label="단계 고르기로 돌아가기 (1초 누르기)" hidden>
   <span class="fill"></span>
@@ -313,12 +355,12 @@ body.adv #detail h3.adv,body.adv #detail p.adv{display:block}
       <div>
         <span class="flab">연습할 기기</span>
         <div class="devs" id="devs">
-          <button data-dev="touch"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M9 11V5.5a1.5 1.5 0 0 1 3 0V11m0-1.5a1.5 1.5 0 0 1 3 0V11m0-.5a1.5 1.5 0 0 1 3 0V15a6 6 0 0 1-6 6h-.6a6 6 0 0 1-4.7-2.3L4 15.6a1.6 1.6 0 0 1 2.4-2.1L9 16"/></svg><b>터치스크린</b><span>손가락으로 누르고 끌기</span></button>
-          <button data-dev="mouse"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><rect x="6" y="3" width="12" height="18" rx="6"/><path d="M12 3v6M6.5 9h11"/></svg><b>마우스</b><span>포인터 옮기기 · 클릭 · 휠</span></button>
-          <button data-dev="key"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><rect x="2.5" y="6" width="19" height="12" rx="2"/><path d="M6 10h.01M9 10h.01M12 10h.01M15 10h.01M18 10h.01M8 14h8"/></svg><b>키보드</b><span>키 누르기 · 글자와 낱말 치기</span></button>
-          <button data-dev="net"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c2.5 2.6 2.5 15 0 18M12 3C9.5 5.6 9.5 18 12 21"/></svg><b>인터넷</b><span>켜기 · 즐겨찾기 · 뒤로 · 찾아보기</span></button>
-          <button data-dev="safe"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l7 3v6c0 4.4-3 7.6-7 9-4-1.4-7-4.6-7-9V6z"/><path d="M12 8.5v4M12 16h.01"/></svg><b>안전</b><span>눌러도 될까요 · 비밀 지키기</span></button>
-          <button data-dev="talk"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a8 8 0 0 1-8 8H7l-4 2 1.4-4.2A8 8 0 1 1 21 12z"/><path d="M8.5 11h.01M12 11h.01M15.5 11h.01"/></svg><b>메신저</b><span>기분 보내기 · 고운 말 고르기</span></button>
+          <button data-dev="touch" style="--cc:var(--c-touch)"><span class="em">👆</span><b>터치스크린</b><span>손가락으로 누르고 끌기</span></button>
+          <button data-dev="mouse" style="--cc:var(--c-mouse)"><span class="em">🖱️</span><b>마우스</b><span>포인터 옮기기 · 클릭 · 휠</span></button>
+          <button data-dev="key" style="--cc:var(--c-key)"><span class="em">⌨️</span><b>키보드</b><span>키 누르기 · 글자와 낱말 치기</span></button>
+          <button data-dev="net" style="--cc:var(--c-net)"><span class="em">🌐</span><b>인터넷</b><span>켜기 · 즐겨찾기 · 뒤로 · 찾아보기</span></button>
+          <button data-dev="safe" style="--cc:var(--c-safe)"><span class="em">🚦</span><b>안전</b><span>눌러도 될까요 · 비밀 지키기</span></button>
+          <button data-dev="talk" style="--cc:var(--c-talk)"><span class="em">💬</span><b>메신저</b><span>기분 보내기 · 고운 말 고르기</span></button>
         </div>
       </div>
       <div class="foot">
@@ -333,7 +375,7 @@ body.adv #detail h3.adv,body.adv #detail p.adv{display:block}
         <p id="devtip"></p>
       </header>
       <div id="lvls" class="lvlist"></div>
-      <div id="stamps"><b>오늘 도장판</b><div class="slots"></div><span class="cnt"></span></div>
+      <div id="stamps"><b>이 학생 도장판</b><div class="slots"></div><span class="cnt"></span><button id="nextkid">다음 학생</button></div>
       <p class="note">단계를 누르면 바로 전체 화면으로 시작합니다. 전체 화면을 끄려면 Esc를 누릅니다. 활동 중 왼쪽 위 ←를 1초 누르면 이 화면으로 돌아옵니다. 다음 단계로 갈지, 같은 단계를 다시 할지는 학생을 보고 정하세요.</p>
     </main>
   </div>
@@ -405,6 +447,10 @@ body.adv #detail h3.adv,body.adv #detail p.adv{display:block}
         <div class="grp adv"><span class="lab">연달아 누름</span>
           <div class="chips" data-opt="gap"><button data-val="off">모두 받기</button><button data-val="short">0.25초 무시</button><button data-val="mid">0.5초 무시</button><button data-val="long">1초 무시</button></div>
         </div>
+        <div class="grp"><span class="lab">막혔을 때 도움</span>
+          <div class="chips" data-opt="helpsec"><button data-val="off">없음</button><button data-val="10">10초 뒤</button><button data-val="20">20초 뒤</button></div>
+          <span class="sub">학생이 한참 못 맞히면 눌러야 할 곳이 반짝이고 안내를 다시 들려줍니다. 틀렸다고 알리는 것이 아닙니다.</span>
+        </div>
         <h3>말소리와 보기</h3>
         <div class="grp"><span class="lab">목소리 안내</span>
           <div class="chips" data-opt="voice"><button data-val="on">켬</button><button data-val="off">끔</button></div>
@@ -419,6 +465,7 @@ body.adv #detail h3.adv,body.adv #detail p.adv{display:block}
         <h3>소리와 효과</h3>
         <div class="grp"><span class="lab">소리</span>
           <div class="chips" data-opt="sound"><button data-val="on">켬</button><button data-val="off">끔</button></div>
+          <button id="soundtest" class="ghost" style="padding:9px 14px;font-size:14px">소리 시험</button>
           <div class="chips adv" data-opt="vol"><button data-val="low">작게</button><button data-val="mid">보통</button><button data-val="high">크게</button></div>
         </div>
         <div class="grp adv"><span class="lab">효과</span>
@@ -578,7 +625,7 @@ const EXTRA = g => {
 const BASE = {size:'L', count:'3', key1:'Space', pool:'con', hint:'on', dirs:'2', words:'one', enter:'off',
   step:'open', pool2:'all', apps:'6', nums:'off'};
 for (const g of Object.keys(LEVELS)) Object.assign(LEVELS[g], EXTRA(g));
-const DEF = {grade:'elem', dev:'touch', lv:1, act:'tap0', ...BASE, zone:'all', sound:'on', vol:'mid', calm:'off', voice:'on', big:'off', hc:'off', gap:'short', delay:'mid', goal:'10'};
+const DEF = {grade:'elem', dev:'touch', lv:1, act:'tap0', ...BASE, zone:'all', sound:'on', vol:'mid', calm:'off', voice:'on', big:'off', hc:'off', helpsec:'10', gap:'short', delay:'mid', goal:'10'};
 let S = {...DEF};
 try { Object.assign(S, JSON.parse(localStorage.getItem('sonkkeut-settings') || '{}')); } catch (e) {}
 const save = () => { try { localStorage.setItem('sonkkeut-settings', JSON.stringify(S)); } catch (e) {} };
@@ -819,7 +866,7 @@ function gate() {
 }
 function success(x, y, sound = cheer) {
   count++; $('#count').textContent = count; dots();
-  burst(x, y); sound();
+  burst(x, y); sound(); clearTimeout(helpTimer);
   if (goal() && count >= goal()) { done = busy = true; clearTimeout(timer); timer = setTimeout(finish, DELAY[S.delay]); }
 }
 function finish() {
@@ -828,12 +875,46 @@ function finish() {
   stamps[S.dev] = true;
   const d = document.createElement('div'); d.id = 'done';
   d.innerHTML = `<div class="mark"><span>${DEV_EMOJI[S.dev]}</span>참 잘했어요</div>` +
-    '<b>끝</b><span>왼쪽 위 ←를 1초 누르면 다음 단계를 고를 수 있습니다</span>';
+    '<b>끝</b><button class="again" id="again">한 번 더</button>' +
+    '<span>다른 단계로 가려면 왼쪽 위 ←를 1초 누르세요</span>';
+  d.querySelector('#again').addEventListener('pointerdown', e => { e.stopPropagation(); begin(); });
   stage.appendChild(d);
   burst(innerWidth / 2, innerHeight / 2);
   [0, 2, 4, 5].forEach((n, i) => tone(PENTA[n], i * .15, .8, .45));
 }
-function next() { if (done) return; busy = true; clearTimeout(timer); timer = setTimeout(spawn, DELAY[S.delay]); }
+// 한참 못 맞히면 눌러야 할 곳을 한 번 짚어 준다(벌이 아니라 도움)
+let helpTimer = 0;
+function hintEl() {
+  const a = cur.act || S.act;
+  if (a === 'seq') return stage.querySelector(`.target[data-n="${cur.n}"]`);
+  if (a === 'stop') return stage.querySelector(`#picks button[data-step="${cur.n}"]`);
+  if (a === 'mood') return stage.querySelector('#picks button');
+  if (['traffic', 'secret', 'manner', 'piece'].includes(a)) return stage.querySelector('#picks button[data-ok]');
+  if (a === 'net') {
+    const st = cur.step;
+    return stage.querySelector(st === 'open' ? '#device [data-app="web"]' : st === 'fav' ? `#device [data-fav="${cur.fav}"]`
+      : st === 'back' ? '#device [data-go="back"]' : '#device [data-go="search"]');
+  }
+  if (a === 'key1') return stage.querySelector('.key.big');
+  if (a === 'key2') return stage.querySelector(`.key[data-code="${cur.code}"]`);
+  if (['syl', 'word', 'chat'].includes(a)) return stage.querySelector(`.key[data-code="${cur.seq?.[cur.pos]}"]`);
+  if (a === 'drag') return stage.querySelector('.goal');
+  if (a === 'swipe') return stage.querySelector('#arrow');
+  return stage.querySelector('.target[data-ok]') || stage.querySelector('.target') || $('#guide');
+}
+function scheduleHelp() {
+  clearTimeout(helpTimer);
+  const secs = +S.helpsec;
+  if (!secs || done || !panel.hidden) return;
+  helpTimer = setTimeout(() => {
+    if (done || !panel.hidden) return;
+    const el = hintEl();
+    if (el) { el.classList.remove('glow'); void el.offsetWidth; el.classList.add('glow'); setTimeout(() => el.classList.remove('glow'), 2600); }
+    say(guideText(), true);
+    scheduleHelp();                                  // 그래도 못 하면 다시 짚어 준다
+  }, secs * 1000);
+}
+function next() { clearTimeout(helpTimer); if (done) return; busy = true; clearTimeout(timer); timer = setTimeout(spawn, DELAY[S.delay]); }
 const center = el => { const r = el.getBoundingClientRect(); return [r.left + r.width / 2, r.top + r.height / 2]; };
 function popAndWin(t) {
   const [x, y] = center(t);
@@ -942,6 +1023,7 @@ const pickOneNot = (list, prev) => shuffle(list.filter(x => x !== prev))[0] || l
 const MIX = {safemix:['traffic', 'secret', 'stop'], talkmix:['mood', 'piece', 'manner']};
 function spawn() {
   clearStage(); busy = false;
+  setTimeout(scheduleHelp, 50);
   let a = S.act;
   if (MIX[a]) { const list = MIX[a]; a = list[(spawn.mix = (spawn.mix || 0) + 1) % list.length]; }
   cur.act = a;
@@ -1388,7 +1470,13 @@ function showLicense() {
 $('#lic-close').addEventListener('click', () => { $('#license').hidden = true; });
 $('#lic-print').addEventListener('click', () => { try { print(); } catch (e) {} });
 
+const DEV_COLOR = {touch:'--c-touch', mouse:'--c-mouse', key:'--c-key', net:'--c-net', safe:'--c-safe', talk:'--c-talk'};
+function paintDev() {
+  const c = `var(${DEV_COLOR[S.dev] || '--accent'})`;
+  document.body.style.setProperty('--cc', c);
+}
 function renderHome() {
+  paintDev();
   $('#grades').querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.grade === S.grade)));
   $('#devs').querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.dev === S.dev)));
   $('#lvtitle').innerHTML = `${DEV[S.dev]}<small>${GRADE[S.grade]} · ${LEVELS[S.grade][S.dev].length}단계</small>`;
@@ -1450,6 +1538,13 @@ $('#reset').addEventListener('click', () => { count = 0; done = false; $('#count
 $('#more').addEventListener('click', () => { refresh(); $('#detail').hidden = false; });
 $('#less').addEventListener('click', () => { $('#detail').hidden = true; renderHome(); });
 $('#start').addEventListener('click', begin);
+$('#soundtest').addEventListener('click', e => { e.stopPropagation(); audio(); cheer(); });
+$('#nextkid').addEventListener('click', () => {
+  Object.keys(stamps).forEach(k => delete stamps[k]);
+  $('#license').dataset.shown = '';
+  count = 0; done = false; $('#count').textContent = 0;
+  renderStamps(); renderHome();
+});
 $('#sayagain').addEventListener('click', e => { e.stopPropagation(); say(guideText(), true); });
 
 // 처음 열었을 때 한 번, 그리고 「사용 가이드」를 누를 때
@@ -1477,6 +1572,7 @@ function begin() {
   if (done || (goal() && count >= goal())) { count = 0; done = false; $('#count').textContent = 0; }
   dots();
   $('#where').hidden = false;
+  paintDev();
   $('#where').innerHTML = `${GRADE[S.grade]} ${DEV[S.dev]} ${S.lv}단계<small>← 를 1초 누르고 있으면 단계 고르기</small><small>전체 화면을 끄려면 Esc</small>`;
   $('#guide').textContent = guideText(); $('#guide').hidden = true;
   $('#sayagain').hidden = false;
@@ -1497,15 +1593,19 @@ function openPanel() {
   if (Object.keys(DEV).every(k => stamps[k]) && !$('#license').dataset.shown) { $('#license').dataset.shown = '1'; setTimeout(showLicense, 400); }
   document.getElementById('starttip')?.remove();
   gear.classList.remove('holding'); gear.hidden = true; panel.hidden = false;
-  $('#dots').hidden = true; $('#where').hidden = true; $('#guide').hidden = true; $('#sayagain').hidden = true; $('#detail').hidden = true;
+  $('#dots').hidden = true; $('#where').hidden = true; $('#guide').hidden = true; $('#sayagain').hidden = true;
+  $('#fsback').hidden = true; $('#detail').hidden = true; clearTimeout(helpTimer);
   hush();
   renderHome(); refresh();
 }
 
 // ← 는 1초 눌러야 열린다 = 학생이 스쳐도 안 열린다
-let holdTimer = 0;
+let holdTimer = 0, lastTapGear = 0;
 gear.addEventListener('pointerdown', e => {
   e.preventDefault();
+  const now = performance.now();
+  if (now - lastTapGear < 500) { lastTapGear = 0; clearTimeout(holdTimer); openPanel(); return; }   // 급할 때: 짧게 두 번
+  lastTapGear = now;
   gear.classList.add('holding');
   holdTimer = setTimeout(openPanel, 1000);
 });
@@ -1519,6 +1619,16 @@ addEventListener('resize', () => {
   resizeTimer = setTimeout(() => { if (panel.hidden && !busy && !done && !stage.querySelector('.dragging')) spawn(); }, 200);
 });
 addEventListener('contextmenu', e => e.preventDefault());
+
+// Esc 는 브라우저가 처리해서 막을 수 없다. 대신 꺼졌을 때 다시 켜는 길을 준다
+addEventListener('fullscreenchange', () => {
+  const out = !document.fullscreenElement;
+  $('#fsback').hidden = !(out && panel.hidden);
+});
+$('#fsgo').addEventListener('click', () => {
+  document.documentElement.requestFullscreen?.().catch(() => {});
+  $('#fsback').hidden = true;
+});
 
 renderHome(); refresh();
 </script>
