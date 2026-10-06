@@ -395,7 +395,7 @@ body.adv #detail h3.adv,body.adv #detail p.adv{display:block}
         <div class="grp adv" data-for="key2 syl word chat"><span class="lab">자판 그림 표시</span>
           <div class="chips" data-opt="hint"><button data-val="on">누를 키 표시</button><button data-val="off">표시 없음</button></div>
         </div>
-        <p class="note adv" data-for="tap0 move swipe key0 key1 traffic secret stop net mood piece manner safemix talkmix">이 활동은 따로 조절할 것이 없습니다.</p>
+        <p class="note adv" data-for="tap0 move swipe key0 key1 traffic secret stop net mood piece manner">이 활동은 따로 조절할 것이 없습니다.</p>
         <h3 class="adv">진행</h3>
         <div class="grp"><span class="lab">몇 번 하고 끝낼까</span>
           <div class="chips" data-opt="goal"><button data-val="5">5번</button><button data-val="10">10번</button><button data-val="20">20번</button><button data-val="off">끝없이</button></div>
@@ -568,7 +568,7 @@ const EXTRA = g => {
         {act:'secret', pool2}),
       L('이상하면 멈춰요', easy ? '단추에 1 · 2 · 3 번호가 있습니다. 번호대로 누릅니다.' : '번호 없이 차례를 기억해 누릅니다.',
         {act:'stop', nums:easy ? 'on' : 'off'}),
-      L('섞어서 해 보기', '위의 것들이 섞여 나옵니다.', {act:'safemix', pool2, nums:easy ? 'on' : 'off'})
+      L('섞어서 해 보기', '앞의 단계들이 돌아가며 나옵니다.', {act:'mix', pool2, nums:easy ? 'on' : 'off'})
     ],
     talk:[
       L('기분 보내기', easy ? '기분 세 가지 가운데 골라 보냅니다.' : '기분 다섯 가지 가운데 골라 보냅니다.',
@@ -578,13 +578,18 @@ const EXTRA = g => {
       L('마음 전하기', '고마워 · 미안해처럼 마음을 전하는 말을 고릅니다.', {act:'piece', count:easy ? '3' : '4'}),
       L('고운 말 고르기', hard ? '다투기 쉬운 상황에서 고운 말을 고릅니다.' : '친구 말에 어떻게 답할지 두 가지 가운데 고릅니다.',
         {act:'manner', pool2}),
-      L('섞어서 해 보기', '기분 · 인사 · 고운 말이 섞여 나옵니다.', {act:'talkmix', count:picks, pool2})
+      L('섞어서 해 보기', '앞의 단계들이 돌아가며 나옵니다.', {act:'mix', count:picks, pool2})
     ]
   };
 };
 const BASE = {size:'L', count:'3', key1:'Space', pool:'con', hint:'on', dirs:'2', words:'one', enter:'off',
   step:'open', pool2:'all', apps:'6', nums:'off'};
 for (const g of Object.keys(LEVELS)) Object.assign(LEVELS[g], EXTRA(g));
+// 기기마다 맨 끝에 「섞어서 해 보기」 한 단계(이미 있으면 두지 않는다)
+for (const g of Object.keys(LEVELS)) for (const d of Object.keys(LEVELS[g])) {
+  const list = LEVELS[g][d];
+  if (!list.some(l => l.set.act === 'mix')) list.push(L('섞어서 해 보기', '앞의 단계들이 돌아가며 나옵니다.', {act:'mix'}));
+}
 const DEF = {grade:'elem', dev:'touch', lv:1, act:'tap0', ...BASE, zone:'all', sound:'on', vol:'mid', calm:'off', voice:'on', big:'off', hc:'off', helpsec:'10', gap:'short', delay:'mid', goal:'10'};
 let S = {...DEF};
 try { Object.assign(S, JSON.parse(localStorage.getItem('sonkkeut-settings') || '{}')); } catch (e) {}
@@ -592,6 +597,7 @@ const save = () => { try { localStorage.setItem('sonkkeut-settings', JSON.string
 const level = () => LEVELS[S.grade][S.dev][S.lv - 1];
 function applyLevel(grade, dev, lv) {
   Object.assign(S, BASE, LEVELS[grade][dev][lv - 1].set, {grade, dev, lv});
+  setMix();
 }
 if (!GRADE[S.grade] || !DEV[S.dev] || !(S.lv >= 1 && S.lv <= (LEVELS[S.grade]?.[S.dev]?.length || 0))) Object.assign(S, {grade:'elem', dev:'touch', lv:1});
 if (level().set.act !== S.act) applyLevel(S.grade, S.dev, S.lv);   // 예전 판에서 저장된 설정
@@ -619,13 +625,13 @@ function guideText() {
     case 'syl': return '자음과 모음을 눌러 글자를 만들어요';
     case 'word': return S.enter === 'on' ? '낱말을 치고 엔터로 보내요' : S.words === 'two' ? '띄어 쓰며 따라 쳐요' : '낱말을 따라 쳐요';
     case 'chat': return '답을 따라 치고 엔터로 보내요';
-    case 'traffic': case 'safemix': return '눌러도 되는지 골라요';
+    case 'traffic': return '눌러도 되는지 골라요';
     case 'secret': return '알려 줘도 되는지 골라요';
     case 'stop': return '멈춰요 · 화면을 덮어요 · 선생님께 말해요';
     case 'net': return {open:'인터넷(🌐)을 찾아 눌러요', fav:'노란 표시가 된 즐겨찾기를 눌러요',
       back:'← 뒤로 단추를 눌러요', search:'돋보기를 눌러 찾아요', all:'인터넷을 켜고 차례로 해 봐요'}[S.step];
     case 'mood': return '지금 기분을 골라 보내요';
-    case 'piece': case 'talkmix': return '보낼 말을 골라요';
+    case 'piece': return '보낼 말을 골라요';
     case 'manner': return '친구에게 할 고운 말을 골라요';
   }
   return '';
@@ -979,12 +985,18 @@ function netBrowser(d, {favs = true, page = '', hl = '', search = false} = {}) {
 const pickOneNot = (list, prev) => shuffle(list.filter(x => x !== prev))[0] || list[0];
 
 // ---------- 문제 내기 ----------
-const MIX = {safemix:['traffic', 'secret', 'stop'], talkmix:['mood', 'piece', 'manner']};
+// 「섞어서 해 보기」: 같은 수준·같은 기기의 앞 단계들을 돌아가며 낸다(수준을 넘나들지 않는다)
+let mixList = null;
+function setMix() {
+  const here = LEVELS[S.grade]?.[S.dev] || [];
+  mixList = (level()?.set.act === 'mix') ? here.filter(l => l.set.act !== 'mix').map(l => l.set) : null;
+  spawn.mix = 0;
+}
 function spawn() {
   clearStage(); busy = false;
   setTimeout(scheduleHelp, 50);
-  let a = S.act;
-  if (MIX[a]) { const list = MIX[a]; a = list[(spawn.mix = (spawn.mix || 0) + 1) % list.length]; }
+  if (mixList && mixList.length) Object.assign(S, BASE, mixList[(spawn.mix = (spawn.mix || 0) + 1) % mixList.length]);
+  const a = S.act;
   cur.act = a;
   const top = ZONE_TOP[S.zone];
   if (a === 'tap1' || a === 'hover' || a === 'dbl' || a === 'rclick') {
