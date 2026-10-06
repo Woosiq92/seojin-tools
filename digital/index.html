@@ -73,6 +73,16 @@ body.chatting #typebox{top:auto;bottom:40vh}
 #arrow svg{width:100%;height:100%;animation:nudge 1.2s ease-in-out infinite}
 @keyframes nudge{50%{transform:translateX(6vmin)}}
 
+body.big{font-size:118%}
+body.big .side h1{font-size:26px}
+body.big .lvlist b{font-size:23px}
+body.hc{--muted:#dfe3e9;--line:#5d6779}
+body.hc .lvlist .row>button{border-width:3px}
+body.hc #guide{background:rgba(0,0,0,.75);border:3px solid var(--accent)}
+#sayagain{position:fixed;top:4vmin;left:calc(50% - 46vmin);z-index:3;display:grid;place-items:center;width:9vmin;height:9vmin;
+  min-width:44px;min-height:44px;border:2px solid rgba(255,255,255,.25);border-radius:50%;background:rgba(255,255,255,.08);
+  color:var(--text);font-size:3.6vmin;cursor:pointer}
+#sayagain:hover{border-color:var(--accent);color:var(--accent)}
 #guide{position:fixed;top:4.4vmin;left:50%;transform:translateX(-50%);max-width:calc(100vw - 360px);padding:1vmin 3vmin;border-radius:999px;background:rgba(255,255,255,.08);font-size:3.4vmin;font-weight:700;line-height:1.3;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;pointer-events:none;z-index:2}
 #dots{position:fixed;top:1.2vmin;left:50%;transform:translateX(-50%);display:flex;gap:.8vmin;pointer-events:none;z-index:2}
 #dots i{width:2vmin;height:2vmin;border-radius:50%;background:rgba(255,255,255,.14);transition:background .3s}
@@ -221,6 +231,7 @@ body.adv #detail h3.adv,body.adv #detail p.adv{display:block}
 <div id="dots" hidden></div>
 <div id="where" hidden></div>
 <div id="guide" hidden></div>
+<button id="sayagain" aria-label="안내 다시 듣기" hidden>🔊</button>
 
 <button id="gear" aria-label="단계 고르기로 돌아가기 (1초 누르기)" hidden>
   <span class="fill"></span>
@@ -317,6 +328,17 @@ body.adv #detail h3.adv,body.adv #detail p.adv{display:block}
         </div>
         <div class="grp adv"><span class="lab">연달아 누름</span>
           <div class="chips" data-opt="gap"><button data-val="off">모두 받기</button><button data-val="short">0.25초 무시</button><button data-val="mid">0.5초 무시</button><button data-val="long">1초 무시</button></div>
+        </div>
+        <h3>말소리와 보기</h3>
+        <div class="grp"><span class="lab">목소리 안내</span>
+          <div class="chips" data-opt="voice"><button data-val="on">켬</button><button data-val="off">끔</button></div>
+          <span class="sub">화면 맨 위 안내를 소리로 읽어 줍니다. 글을 읽기 어려운 학생에게 켜 주세요.</span>
+        </div>
+        <div class="grp adv"><span class="lab">큰 글자</span>
+          <div class="chips" data-opt="big"><button data-val="off">보통</button><button data-val="on">크게</button></div>
+        </div>
+        <div class="grp adv"><span class="lab">또렷한 테두리</span>
+          <div class="chips" data-opt="hc"><button data-val="off">보통</button><button data-val="on">또렷하게</button></div>
         </div>
         <h3>소리와 효과</h3>
         <div class="grp"><span class="lab">소리</span>
@@ -432,7 +454,7 @@ const LEVELS = {
   }
 };
 const BASE = {size:'L', count:'3', key1:'Space', pool:'con', hint:'on', dirs:'2', words:'one', enter:'off'};
-const DEF = {grade:'elem', dev:'touch', lv:1, act:'tap0', ...BASE, zone:'all', sound:'on', vol:'mid', calm:'off', gap:'short', delay:'mid', goal:'10'};
+const DEF = {grade:'elem', dev:'touch', lv:1, act:'tap0', ...BASE, zone:'all', sound:'on', vol:'mid', calm:'off', voice:'on', big:'off', hc:'off', gap:'short', delay:'mid', goal:'10'};
 let S = {...DEF};
 try { Object.assign(S, JSON.parse(localStorage.getItem('sonkkeut-settings') || '{}')); } catch (e) {}
 const save = () => { try { localStorage.setItem('sonkkeut-settings', JSON.stringify(S)); } catch (e) {} };
@@ -537,6 +559,21 @@ const shuffle = a => { for (let i = a.length - 1; i > 0; i--) { const j = Math.r
 const pickOne = a => a[Math.random() * a.length | 0];
 const unit = () => Math.min(innerWidth, innerHeight) / 100;
 
+// ---------- 말소리 ----------
+// 안내를 소리로 읽어 준다(글을 읽기 어려운 학생용). 브라우저 음성 합성을 쓴다
+let lastSaid = '';
+function say(text, force) {
+  lastSaid = text || lastSaid;
+  if (!force && S.voice !== 'on') return;
+  if (!lastSaid) return;
+  try {
+    const u = new SpeechSynthesisUtterance(lastSaid);
+    u.lang = 'ko-KR'; u.rate = .88;
+    speechSynthesis.cancel(); speechSynthesis.speak(u);
+  } catch (e) {}
+}
+const hush = () => { try { speechSynthesis.cancel(); } catch (e) {} };
+
 // ---------- 소리 ----------
 let ac;
 function audio() {
@@ -599,6 +636,7 @@ function success(x, y, sound = cheer) {
 }
 function finish() {
   clearStage(); $('#guide').hidden = true;
+  say('참 잘했어요');
   const d = document.createElement('div'); d.id = 'done'; d.innerHTML = '<b>끝</b><span>왼쪽 위 ←를 1초 누르면 다음 단계를 고를 수 있습니다</span>';
   stage.appendChild(d);
   burst(innerWidth / 2, innerHeight / 2);
@@ -1038,6 +1076,8 @@ function refresh() {
   const l = level();
   $('#curlv').innerHTML = `<b>${GRADE[S.grade]} ${DEV[S.dev]} ${S.lv}단계 · ${l.name}</b>${l.desc}`;
   document.body.classList.toggle('calm', S.calm === 'on');
+  document.body.classList.toggle('big', S.big === 'on');
+  document.body.classList.toggle('hc', S.hc === 'on');
 }
 $('#detail').addEventListener('click', e => {
   if (e.target === $('#detail')) { $('#detail').hidden = true; return; }
@@ -1050,6 +1090,7 @@ $('#reset').addEventListener('click', () => { count = 0; done = false; $('#count
 $('#more').addEventListener('click', () => { refresh(); $('#detail').hidden = false; });
 $('#less').addEventListener('click', () => { $('#detail').hidden = true; renderHome(); });
 $('#start').addEventListener('click', begin);
+$('#sayagain').addEventListener('click', e => { e.stopPropagation(); say(guideText(), true); });
 
 // 처음 열었을 때 한 번, 그리고 「사용 가이드」를 누를 때
 function showHelp() { $('#help').hidden = false; }
@@ -1078,6 +1119,8 @@ function begin() {
   $('#where').hidden = false;
   $('#where').innerHTML = `${GRADE[S.grade]} ${DEV[S.dev]} ${S.lv}단계<small>← 를 1초 누르고 있으면 단계 고르기</small><small>전체 화면을 끄려면 Esc</small>`;
   $('#guide').textContent = guideText(); $('#guide').hidden = false;
+  $('#sayagain').hidden = false;
+  say(guideText());
   stage.querySelector('#starttip')?.remove();   // 시작하고 몇 초만 크게 알려 준다
   const tip = document.createElement('div'); tip.id = 'starttip';
   tip.innerHTML = '나가기 <b>← 1초 누르기</b> · 전체 화면 끄기 <b>Esc</b>';
@@ -1093,7 +1136,8 @@ function openPanel() {
   clearTimeout(timer); clearStage(); pointers.clear();
   document.getElementById('starttip')?.remove();
   gear.classList.remove('holding'); gear.hidden = true; panel.hidden = false;
-  $('#dots').hidden = true; $('#where').hidden = true; $('#guide').hidden = true; $('#detail').hidden = true;
+  $('#dots').hidden = true; $('#where').hidden = true; $('#guide').hidden = true; $('#sayagain').hidden = true; $('#detail').hidden = true;
+  hush();
   renderHome(); refresh();
 }
 
