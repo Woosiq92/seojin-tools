@@ -199,6 +199,36 @@ body.hc #guide{border-width:.6vmin}
 #kbnote{position:absolute;left:50%;bottom:1.4vh;transform:translateX(-50%);font-size:2.6vmin;
   color:var(--muted);pointer-events:none}
 
+/* ---------- 도장판 · 면허증 ---------- */
+#stamps{display:flex;align-items:center;gap:12px;margin-top:4px;padding:14px 18px;border:2px dashed var(--line);border-radius:18px;background:var(--side)}
+#stamps b{font-size:16px}
+#stamps .slots{display:flex;gap:8px;flex-wrap:wrap}
+#stamps .slots i{display:grid;place-items:center;width:42px;height:42px;border-radius:50%;border:2px dashed var(--line);font-style:normal;font-size:19px;color:var(--dim)}
+#stamps .slots i.on{border:2px solid var(--go);background:#E4F2EA;color:#14633C}
+#stamps .cnt{margin-left:auto;font-size:14px;color:var(--muted)}
+#done .mark{display:grid;place-items:center;width:28vmin;height:28vmin;border-radius:50%;border:1vmin solid var(--go);
+  color:#14633C;font-family:var(--display);font-size:4vmin;line-height:1.2;text-align:center;transform:rotate(-12deg);
+  animation:stampin .5s cubic-bezier(.2,1.6,.4,1)}
+#done .mark span{display:block;font-size:9vmin}
+@keyframes stampin{from{transform:rotate(-12deg) scale(2.2);opacity:0}}
+#license{position:fixed;inset:0;z-index:36;display:grid;place-items:center;padding:24px;background:rgba(29,42,48,.62);overflow:auto}
+#license .card{width:min(560px,100%);border-radius:20px;border:3px solid var(--go);background:var(--side);overflow:hidden}
+#license .top{display:flex;align-items:baseline;justify-content:space-between;padding:14px 20px;background:var(--go);color:#fff;font-family:var(--display);font-size:22px}
+#license .top small{font-size:13px;opacity:.9}
+#license .body{display:flex;gap:18px;padding:18px 20px;align-items:center}
+#license .photo{display:grid;place-items:center;width:96px;height:112px;border-radius:12px;border:2px solid var(--line);background:var(--sunk);font-size:44px}
+#license dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:6px 14px}
+#license dt{color:var(--muted);font-size:14px}
+#license dd{margin:0;font-family:var(--display);font-size:17px}
+#license .foot{padding:0 20px 18px;display:flex;flex-direction:column;gap:10px}
+#license .foot .slots{display:flex;gap:8px;flex-wrap:wrap}
+#license .foot .slots i{display:grid;place-items:center;width:38px;height:38px;border-radius:50%;border:2px solid var(--go);background:#E4F2EA;font-style:normal;font-size:17px}
+#license p{margin:0;font-size:15px;line-height:1.5}
+#license .row{display:flex;gap:10px;justify-content:flex-end;margin-top:4px}
+#license .row button{padding:12px 22px;border:1.5px solid var(--line);border-radius:12px;background:var(--side);font-size:16px;cursor:pointer}
+#license .row .ok{border:0;background:var(--accent);color:#fff;font-weight:800}
+@media print{body>*{display:none!important}#license{position:static;display:block;background:none;padding:0}#license .row{display:none}}
+
 /* ---------- 처음 도움말 ---------- */
 #help{position:fixed;inset:0;z-index:35;display:grid;place-items:center;padding:24px;background:rgba(29,42,48,.62);overflow:auto}
 #help .card{width:min(680px,100%);padding:30px 32px;border-radius:20px;background:var(--side);border:1px solid var(--line)}
@@ -303,8 +333,21 @@ body.adv #detail h3.adv,body.adv #detail p.adv{display:block}
         <p id="devtip"></p>
       </header>
       <div id="lvls" class="lvlist"></div>
+      <div id="stamps"><b>오늘 도장판</b><div class="slots"></div><span class="cnt"></span></div>
       <p class="note">단계를 누르면 바로 전체 화면으로 시작합니다. 전체 화면을 끄려면 Esc를 누릅니다. 활동 중 왼쪽 위 ←를 1초 누르면 이 화면으로 돌아옵니다. 다음 단계로 갈지, 같은 단계를 다시 할지는 학생을 보고 정하세요.</p>
     </main>
+  </div>
+
+  <div id="license" hidden>
+    <div class="card">
+      <div class="top">디지털 운전면허증 <small>서진학교 디지털 소양 교육</small></div>
+      <div class="body"><div class="photo">🏅</div>
+        <dl><dt>받은 날</dt><dd id="lic-date"></dd><dt>수준</dt><dd id="lic-grade"></dd></dl></div>
+      <div class="foot"><div class="slots" id="lic-slots"></div>
+        <p>나는 터치스크린 · 마우스 · 키보드를 쓸 수 있고, 인터넷에서 안전하게 다니며, 친구에게 고운 말을 할 수 있어요.</p>
+        <div class="row"><button id="lic-print">인쇄하기</button><button class="ok" id="lic-close">닫기</button></div>
+      </div>
+    </div>
   </div>
 
   <div id="help" hidden>
@@ -751,7 +794,10 @@ function success(x, y, sound = cheer) {
 function finish() {
   clearStage(); $('#guide').hidden = true;
   say('참 잘했어요');
-  const d = document.createElement('div'); d.id = 'done'; d.innerHTML = '<b>끝</b><span>왼쪽 위 ←를 1초 누르면 다음 단계를 고를 수 있습니다</span>';
+  stamps[S.dev] = true;
+  const d = document.createElement('div'); d.id = 'done';
+  d.innerHTML = `<div class="mark"><span>${DEV_EMOJI[S.dev]}</span>참 잘했어요</div>` +
+    '<b>끝</b><span>왼쪽 위 ←를 1초 누르면 다음 단계를 고를 수 있습니다</span>';
   stage.appendChild(d);
   burst(innerWidth / 2, innerHeight / 2);
   [0, 2, 4, 5].forEach((n, i) => tone(PENTA[n], i * .15, .8, .45));
@@ -1284,6 +1330,27 @@ function hideVideo() {
 $('#vidclose').addEventListener('click', hideVideo);
 $('#player').addEventListener('click', e => { if (e.target === $('#player')) hideVideo(); });
 
+// 도장은 이 시간 동안만 모인다. 새로고침하면 사라진다(학생 기록을 남기지 않는 원칙)
+const DEV_EMOJI = {touch:'👆', mouse:'🖱️', key:'⌨️', net:'🌐', safe:'🚦', talk:'💬'};
+const stamps = {};
+function renderStamps() {
+  const keys = Object.keys(DEV);
+  $('#stamps .slots').innerHTML = keys.map(k =>
+    `<i class="${stamps[k] ? 'on' : ''}" title="${DEV[k]}">${stamps[k] ? DEV_EMOJI[k] : ''}</i>`).join('');
+  const n = keys.filter(k => stamps[k]).length;
+  $('#stamps .cnt').textContent = n === keys.length ? '도장을 모두 모았어요!' : `도장 ${n} / ${keys.length}`;
+}
+function showLicense() {
+  const d = new Date();
+  $('#lic-date').textContent = `${d.getFullYear()}. ${d.getMonth() + 1}. ${d.getDate()}.`;
+  $('#lic-grade').textContent = GRADE[S.grade];
+  $('#lic-slots').innerHTML = Object.keys(DEV).map(k => `<i>${DEV_EMOJI[k]}</i>`).join('');
+  $('#license').hidden = false;
+  say('축하해요! 디지털 운전면허증을 받았어요', true);
+}
+$('#lic-close').addEventListener('click', () => { $('#license').hidden = true; });
+$('#lic-print').addEventListener('click', () => { try { print(); } catch (e) {} });
+
 function renderHome() {
   $('#grades').querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.grade === S.grade)));
   $('#devs').querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.dev === S.dev)));
@@ -1292,6 +1359,7 @@ function renderHome() {
   // 「지금 단계」는 실제로 해 본 단계에만 붙인다(학교급·기기만 바꿨을 때는 없음)
   const here = S.played === `${S.grade}/${S.dev}/`, playedLv = here ? S.playedLv : 0;
   const nextLv = done && here && playedLv < LEVELS[S.grade][S.dev].length ? playedLv + 1 : 0;
+  renderStamps();
   $('#lvls').innerHTML = LEVELS[S.grade][S.dev].map((l, i) => {
     const n = i + 1, now = n === playedLv;
     const first = !S.played && n === 1;          // 아직 한 번도 안 해 봤으면 1단계를 가리킨다
@@ -1389,6 +1457,7 @@ function begin() {
 }
 function openPanel() {
   clearTimeout(timer); clearStage(); pointers.clear();
+  if (Object.keys(DEV).every(k => stamps[k]) && !$('#license').dataset.shown) { $('#license').dataset.shown = '1'; setTimeout(showLicense, 400); }
   document.getElementById('starttip')?.remove();
   gear.classList.remove('holding'); gear.hidden = true; panel.hidden = false;
   $('#dots').hidden = true; $('#where').hidden = true; $('#guide').hidden = true; $('#sayagain').hidden = true; $('#detail').hidden = true;
