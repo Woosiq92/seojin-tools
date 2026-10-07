@@ -179,16 +179,22 @@ body.hc #guide{border-width:.6vmin}
 .main h2{margin:0;font-size:28px;color:var(--cc,var(--text))}
 .main h2 small{margin-left:10px;font-size:16px;font-weight:600;color:var(--muted)}
 #devtip{margin:6px 0 0;font-size:15px;color:var(--muted)}
-#plan{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:4px}
-#plan button{display:flex;flex-direction:column;align-items:flex-start;gap:3px;padding:10px 12px;border:2px solid var(--line);
+#daytag{display:flex;align-items:center;gap:8px;margin:0 0 6px;font-size:14px;color:var(--muted)}
+#daytag .pill{padding:3px 11px;border-radius:999px;background:var(--cc,var(--accent));color:#fff;font-weight:700;font-size:13px}
+#daytag .swap{padding:5px 12px;border:1.5px solid var(--line);border-radius:999px;background:var(--side);font-size:13px;cursor:pointer}
+#daytag .swap[aria-pressed="true"]{border-color:var(--cc);color:var(--cc);font-weight:700}
+#plan{display:grid;gap:6px}
+#plan button{display:grid;grid-template-columns:auto 1fr;align-items:center;gap:2px 10px;padding:9px 12px;border:2px solid var(--line);
   border-radius:14px;background:var(--side);text-align:left;cursor:pointer;min-width:0}
-#plan button:hover{border-color:var(--cc,var(--accent))}
+#plan button:hover{border-color:var(--pc)}
+#plan .day{grid-row:span 2;display:grid;place-items:center;width:46px;height:40px;border-radius:10px;background:var(--pc);
+  color:#fff;font-size:12.5px;font-weight:700;line-height:1.2;text-align:center}
 #plan b{font-size:15px;font-family:var(--display);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
-#plan small{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
-#plan .day{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:700;color:#fff;background:var(--pc);
-  padding:2px 8px;border-radius:999px}
-#plan button[aria-pressed="true"]{border-color:var(--pc);box-shadow:0 6px 16px -12px var(--pc)}
+#plan small{grid-column:2;font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+#plan button[aria-pressed="true"]{border-color:var(--pc);background:color-mix(in srgb,var(--pc) 8%,var(--side))}
 #plan button.today b::after{content:' · 오늘';color:var(--pc)}
+.linkish{margin-top:8px;padding:0;border:0;background:none;color:var(--muted);font-size:13.5px;text-decoration:underline;cursor:pointer}
+.linkish:hover{color:var(--accent)}
 @media (max-width:860px){#plan{grid-template-columns:repeat(2,1fr)}}
 .lvlist{display:grid;gap:10px}
 .lvlist .row{display:flex;gap:8px}
@@ -297,6 +303,15 @@ body.adv #detail h3.adv,body.adv #detail p.adv{display:block}
   .lvlist b{font-size:18px}
 }
 @media (max-height:900px) and (min-width:861px){
+  .side{gap:10px;padding:16px 20px}
+  .side .what{font-size:14px}
+  .foot .ghost{padding:8px 13px;font-size:14px}
+  .foot{gap:8px}
+  .note{font-size:12px}
+  #plan{gap:5px}
+  #plan button{padding:6px 10px}
+  #plan small{display:none}
+  #plan .day{width:40px;height:32px;font-size:11.5px}
   .devs{grid-template-columns:repeat(3,1fr);gap:6px}
   .devs button{padding:0 0 7px}
   #plan button{padding:7px 10px;gap:2px}
@@ -348,6 +363,11 @@ body.adv #detail h3.adv,body.adv #detail p.adv{display:block}
         <div class="seg" id="grades"><button data-grade="elem">초급</button><button data-grade="mid">중급</button><button data-grade="high">고급</button></div>
       </div>
       <div>
+        <span class="flab">무슨 날</span>
+        <div class="days" id="plan"></div>
+        <button id="bydev" class="linkish">날짜 말고 기기로 고르기</button>
+      </div>
+      <div id="devbox" hidden>
         <span class="flab">연습할 기기</span>
         <div class="devs" id="devs">
           <button data-dev="touch" style="--cc:var(--c-touch)"><span class="em">👆</span><b>터치스크린</b><span>손가락으로 누르고 끌기</span></button>
@@ -366,8 +386,8 @@ body.adv #detail h3.adv,body.adv #detail p.adv{display:block}
       </div>
     </aside>
     <main class="main">
-      <div id="plan"></div>
       <header>
+        <p id="daytag"></p>
         <h2 id="lvtitle"></h2>
         <p id="devtip"></p>
       </header>
@@ -461,6 +481,10 @@ body.adv #detail h3.adv,body.adv #detail p.adv{display:block}
           <span class="sub">차분하게: 흩어지는 불꽃 없이 둥근 테두리만 천천히 퍼집니다.</span>
         </div>
         <button id="advtoggle">자세한 설정 보기</button>
+        <div class="grp" style="margin-top:14px"><span class="lab">다음 반 준비</span>
+          <span id="resetwrap"><button id="resetall" class="ghost" style="padding:10px 16px;font-size:15px">처음 상태로</button></span>
+          <span class="sub">수준 · 기기 · 단계 · 소리 설정을 모두 처음으로 돌립니다. 다음 반 수업 전에 한 번 누르세요.</span>
+        </div>
         <p class="note">소리가 안 나면 학교 PC 음량과 칠판 스피커를 먼저 확인하세요.</p>
       </div>
       <footer>
@@ -628,7 +652,13 @@ for (const g of Object.keys(LEVELS)) for (const d of Object.keys(LEVELS[g])) {
 }
 const DEF = {grade:'elem', dev:'touch', lv:1, act:'tap0', ...BASE, zone:'all', sound:'on', vol:'mid', calm:'off', voice:'on', big:'off', hc:'off', helpsec:'10', mouse:'auto', gap:'short', delay:'mid', goal:'10'};
 let S = {...DEF};
-try { Object.assign(S, JSON.parse(localStorage.getItem('sonkkeut-settings') || '{}')); } catch (e) {}
+let saved = null;
+try { saved = JSON.parse(localStorage.getItem('sonkkeut-settings') || 'null'); } catch (e) {}
+if (saved) Object.assign(S, saved);
+// 패드처럼 마우스가 없는 기기로 처음 열면 음성은 꺼 둔다(여러 대가 함께 말하면 시끄럽다)
+const touchOnly = () => !matchMedia('(any-pointer: fine)').matches;
+function firstRunVoice(isTouchOnly) { if (!saved && isTouchOnly) S.voice = 'off'; }
+firstRunVoice(touchOnly());
 const save = () => { try { localStorage.setItem('sonkkeut-settings', JSON.stringify(S)); } catch (e) {} };
 const level = () => LEVELS[S.grade][S.dev][S.lv - 1];
 function applyLevel(grade, dev, lv) {
@@ -1532,11 +1562,27 @@ function renderPlan() {
   const today = new Date().toISOString().slice(0, 10);
   $('#plan').innerHTML = PLAN.map((p, i) => {
     const on = p.devs.includes(S.dev);
+    const [d1, d2] = p.day.split(' ');
     return `<button data-plan="${i}" style="--pc:var(${DEV_COLOR[p.devs[0]]})"${on ? ' aria-pressed="true"' : ''}` +
-      `${p.date === today ? ' class="today"' : ''}><span class="day">${p.day}</span><b>${p.title}</b>` +
-      `<small>${p.devs.map(d => DEV[d]).join(' · ')} · ${p.sub}</small></button>`;
+      `${p.date === today ? ' class="today"' : ''}><span class="day">${d2}<br>${d1}</span><b>${p.title}</b>` +
+      `<small>${p.devs.map(d => DEV_EMOJI[d] + ' ' + DEV[d]).join(' · ')}</small></button>`;
   }).join('');
+  // 오른쪽 머리말: 그날 주제와, 그날 기기가 둘이면 바꾸는 칩
+  const p = PLAN.find(x => x.devs.includes(S.dev));
+  $('#daytag').innerHTML = !p ? '<span class="pill">기기로 고르기</span>'
+    : `<span class="pill">${p.day}</span>${p.title}` +
+      (p.devs.length > 1 ? ' ' + p.devs.map(d =>
+        `<button class="swap" data-swap="${d}"${d === S.dev ? ' aria-pressed="true"' : ''}>${DEV_EMOJI[d]} ${DEV[d]}</button>`).join('') : '');
 }
+$('#daytag').addEventListener('click', e => {
+  const b = e.target.closest('[data-swap]'); if (!b) return;
+  applyLevel(S.grade, b.dataset.swap, 1); done = false; save(); renderHome();
+});
+$('#bydev').addEventListener('click', () => {
+  const box = $('#devbox');
+  box.hidden = !box.hidden;
+  $('#bydev').textContent = box.hidden ? '날짜 말고 기기로 고르기' : '기기 목록 접기';
+});
 $('#plan').addEventListener('click', e => {
   const b = e.target.closest('[data-plan]'); if (!b) return;
   const p = PLAN[+b.dataset.plan];
@@ -1572,8 +1618,14 @@ $('#grades').addEventListener('click', e => {
 });
 $('#devs').addEventListener('click', e => {
   const b = e.target.closest('[data-dev]'); if (!b) return;
-  applyLevel(S.grade, b.dataset.dev, 1); done = false; save(); renderHome();
+  applyLevel(S.grade, b.dataset.dev, 1); done = false; save();
+  closeDevList();                                     // 고르고 나면 목록은 접는다
+  renderHome();
 });
+function closeDevList() {
+  $('#devbox').hidden = true;
+  $('#bydev').textContent = '날짜 말고 기기로 고르기';
+}
 $('#lvls').addEventListener('click', e => {
   const v = e.target.closest('[data-vid]');
   if (v) { showVideo(v.dataset.vid, v.dataset.vidname); return; }
@@ -1608,6 +1660,29 @@ $('#more').addEventListener('click', () => { refresh(); $('#detail').hidden = fa
 $('#less').addEventListener('click', () => { $('#detail').hidden = true; renderHome(); });
 $('#start').addEventListener('click', begin);
 $('#soundtest').addEventListener('click', e => { e.stopPropagation(); audio(); cheer(); });
+// 처음 상태로: 실수로 눌러도 한 번 더 물어본다
+$('#resetwrap').addEventListener('click', e => {
+  const b = e.target.closest('button'); if (!b) return;
+  if (b.id === 'resetall') {
+    $('#resetwrap').innerHTML = '<button id="resetyes" class="ghost" style="padding:10px 16px;font-size:15px;border-color:#CC3B2B;color:#A32B1F">정말 되돌릴까요?</button>' +
+      '<button id="resetno" class="ghost" style="padding:10px 16px;font-size:15px;margin-left:8px">그만두기</button>';
+    return;
+  }
+  if (b.id === 'resetno') { $('#resetwrap').innerHTML = '<button id="resetall" class="ghost" style="padding:10px 16px;font-size:15px">처음 상태로</button>'; return; }
+  if (b.id === 'resetyes') {
+    try { localStorage.removeItem('sonkkeut-settings'); localStorage.removeItem('sonkkeut-help'); } catch (err) {}
+    S = {...DEF};
+    saved = null;                                   // 처음 설치한 것과 같게 본다
+    firstRunVoice(touchOnly());
+    applyLevel(S.grade, S.dev, S.lv);
+    count = 0; done = false; $('#count').textContent = 0;
+    document.body.classList.remove('adv');
+    $('#detail').hidden = true;
+    renderHome(); refresh();
+    $('#resetwrap').innerHTML = '<button id="resetall" class="ghost" style="padding:10px 16px;font-size:15px">처음 상태로</button>';
+    say('처음 상태로 돌렸어요', true);
+  }
+});
 $('#sayagain').addEventListener('click', e => { e.stopPropagation(); say(guideText(), true); });
 
 // 처음 열었을 때 한 번, 그리고 「사용 가이드」를 누를 때
