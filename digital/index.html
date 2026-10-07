@@ -123,7 +123,9 @@ body.hc #guide{border-width:.6vmin}
   padding:12px 20px;border-radius:999px;background:var(--side);border:2px solid var(--accent);font-size:16px;box-shadow:0 10px 24px -16px rgba(29,42,48,.6)}
 #fsback button{padding:9px 16px;border:0;border-radius:10px;background:var(--accent);color:#fff;font-weight:700;cursor:pointer}
 #dots{position:fixed;top:1.2vmin;left:50%;transform:translateX(-50%);display:flex;gap:.8vmin;pointer-events:none;z-index:2}
-#dots i{width:2vmin;height:2vmin;border-radius:50%;background:var(--sunk);border:.25vmin solid var(--line);transition:background .3s}
+#dots i{display:grid;place-items:center;width:2vmin;height:2vmin;border-radius:50%;background:var(--sunk);border:.25vmin solid var(--line);transition:background .3s;font-style:normal;font-size:1.4vmin}
+#dots i:not(:empty){width:4.6vmin;height:4.6vmin;font-size:2.6vmin;opacity:.45}
+#dots i:not(:empty).on{opacity:1;background:#E4F2EA;border-color:var(--go)}
 #dots i.on{background:var(--go);border-color:var(--go)}
 #done{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:flex;flex-direction:column;align-items:center;gap:4vmin;pointer-events:none;animation:fade .6s ease-out}
 #done b{font-size:30vmin;font-weight:800;line-height:1;color:var(--cc,var(--accent))}
@@ -295,6 +297,8 @@ body.adv #detail h3.adv,body.adv #detail p.adv{display:block}
   .lvlist b{font-size:18px}
 }
 @media (max-height:900px) and (min-width:861px){
+  .devs{grid-template-columns:repeat(3,1fr);gap:6px}
+  .devs button{padding:0 0 7px}
   #plan button{padding:7px 10px;gap:2px}
   #plan b{font-size:13.5px}
   #plan small{display:none}
@@ -426,6 +430,10 @@ body.adv #detail h3.adv,body.adv #detail p.adv{display:block}
         <div class="grp"><span class="lab">막혔을 때 도움</span>
           <div class="chips" data-opt="helpsec"><button data-val="off">없음</button><button data-val="10">10초 뒤</button><button data-val="20">20초 뒤</button></div>
           <span class="sub">학생이 한참 못 맞히면 눌러야 할 곳이 반짝이고 안내를 다시 들려줍니다. 틀렸다고 알리는 것이 아닙니다.</span>
+        </div>
+        <div class="grp adv"><span class="lab">마우스 쓰기</span>
+          <div class="chips" data-opt="mouse"><button data-val="auto">자동</button><button data-val="on">씀</button><button data-val="off">안 씀</button></div>
+          <span class="sub">패드만 쓰는 교실이면 「안 씀」으로 두세요. 챔피언 미션에서 마우스 활동이 빠집니다.</span>
         </div>
         <h3>말소리와 보기</h3>
         <div class="grp"><span class="lab">목소리 안내</span>
@@ -614,7 +622,7 @@ for (const g of Object.keys(LEVELS)) for (const d of Object.keys(LEVELS[g])) {
   const list = LEVELS[g][d];
   if (!list.some(l => l.set.act === 'mix')) list.push(L('섞어서 해 보기', '앞의 단계들이 돌아가며 나옵니다.', {act:'mix'}));
 }
-const DEF = {grade:'elem', dev:'touch', lv:1, act:'tap0', ...BASE, zone:'all', sound:'on', vol:'mid', calm:'off', voice:'on', big:'off', hc:'off', helpsec:'10', gap:'short', delay:'mid', goal:'10'};
+const DEF = {grade:'elem', dev:'touch', lv:1, act:'tap0', ...BASE, zone:'all', sound:'on', vol:'mid', calm:'off', voice:'on', big:'off', hc:'off', helpsec:'10', mouse:'auto', gap:'short', delay:'mid', goal:'10'};
 let S = {...DEF};
 try { Object.assign(S, JSON.parse(localStorage.getItem('sonkkeut-settings') || '{}')); } catch (e) {}
 const save = () => { try { localStorage.setItem('sonkkeut-settings', JSON.stringify(S)); } catch (e) {} };
@@ -843,8 +851,14 @@ function burst(x, y) {
 // ---------- 진행 ----------
 let count = 0, last = 0, busy = false, timer = 0, done = false;
 let cur = {};                                            // 지금 문제의 정답 정보
-const goal = () => +S.goal || 0;                         // 0 = 끝없이
+const goal = () => (mixList && mixList[0]?.dev) ? mixList.length : (+S.goal || 0);   // 챔피언은 기기 수만큼
+function champDots(i) {                                   // 기기 아이콘으로 진행을 보여 준다
+  const el = $('#dots');
+  el.hidden = false;
+  el.innerHTML = mixList.map((m, k) => `<i class="${k < count ? 'on' : ''}" title="${DEV[m.dev]}">${DEV_EMOJI[m.dev]}</i>`).join('');
+}
 function dots() {
+  if (mixList && mixList[0]?.dev) return champDots();      // 챔피언은 아이콘 칸
   const n = goal(), el = $('#dots');
   el.hidden = !n;
   el.innerHTML = Array.from({length:n}, (_, i) => i < count ? '<i class="on"></i>' : '<i></i>').join('');
@@ -1011,13 +1025,19 @@ const pickOneNot = (list, prev) => shuffle(list.filter(x => x !== prev))[0] || l
 // ---------- 문제 내기 ----------
 // 「섞어서 해 보기」: 같은 수준·같은 기기의 앞 단계들을 돌아가며 낸다(수준을 넘나들지 않는다)
 let mixList = null;
+const LONG = set => set.act === 'chat' || (set.act === 'word' && (set.words === 'two' || set.enter === 'on'))
+  || (set.act === 'net' && set.step === 'all');            // 한 라운드가 길어지는 활동은 챔피언에서 뺀다
+const useMouse = () => S.mouse === 'on' || (S.mouse === 'auto' && matchMedia('(any-pointer: fine)').matches);
 function setMix() {
   const act = level()?.set.act;
   const grade = LEVELS[S.grade] || {};
-  if (act === 'champ') {                                   // 한 주 통합: 모든 기기에서
-    mixList = Object.keys(grade).filter(d => d !== 'champ')
-      .flatMap(d => grade[d].filter(l => !['mix', 'champ'].includes(l.set.act)).map(l => ({...l.set, dev:d})));
-    mixList = shuffle(mixList);
+  if (act === 'champ') {                                   // 한 주 통합: 기기마다 하나씩, 차례대로
+    const order = ['touch', 'mouse', 'key', 'net', 'safe', 'talk'].filter(d => d !== 'mouse' || useMouse());
+    mixList = order.map(d => {
+      const pool = (grade[d] || []).filter(l => !['mix', 'champ'].includes(l.set.act) && !LONG(l.set));
+      const pick = shuffle(pool)[0];
+      return pick ? {...pick.set, dev:d, title:pick.name} : null;
+    }).filter(Boolean);
   } else if (act === 'mix') {
     mixList = (grade[S.dev] || []).filter(l => l.set.act !== 'mix').map(l => l.set);
   } else mixList = null;
@@ -1027,9 +1047,19 @@ function spawn() {
   clearStage(); busy = false;
   setTimeout(scheduleHelp, 50);
   if (mixList && mixList.length) {
-    const set = mixList[(spawn.mix = (spawn.mix || 0) + 1) % mixList.length];
+    const i = (spawn.mix = (spawn.mix || 0)) % mixList.length;
+    spawn.mix++;
+    const set = mixList[i];
+    const keepDev = S.dev;
     Object.assign(S, BASE, set);
-    if (set.dev) { S.dev = set.dev; paintDev(); }           // 챔피언은 기기도 바뀐다
+    S.dev = keepDev;                                        // 고른 기기는 그대로 둔다
+    cur.dev = set.dev || keepDev;
+    paintDev(cur.dev);
+    if (set.dev) {                                          // 챔피언: 지금 어느 기기인지 왼쪽 위에 보여 준다
+      $('#where').innerHTML = `${GRADE[S.grade]} 챔피언 · ${DEV[set.dev]}<small>${set.title || ''}</small>` +
+        '<small>← 를 1초 누르고 있으면 단계 고르기</small>';
+      champDots(i);
+    }
   }
   const a = S.act;
   cur.act = a;
@@ -1246,7 +1276,7 @@ function handleDevice(b) {
 }
 
 // ---------- 터치·마우스 ----------
-const mouseOnly = () => S.dev === 'mouse';
+const mouseOnly = () => (cur.dev || S.dev) === 'mouse';
 const pointers = new Map();
 stage.addEventListener('pointerdown', e => {
   if (!panel.hidden || done) return;
@@ -1456,8 +1486,8 @@ $('#vidclose').addEventListener('click', hideVideo);
 $('#player').addEventListener('click', e => { if (e.target === $('#player')) hideVideo(); });
 
 const DEV_COLOR = {touch:'--c-touch', mouse:'--c-mouse', key:'--c-key', net:'--c-net', safe:'--c-safe', talk:'--c-talk', champ:'--c-champ'};
-function paintDev() {
-  const c = `var(${DEV_COLOR[S.dev] || '--accent'})`;
+function paintDev(dev) {
+  const c = `var(${DEV_COLOR[dev || S.dev] || '--accent'})`;
   document.body.style.setProperty('--cc', c);
 }
 const DEV_EMOJI = {touch:'👆', mouse:'🖱️', key:'⌨️', net:'🌐', safe:'🚦', talk:'💬', champ:'🏆'};
