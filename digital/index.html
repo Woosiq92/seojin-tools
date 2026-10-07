@@ -550,7 +550,7 @@ const LEVELS = {
     mouse:[
       L('더블클릭', '작은 모양 위에서 빠르게 두 번 클릭합니다.', {act:'dbl', size:'M'}),
       L('오른쪽 클릭', '작은 모양 위에서 오른쪽 단추를 누릅니다.', {act:'rclick', size:'M'}),
-      L('휠 굴리기', '마우스 가운데 휠을 굴려 아래에 숨은 모양을 화면 가운데로 올립니다. 긴 화면을 내려 볼 때 쓰는 동작입니다.', {act:'scroll', size:'L'}),
+      L('휠 굴리기', '가운데 휠을 굴려 아래 모양을 가운데로 올립니다. 긴 화면을 내려 볼 때 씁니다.', {act:'scroll', size:'L'}),
       L('작게 끌어다 넣기', '작은 모양을 상자까지 정확히 옮깁니다.', {act:'drag', size:'S'}),
       L('순서대로 클릭', '1, 2, 3 순서대로 클릭합니다.', {act:'seq', size:'M'})
     ],
@@ -708,20 +708,25 @@ const WORDS = {
 };
 const SYL_V = 'ㅏㅓㅗㅜㅡㅣ';
 // 안전: 눌러도 되는 것과 누르지 않는 것
+// lv: easy 한눈에 아는 것 · mid 섞어서 · hard 헷갈리게 만든 것
 const SAFE_CARDS = [
-  // hard: 한눈에 가리기 어려운 것(헷갈리게 만든 광고·창)
-  {ok:1, pic:'📚', t:'선생님이 알려 준 공부 누리집'},
-  {ok:1, pic:'🔙', t:'뒤로 가기 단추'},
-  {ok:1, pic:'🏠', t:'처음으로 단추'},
-  {ok:1, pic:'▶️', t:'다음 쪽으로 가는 단추'},
-  {ok:0, pic:'🎁', t:'번쩍이는 「무료 선물」 광고'},
-  {ok:0, pic:'👤', t:'모르는 사람이 보낸 친구 신청'},
-  {ok:0, pic:'💰', t:'「돈을 드려요」 라는 메시지'},
-  {ok:0, pic:'⚠️', t:'「지금 누르세요」 무서운 경고 창'},
-  {ok:1, pic:'🔊', t:'소리를 키우는 단추', hard:1},
-  {ok:0, pic:'🪧', t:'「공짜 게임」 이라고 적힌 큰 그림', hard:1},
-  {ok:0, pic:'📩', t:'모르는 사람이 보낸 쪽지 「열어 보세요」', hard:1},
-  {ok:1, pic:'⏸️', t:'영상을 잠깐 멈추는 단추', hard:1}
+  {ok:1, lv:'easy', pic:'🏠', t:'처음으로 단추'},
+  {ok:1, lv:'easy', pic:'🔙', t:'뒤로 가기 단추'},
+  {ok:1, lv:'easy', pic:'▶️', t:'다음 쪽으로 가는 단추'},
+  {ok:0, lv:'easy', pic:'⚠️', t:'「지금 누르세요」 무서운 경고 창'},
+  {ok:0, lv:'easy', pic:'🎁', t:'번쩍이는 「무료 선물」 광고'},
+  {ok:0, lv:'easy', pic:'💰', t:'「돈을 드려요」 라는 메시지'},
+  {ok:1, lv:'mid', pic:'📚', t:'선생님이 알려 준 공부 누리집'},
+  {ok:1, lv:'mid', pic:'🔊', t:'소리를 키우는 단추'},
+  {ok:1, lv:'mid', pic:'⏸️', t:'영상을 잠깐 멈추는 단추'},
+  {ok:0, lv:'mid', pic:'👤', t:'모르는 사람이 보낸 친구 신청'},
+  {ok:0, lv:'mid', pic:'📩', t:'모르는 사람이 보낸 쪽지 「열어 보세요」'},
+  {ok:0, lv:'mid', pic:'🔔', t:'「알림을 켜 주세요」 하고 계속 뜨는 창'},
+  {ok:1, lv:'hard', pic:'🔎', t:'학교 누리집에서 글자를 크게 하는 단추'},
+  {ok:1, lv:'hard', pic:'📺', t:'선생님이 틀어 준 영상의 다시 보기 단추'},
+  {ok:0, lv:'hard', pic:'🪧', t:'「공짜 게임」 이라고 적힌 큰 그림'},
+  {ok:0, lv:'hard', pic:'🏆', t:'「축하합니다, 당첨!」 하고 반짝이는 창'},
+  {ok:0, lv:'hard', pic:'📷', t:'「사진을 보내 주세요」 라는 메시지'}
 ];
 // 안전: 알려 줘도 되는 것과 비밀로 지킬 것
 const SECRET_CARDS = [
@@ -731,14 +736,19 @@ const SECRET_CARDS = [
   {ok:0, pic:'🔑', t:'비밀번호'},
   {ok:0, pic:'🏠', t:'우리 집 주소'},
   {ok:0, pic:'📞', t:'우리 집 전화번호'},
+  {ok:1, pic:'📚', t:'내가 좋아하는 책'},
+  {ok:0, pic:'📱', t:'우리 집 전화기 잠금 번호'},
   {ok:0, pic:'🪪', t:'내 생년월일', hard:1},
   {ok:0, pic:'🏫', t:'우리 반과 내 이름', hard:1},
-  {ok:1, pic:'⚽', t:'내가 잘하는 운동', hard:1}
+  {ok:1, pic:'⚽', t:'내가 잘하는 운동', hard:1},
+  {ok:0, pic:'📷', t:'내 얼굴 사진', hard:1}
 ];
 const POPUPS = [
   {pic:'👾', t:'「휴대폰이 고장났어요!」 창이 떴어요'},
   {pic:'🎰', t:'「축하합니다! 1등 당첨」 창이 떴어요'},
-  {pic:'😱', t:'무서운 그림이 갑자기 나왔어요'}
+  {pic:'😱', t:'무서운 그림이 갑자기 나왔어요'},
+  {pic:'🔗', t:'모르는 사람이 「여기를 눌러」 하고 보냈어요'},
+  {pic:'📣', t:'큰 소리가 갑자기 나왔어요'}
 ];
 const STOP_STEPS = [{em:'✋', t:'멈춰요'}, {em:'🙈', t:'화면을 덮어요'}, {em:'🙋', t:'선생님께 말해요'}];
 // 인터넷 마을
@@ -748,9 +758,11 @@ const NET_APPS_MORE = [{k:'mail', em:'✉️', t:'쪽지'}, {k:'map', em:'🗺�
 const NET_FAVS = ['학교 누리집', '동요 모음', '그림 사전'];
 // 메신저
 const MOODS = [{em:'😊', t:'기뻐요', re:'나도 기뻐!'}, {em:'😢', t:'슬퍼요', re:'괜찮아? 힘내!'},
-  {em:'😠', t:'화나요', re:'무슨 일 있었어?'}, {em:'😴', t:'졸려요', re:'나도 졸려'}, {em:'😮', t:'놀랐어요', re:'우와, 무슨 일이야?'}];
+  {em:'😠', t:'화나요', re:'무슨 일 있었어?'}, {em:'😴', t:'졸려요', re:'나도 졸려'}, {em:'😮', t:'놀랐어요', re:'우와, 무슨 일이야?'},
+  {em:'🤒', t:'아파요', re:'많이 아파? 선생님께 말하자'}, {em:'🥳', t:'신나요', re:'우와, 신난다!'}];
 const PIECES = [{em:'👋', t:'안녕', re:'안녕! 반가워'}, {em:'🙏', t:'고마워', re:'천만에!'},
-  {em:'🤝', t:'같이 놀자', re:'좋아! 같이 놀자'}, {em:'🙇', t:'미안해', re:'괜찮아, 친구야'}];
+  {em:'🤝', t:'같이 놀자', re:'좋아! 같이 놀자'}, {em:'🙇', t:'미안해', re:'괜찮아, 친구야'},
+  {em:'👍', t:'잘했어', re:'고마워! 너도 잘했어'}, {em:'🤗', t:'보고 싶어', re:'나도 보고 싶었어'}];
 const MANNERS_HARD = [
   {them:'내가 먼저 할래!', good:'그래, 네가 먼저 해. 다음은 나야', bad:'싫어, 내가 먼저야'},
   {them:'내 그림이 더 잘했지?', good:'둘 다 멋져!', bad:'내 것이 훨씬 낫지'},
@@ -1043,6 +1055,9 @@ function setMix() {
   } else mixList = null;
   spawn.mix = 0;
 }
+function refreshGuide(speak) {
+  if (panel.hidden) { $('#guide').textContent = guideText(); if (speak) say(guideText()); }
+}
 function spawn() {
   clearStage(); busy = false;
   setTimeout(scheduleHelp, 50);
@@ -1132,8 +1147,8 @@ function spawn() {
     stage.appendChild(keyboardPic(S.pool === 'num' ? ROWS.num : ROWS.letters, S.hint === 'on' ? cur.code : ''));
     kbNote();
   } else if (a === 'traffic') {
-    const pool = S.pool2 === 'easy' ? SAFE_CARDS.filter(c => !c.hard).filter((c, i) => i % 2 === 0)
-      : S.pool2 === 'hard' ? SAFE_CARDS : SAFE_CARDS.filter(c => !c.hard);
+    const pool = S.pool2 === 'easy' ? SAFE_CARDS.filter(c => c.lv === 'easy')
+      : S.pool2 === 'hard' ? SAFE_CARDS : SAFE_CARDS.filter(c => c.lv !== 'hard');
     const c = pickOneNot(pool, spawn.prevCard); spawn.prevCard = c; cur.card = c;
     showCard(c.pic, c.t);
     showPicks([{em:'🟢', t:'괜찮아요', ok:c.ok ? 1 : 0, cls:'go'}, {em:'🔴', t:'누르지 않아요', ok:c.ok ? 0 : 1, cls:'stop'}]);
@@ -1207,6 +1222,16 @@ function spawn() {
     stage.appendChild(big);
     drawTyping();
   }
+  refreshGuide();
+  setTimeout(sayScreen, 120);
+}
+// B) 글을 못 읽는 학생을 위해 카드 글과 친구 말도 읽어 준다
+function sayScreen() {
+  const parts = [guideText()];
+  const card = $('#card'); if (card) parts.push(card.querySelector('p')?.textContent || '');
+  const them = stage.querySelector('#chat .them'); if (them) parts.push(them.textContent);
+  const ask = stage.querySelector('#chat .ask'); if (ask) parts.push(ask.childNodes[0]?.textContent || '');
+  say(parts.filter(Boolean).join('. '));
 }
 function drawTyping() {
   let n = cur.pos, out = '';
