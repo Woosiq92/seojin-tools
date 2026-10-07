@@ -9,7 +9,7 @@
 <style>
 :root{--bg:#EEF4F0;--side:#FFFFFF;--card:#FFFFFF;--sunk:#E3ECE7;--line:#CCDAD3;--text:#1D2A30;--muted:#55656C;--dim:#7A8A90;
   --accent:#E36E24;--accent-soft:#FBE7D8;--ink:#FFFFFF;--blue:#2E74BF;--go:#1F8C55;--hl:#F2B517;
-  --c-touch:#E36E24;--c-mouse:#2E74BF;--c-key:#8054C0;--c-net:#12837F;--c-safe:#CC3B2B;--c-talk:#B97D08;
+  --c-touch:#E36E24;--c-mouse:#2E74BF;--c-key:#8054C0;--c-net:#12837F;--c-safe:#CC3B2B;--c-talk:#B97D08;--c-champ:#1F8C55;
   --display:'Jua','Apple SD Gothic Neo','Malgun Gothic',sans-serif}
 *{box-sizing:border-box}
 html,body{margin:0;height:100%;overflow:hidden;overscroll-behavior:none}
@@ -177,6 +177,17 @@ body.hc #guide{border-width:.6vmin}
 .main h2{margin:0;font-size:28px;color:var(--cc,var(--text))}
 .main h2 small{margin-left:10px;font-size:16px;font-weight:600;color:var(--muted)}
 #devtip{margin:6px 0 0;font-size:15px;color:var(--muted)}
+#plan{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:4px}
+#plan button{display:flex;flex-direction:column;align-items:flex-start;gap:3px;padding:10px 12px;border:2px solid var(--line);
+  border-radius:14px;background:var(--side);text-align:left;cursor:pointer;min-width:0}
+#plan button:hover{border-color:var(--cc,var(--accent))}
+#plan b{font-size:15px;font-family:var(--display);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+#plan small{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+#plan .day{display:inline-flex;align-items:center;gap:5px;font-size:12px;font-weight:700;color:#fff;background:var(--pc);
+  padding:2px 8px;border-radius:999px}
+#plan button[aria-pressed="true"]{border-color:var(--pc);box-shadow:0 6px 16px -12px var(--pc)}
+#plan button.today b::after{content:' · 오늘';color:var(--pc)}
+@media (max-width:860px){#plan{grid-template-columns:repeat(2,1fr)}}
 .lvlist{display:grid;gap:10px}
 .lvlist .row{display:flex;gap:8px}
 .lvlist .row>button{border:2px solid var(--line);border-radius:18px;background:var(--card);cursor:pointer}
@@ -284,6 +295,9 @@ body.adv #detail h3.adv,body.adv #detail p.adv{display:block}
   .lvlist b{font-size:18px}
 }
 @media (max-height:900px) and (min-width:861px){
+  #plan button{padding:7px 10px;gap:2px}
+  #plan b{font-size:13.5px}
+  #plan small{display:none}
   .devs button .em{height:30px;font-size:18px}
   .devs b{font-size:15px}
   .side{gap:14px;padding:20px 22px}
@@ -334,6 +348,7 @@ body.adv #detail h3.adv,body.adv #detail p.adv{display:block}
           <button data-dev="net" style="--cc:var(--c-net)"><span class="em">🌐</span><b>인터넷</b><span>켜기 · 즐겨찾기 · 뒤로 · 찾아보기</span></button>
           <button data-dev="safe" style="--cc:var(--c-safe)"><span class="em">🚦</span><b>안전</b><span>눌러도 될까요 · 비밀 지키기</span></button>
           <button data-dev="talk" style="--cc:var(--c-talk)"><span class="em">💬</span><b>메신저</b><span>기분 보내기 · 고운 말 고르기</span></button>
+          <button data-dev="champ" style="--cc:var(--c-champ)"><span class="em">🏆</span><b>챔피언</b><span>한 주 복습 미션</span></button>
         </div>
       </div>
       <div class="foot">
@@ -343,6 +358,7 @@ body.adv #detail h3.adv,body.adv #detail p.adv{display:block}
       </div>
     </aside>
     <main class="main">
+      <div id="plan"></div>
       <header>
         <h2 id="lvtitle"></h2>
         <p id="devtip"></p>
@@ -457,14 +473,15 @@ const VOL = {low:.25, mid:.55, high:.9};
 // ---------- 단계: 학교급 × 기기 × 5 ----------
 // 단계는 활동과 활동 조건만 정한다. 소리·효과·속도·높이·횟수는 교사가 고른 대로 둔다
 const GRADE = {elem:'초급', mid:'중급', high:'고급'};
-const DEV = {touch:'터치스크린', mouse:'마우스', key:'키보드', net:'인터넷', safe:'안전', talk:'메신저'};
+const DEV = {touch:'터치스크린', mouse:'마우스', key:'키보드', net:'인터넷', safe:'안전', talk:'메신저', champ:'챔피언'};
 const TIP = {
   touch:'손가락으로 화면을 직접 만집니다.',
   mouse:'마우스 단계는 손가락 터치에 반응하지 않습니다. 마우스로만 할 수 있습니다.',
   key:'실제 키보드로 합니다. 화면 자판을 손으로 눌러도 됩니다.',
   net:'인터넷을 켜고, 즐겨찾기로 가고, 뒤로 돌아오고, 찾아보는 연습입니다.',
   safe:'눌러도 되는 것과 누르지 않을 것을 가립니다. 비밀로 지킬 것도 익힙니다.',
-  talk:'친구에게 기분과 마음을 전하고, 고운 말을 고르는 연습입니다.'
+  talk:'친구에게 기분과 마음을 전하고, 고운 말을 고르는 연습입니다.',
+  champ:'한 주 동안 배운 것이 모두 섞여 나옵니다. 주간 마무리 미션입니다.'
 };
 const L = (name, desc, set) => ({name, desc, set});
 const LEVELS = {
@@ -570,6 +587,12 @@ const EXTRA = g => {
         {act:'stop', nums:easy ? 'on' : 'off'}),
       L('섞어서 해 보기', '앞의 단계들이 돌아가며 나옵니다.', {act:'mix', pool2, nums:easy ? 'on' : 'off'})
     ],
+    champ:[
+      L('한 주 복습 미션', easy ? '한 주 동안 한 것이 모두 섞여 나옵니다. 도움 표시가 켜져 있습니다.'
+        : '한 주 동안 한 것이 모두 섞여 나옵니다.', {act:'champ', size:easy ? 'L' : 'M', nums:easy ? 'on' : 'off'}),
+      L('챔피언 도전', hard ? '도움 없이, 더 작은 모양과 헷갈리는 카드로 나옵니다.' : '조금 더 어렵게 나옵니다.',
+        {act:'champ', size:hard ? 'S' : 'M', hint:'off', nums:'off', pool2:hard ? 'hard' : 'all'})
+    ],
     talk:[
       L('기분 보내기', easy ? '기분 세 가지 가운데 골라 보냅니다.' : '기분 다섯 가지 가운데 골라 보냅니다.',
         {act:'mood', count:picks}),
@@ -587,6 +610,7 @@ const BASE = {size:'L', count:'3', key1:'Space', pool:'con', hint:'on', dirs:'2'
 for (const g of Object.keys(LEVELS)) Object.assign(LEVELS[g], EXTRA(g));
 // 기기마다 맨 끝에 「섞어서 해 보기」 한 단계(이미 있으면 두지 않는다)
 for (const g of Object.keys(LEVELS)) for (const d of Object.keys(LEVELS[g])) {
+  if (d === 'champ') continue;
   const list = LEVELS[g][d];
   if (!list.some(l => l.set.act === 'mix')) list.push(L('섞어서 해 보기', '앞의 단계들이 돌아가며 나옵니다.', {act:'mix'}));
 }
@@ -988,14 +1012,25 @@ const pickOneNot = (list, prev) => shuffle(list.filter(x => x !== prev))[0] || l
 // 「섞어서 해 보기」: 같은 수준·같은 기기의 앞 단계들을 돌아가며 낸다(수준을 넘나들지 않는다)
 let mixList = null;
 function setMix() {
-  const here = LEVELS[S.grade]?.[S.dev] || [];
-  mixList = (level()?.set.act === 'mix') ? here.filter(l => l.set.act !== 'mix').map(l => l.set) : null;
+  const act = level()?.set.act;
+  const grade = LEVELS[S.grade] || {};
+  if (act === 'champ') {                                   // 한 주 통합: 모든 기기에서
+    mixList = Object.keys(grade).filter(d => d !== 'champ')
+      .flatMap(d => grade[d].filter(l => !['mix', 'champ'].includes(l.set.act)).map(l => ({...l.set, dev:d})));
+    mixList = shuffle(mixList);
+  } else if (act === 'mix') {
+    mixList = (grade[S.dev] || []).filter(l => l.set.act !== 'mix').map(l => l.set);
+  } else mixList = null;
   spawn.mix = 0;
 }
 function spawn() {
   clearStage(); busy = false;
   setTimeout(scheduleHelp, 50);
-  if (mixList && mixList.length) Object.assign(S, BASE, mixList[(spawn.mix = (spawn.mix || 0) + 1) % mixList.length]);
+  if (mixList && mixList.length) {
+    const set = mixList[(spawn.mix = (spawn.mix || 0) + 1) % mixList.length];
+    Object.assign(S, BASE, set);
+    if (set.dev) { S.dev = set.dev; paintDev(); }           // 챔피언은 기기도 바뀐다
+  }
   const a = S.act;
   cur.act = a;
   const top = ZONE_TOP[S.zone];
@@ -1420,14 +1455,39 @@ function hideVideo() {
 $('#vidclose').addEventListener('click', hideVideo);
 $('#player').addEventListener('click', e => { if (e.target === $('#player')) hideVideo(); });
 
-const DEV_COLOR = {touch:'--c-touch', mouse:'--c-mouse', key:'--c-key', net:'--c-net', safe:'--c-safe', talk:'--c-talk'};
+const DEV_COLOR = {touch:'--c-touch', mouse:'--c-mouse', key:'--c-key', net:'--c-net', safe:'--c-safe', talk:'--c-talk', champ:'--c-champ'};
 function paintDev() {
   const c = `var(${DEV_COLOR[S.dev] || '--accent'})`;
   document.body.style.setProperty('--cc', c);
 }
-const DEV_EMOJI = {touch:'👆', mouse:'🖱️', key:'⌨️', net:'🌐', safe:'🚦', talk:'💬'};
+const DEV_EMOJI = {touch:'👆', mouse:'🖱️', key:'⌨️', net:'🌐', safe:'🚦', talk:'💬', champ:'🏆'};
+// 주간 운영 일정 (2026년 10월 12~16일)
+const PLAN = [
+  {date:'2026-10-12', day:'10.12 월', title:'톡톡! 터치스크린 친구', sub:'누르기 · 길게 · 밀기 · 끌어놓기 · 두 손가락', devs:['touch']},
+  {date:'2026-10-13', day:'10.13 화', title:'마우스랑 산책해요', sub:'따라가기 · 클릭 · 더블클릭 · 끌기 · 스크롤', devs:['mouse']},
+  {date:'2026-10-14', day:'10.14 수', title:'키보드 자리 찾기', sub:'자판 찾기 · 글자와 낱말 · 엔터 · 지우기', devs:['key']},
+  {date:'2026-10-15', day:'10.15 목', title:'인터넷 마을 안전 여행', sub:'인터넷 켜기 · 뒤로 · 안전한 것 가리기', devs:['net', 'safe']},
+  {date:'2026-10-16', day:'10.16 금', title:'온라인으로 인사해요 · 챔피언', sub:'기분 보내기 · 고운 말 · 한 주 복습', devs:['talk', 'champ']}
+];
+function renderPlan() {
+  const today = new Date().toISOString().slice(0, 10);
+  $('#plan').innerHTML = PLAN.map((p, i) => {
+    const on = p.devs.includes(S.dev);
+    return `<button data-plan="${i}" style="--pc:var(${DEV_COLOR[p.devs[0]]})"${on ? ' aria-pressed="true"' : ''}` +
+      `${p.date === today ? ' class="today"' : ''}><span class="day">${p.day}</span><b>${p.title}</b>` +
+      `<small>${p.devs.map(d => DEV[d]).join(' · ')} · ${p.sub}</small></button>`;
+  }).join('');
+}
+$('#plan').addEventListener('click', e => {
+  const b = e.target.closest('[data-plan]'); if (!b) return;
+  const p = PLAN[+b.dataset.plan];
+  const dev = p.devs.includes(S.dev) ? p.devs[(p.devs.indexOf(S.dev) + 1) % p.devs.length] : p.devs[0];
+  applyLevel(S.grade, dev, 1); done = false; save(); renderHome();
+});
+
 function renderHome() {
   paintDev();
+  renderPlan();
   $('#grades').querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.grade === S.grade)));
   $('#devs').querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.dev === S.dev)));
   $('#lvtitle').innerHTML = `${DEV[S.dev]}<small>${GRADE[S.grade]} · ${LEVELS[S.grade][S.dev].length}단계</small>`;
